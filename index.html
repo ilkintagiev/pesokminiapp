@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Песочные Острова</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80') no-repeat center;
+            background-size: cover;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        h1 {
+            color: #ffca28;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #ffca28;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .card, .admin-panel {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 10px;
+        }
+        .card p, .admin-panel p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Песочные Острова</h1>
+        <button onclick="window.open('https://t.me/pesok_86', '_blank')">Смотреть трансляцию</button>
+        <button onclick="buyCard()">Купить клубную карту</button>
+
+        <div id="clubCard" class="card">
+            <h3>Клубная карта</h3>
+            <p><strong>Ребёнок:</strong> <span id="cardChildName"></span></p>
+            <p><strong>Посещений:</strong> <span id="visits">0</span></p>
+            <p><strong>Статус:</strong> <span id="status">0/5 до бонуса</span></p>
+        </div>
+
+        <div id="adminPanel" class="admin-panel">
+            <h3>Панель администратора</h3>
+            <input type="text" id="adminChildName" placeholder="Имя ребёнка">
+            <button onclick="addVisit()">Добавить посещение</button>
+            <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        let cardPurchased = false;
+        let visits = 0;
+        let childName = "";
+
+        function buyCard() {
+            childName = prompt("Введите имя ребёнка:");
+            if (childName) {
+                cardPurchased = true;
+                document.getElementById('clubCard').style.display = 'block';
+                document.getElementById('cardChildName').innerText = childName;
+                updateCard();
+                alert("Клубная карта куплена!");
+            }
+        }
+
+        function updateCard() {
+            let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
+            document.getElementById('visits').innerText = visits;
+            document.getElementById('status').innerText = statusText;
+            if (visits >= 6) {
+                visits = 0;
+                alert("Счётчик сброшен! Начинаем заново.");
+                updateCard();
+            }
+        }
+
+        function addVisit() {
+            let adminName = document.getElementById('adminChildName').value;
+            if (adminName === childName && cardPurchased) {
+                visits++;
+                updateCard();
+                document.getElementById('adminVisits').innerText = visits;
+                alert(`Посещение добавлено для ${childName}!`);
+            } else {
+                alert("Введите правильное имя ребёнка или купите карту!");
+            }
+        }
+
+        if (prompt("Вы администратор? Введите пароль (например, 'admin')") === "admin") {
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

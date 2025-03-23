@@ -38,7 +38,7 @@
             font-size: 16px;
             cursor: pointer;
         }
-        .card, .admin-panel {
+        .card, .admin-panel, .login-panel, .register-panel {
             display: none;
             margin-top: 20px;
             padding: 15px;
@@ -61,65 +61,157 @@
 <body>
     <div class="container">
         <h1>Песочные Острова</h1>
-        <button onclick="window.open('https://t.me/pesok_86', '_blank')">Смотреть трансляцию</button>
-        <button onclick="buyCard()">Купить клубную карту</button>
+        <button onclick="showAdminLogin()">Я администратор</button>
+        <button onclick="showVisitor()">Я посетитель</button>
 
+        <!-- Админ: ввод пароля -->
+        <div id="adminLogin" class="login-panel">
+            <h3>Вход для администратора</h3>
+            <input type="password" id="adminPassword" placeholder="Пароль">
+            <button onclick="adminLogin()">Войти</button>
+        </div>
+
+        <!-- Админ: панель -->
+        <div id="adminPanel" class="admin-panel">
+            <h3>Панель администратора</h3>
+            <input type="text" id="adminChildName" placeholder="ФИО ребёнка">
+            <button onclick="generateCredentials()">Выдать логин и пароль</button>
+            <p><strong>Логин:</strong> <span id="generatedLogin"></span></p>
+            <p><strong>Пароль:</strong> <span id="generatedPassword"></span></p>
+            <input type="text" id="checkChildName" placeholder="ФИО ребёнка для проверки">
+            <button onclick="addVisit()">Добавить посещение</button>
+            <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
+        </div>
+
+        <!-- Посетитель: вход -->
+        <div id="visitorLogin" class="login-panel">
+            <h3>Вход для посетителя</h3>
+            <input type="text" id="visitorLoginInput" placeholder="Логин">
+            <input type="password" id="visitorPasswordInput" placeholder="Пароль">
+            <button onclick="visitorLogin()">Войти</button>
+            <button onclick="showRegister()">Купить клубную карту</button>
+        </div>
+
+        <!-- Посетитель: регистрация -->
+        <div id="registerPanel" class="register-panel">
+            <h3>Регистрация клубной карты</h3>
+            <input type="text" id="childFullName" placeholder="ФИО ребёнка">
+            <input type="text" id="parentFullName" placeholder="ФИО родителя">
+            <input type="date" id="childBirthDate" placeholder="Дата рождения ребёнка">
+            <input type="tel" id="parentPhone" placeholder="Номер телефона">
+            <button onclick="registerCard()">Оплатить на кассе</button>
+        </div>
+
+        <!-- Посетитель: карта -->
         <div id="clubCard" class="card">
             <h3>Клубная карта</h3>
             <p><strong>Ребёнок:</strong> <span id="cardChildName"></span></p>
             <p><strong>Посещений:</strong> <span id="visits">0</span></p>
             <p><strong>Статус:</strong> <span id="status">0/5 до бонуса</span></p>
-        </div>
-
-        <div id="adminPanel" class="admin-panel">
-            <h3>Панель администратора</h3>
-            <input type="text" id="adminChildName" placeholder="Имя ребёнка">
-            <button onclick="addVisit()">Добавить посещение</button>
-            <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
+            <button onclick="window.open('https://t.me/pesok_86', '_blank')">Смотреть трансляцию</button>
         </div>
     </div>
 
     <script>
-        let cardPurchased = false;
-        let visits = 0;
-        let childName = "";
+        const ADMIN_PASSWORDS = ["SandMaster2023", "IslandGuardX7", "PesokKing99"]; // Три пароля админов
+        let visitors = JSON.parse(localStorage.getItem('visitors')) || {};
 
-        function buyCard() {
-            childName = prompt("Введите имя ребёнка:");
-            if (childName) {
-                cardPurchased = true;
-                document.getElementById('clubCard').style.display = 'block';
-                document.getElementById('cardChildName').innerText = childName;
-                updateCard();
-                alert("Клубная карта куплена!");
+        function showAdminLogin() {
+            document.getElementById('adminLogin').style.display = 'block';
+        }
+
+        function showVisitor() {
+            document.getElementById('visitorLogin').style.display = 'block';
+        }
+
+        function showRegister() {
+            document.getElementById('visitorLogin').style.display = 'none';
+            document.getElementById('registerPanel').style.display = 'block';
+        }
+
+        function adminLogin() {
+            let password = document.getElementById('adminPassword').value;
+            if (ADMIN_PASSWORDS.includes(password)) {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert("Неверный пароль!");
             }
         }
 
-        function updateCard() {
+        function generateCredentials() {
+            let childName = document.getElementById('adminChildName').value;
+            if (childName) {
+                let login = "user_" + Math.random().toString(36).substr(2, 9);
+                let password = Math.random().toString(36).substr(2, 9);
+                visitors[childName] = { login, password, visits: 0, registered: false };
+                localStorage.setItem('visitors', JSON.stringify(visitors));
+                document.getElementById('generatedLogin').innerText = login;
+                document.getElementById('generatedPassword').innerText = password;
+                alert(`Логин: ${login}\nПароль: ${password}\nВыдайте их посетителю после оплаты.`);
+            } else {
+                alert("Введите ФИО ребёнка!");
+            }
+        }
+
+        function registerCard() {
+            let childName = document.getElementById('childFullName').value;
+            let parentName = document.getElementById('parentFullName').value;
+            let birthDate = document.getElementById('childBirthDate').value;
+            let phone = document.getElementById('parentPhone').value;
+            if (childName && parentName && birthDate && phone) {
+                if (visitors[childName]) {
+                    visitors[childName].registered = true;
+                    localStorage.setItem('visitors', JSON.stringify(visitors));
+                    alert("Оплатите на кассе. Администратор выдаст вам логин и пароль.");
+                    document.getElementById('registerPanel').style.display = 'none';
+                    document.getElementById('visitorLogin').style.display = 'block';
+                } else {
+                    alert("Сначала администратор должен выдать логин и пароль для этого ребёнка!");
+                }
+            } else {
+                alert("Заполните все поля!");
+            }
+        }
+
+        function visitorLogin() {
+            let login = document.getElementById('visitorLoginInput').value;
+            let password = document.getElementById('visitorPasswordInput').value;
+            for (let childName in visitors) {
+                if (visitors[childName].login === login && visitors[childName].password === password && visitors[childName].registered) {
+                    document.getElementById('visitorLogin').style.display = 'none';
+                    document.getElementById('clubCard').style.display = 'block';
+                    document.getElementById('cardChildName').innerText = childName;
+                    updateCard(childName);
+                    return;
+                }
+            }
+            alert("Неверный логин или пароль!");
+        }
+
+        function updateCard(childName) {
+            let visits = visitors[childName].visits;
             let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
             document.getElementById('visits').innerText = visits;
             document.getElementById('status').innerText = statusText;
             if (visits >= 6) {
-                visits = 0;
+                visitors[childName].visits = 0;
+                localStorage.setItem('visitors', JSON.stringify(visitors));
                 alert("Счётчик сброшен! Начинаем заново.");
-                updateCard();
+                updateCard(childName);
             }
         }
 
         function addVisit() {
-            let adminName = document.getElementById('adminChildName').value;
-            if (adminName === childName && cardPurchased) {
-                visits++;
-                updateCard();
-                document.getElementById('adminVisits').innerText = visits;
+            let childName = document.getElementById('checkChildName').value;
+            if (visitors[childName] && visitors[childName].registered) {
+                visitors[childName].visits++;
+                localStorage.setItem('visitors', JSON.stringify(visitors));
+                document.getElementById('adminVisits').innerText = visitors[childName].visits;
                 alert(`Посещение добавлено для ${childName}!`);
             } else {
-                alert("Введите правильное имя ребёнка или купите карту!");
+                alert("Ребёнок не зарегистрирован или неверное имя!");
             }
-        }
-
-        if (prompt("Вы администратор? Введите пароль (например, 'admin')") === "admin") {
-            document.getElementById('adminPanel').style.display = 'block';
         }
     </script>
 </body>

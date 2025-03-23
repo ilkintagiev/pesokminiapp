@@ -56,16 +56,22 @@
             border-radius: 5px;
             border: 1px solid #ccc;
         }
+        img {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Песочные Острова</h1>
+        <img src="Ресурс 1@10x.png" alt="Лейбл Песочные Острова">
+        <button onclick="window.open('https://t.me/pesok_86', '_blank')">Смотреть трансляцию</button>
         <button onclick="showAdminLogin()">Я администратор</button>
         <button onclick="showVisitor()">Я посетитель</button>
 
-        <!-- Админ: ввод пароля -->
-        <div id="adminLogin" class="login-panel">
+        <!-- Админ: вход -->
+        <div id="adminLogin" HISTclass="login-panel">
             <h3>Вход для администратора</h3>
             <input type="password" id="adminPassword" placeholder="Пароль">
             <button onclick="adminLogin()">Войти</button>
@@ -74,10 +80,6 @@
         <!-- Админ: панель -->
         <div id="adminPanel" class="admin-panel">
             <h3>Панель администратора</h3>
-            <input type="text" id="adminChildName" placeholder="ФИО ребёнка">
-            <button onclick="generateCredentials()">Выдать логин и пароль</button>
-            <p><strong>Логин:</strong> <span id="generatedLogin"></span></p>
-            <p><strong>Пароль:</strong> <span id="generatedPassword"></span></p>
             <input type="text" id="checkChildName" placeholder="ФИО ребёнка для проверки">
             <button onclick="addVisit()">Добавить посещение</button>
             <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
@@ -99,7 +101,9 @@
             <input type="text" id="parentFullName" placeholder="ФИО родителя">
             <input type="date" id="childBirthDate" placeholder="Дата рождения ребёнка">
             <input type="tel" id="parentPhone" placeholder="Номер телефона">
-            <button onclick="registerCard()">Оплатить на кассе</button>
+            <input type="text" id="newLogin" placeholder="Придумайте логин">
+            <input type="password" id="newPassword" placeholder="Придумайте пароль">
+            <button onclick="registerCard()">Зарегистрировать и оплатить</button>
         </div>
 
         <!-- Посетитель: карта -->
@@ -113,7 +117,7 @@
     </div>
 
     <script>
-        const ADMIN_PASSWORDS = ["SandMaster2023", "IslandGuardX7", "PesokKing99"]; // Три пароля админов
+        const ADMIN_PASSWORDS = ["SandMaster2023", "IslandGuardX7", "PesokKing99"];
         let visitors = JSON.parse(localStorage.getItem('visitors')) || {};
 
         function showAdminLogin() {
@@ -139,35 +143,22 @@
             }
         }
 
-        function generateCredentials() {
-            let childName = document.getElementById('adminChildName').value;
-            if (childName) {
-                let login = "user_" + Math.random().toString(36).substr(2, 9);
-                let password = Math.random().toString(36).substr(2, 9);
-                visitors[childName] = { login, password, visits: 0, registered: false };
-                localStorage.setItem('visitors', JSON.stringify(visitors));
-                document.getElementById('generatedLogin').innerText = login;
-                document.getElementById('generatedPassword').innerText = password;
-                alert(`Логин: ${login}\nПароль: ${password}\nВыдайте их посетителю после оплаты.`);
-            } else {
-                alert("Введите ФИО ребёнка!");
-            }
-        }
-
         function registerCard() {
             let childName = document.getElementById('childFullName').value;
             let parentName = document.getElementById('parentFullName').value;
             let birthDate = document.getElementById('childBirthDate').value;
             let phone = document.getElementById('parentPhone').value;
-            if (childName && parentName && birthDate && phone) {
-                if (visitors[childName]) {
-                    visitors[childName].registered = true;
+            let login = document.getElementById('newLogin').value;
+            let password = document.getElementById('newPassword').value;
+            if (childName && parentName && birthDate && phone && login && password) {
+                if (!visitors[childName]) {
+                    visitors[childName] = { login, password, visits: 0, registered: true };
                     localStorage.setItem('visitors', JSON.stringify(visitors));
-                    alert("Оплатите на кассе. Администратор выдаст вам логин и пароль.");
+                    alert("Карта зарегистрирована! Оплатите на кассе и войдите с вашим логином и паролем.");
                     document.getElementById('registerPanel').style.display = 'none';
                     document.getElementById('visitorLogin').style.display = 'block';
                 } else {
-                    alert("Сначала администратор должен выдать логин и пароль для этого ребёнка!");
+                    alert("Этот ребёнок уже зарегистрирован!");
                 }
             } else {
                 alert("Заполните все поля!");

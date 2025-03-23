@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Песочные Острова</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,11 +23,6 @@
             box-shadow: 0 0 15px rgba(0,0,0,0.2);
             text-align: center;
         }
-        h1 {
-            color: #ffca28;
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
         button {
             width: 100%;
             padding: 12px;
@@ -38,7 +34,7 @@
             font-size: 16px;
             cursor: pointer;
         }
-        .card, .admin-panel, .login-panel, .register-panel {
+        .card, .admin-panel, .login-panel, .register-panel, .users-table {
             display: none;
             margin-top: 20px;
             padding: 15px;
@@ -60,18 +56,29 @@
             max-width: 150px;
             margin-bottom: 20px;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Песочные Острова</h1>
         <img src="Ресурс 1@10x.png" alt="Лейбл Песочные Острова">
         <button onclick="window.open('https://t.me/pesok_86', '_blank')">Смотреть трансляцию</button>
         <button onclick="showAdminLogin()">Я администратор</button>
         <button onclick="showVisitor()">Я посетитель</button>
 
         <!-- Админ: вход -->
-        <div id="adminLogin" HISTclass="login-panel">
+        <div id="adminLogin" class="login-panel">
             <h3>Вход для администратора</h3>
             <input type="password" id="adminPassword" placeholder="Пароль">
             <button onclick="adminLogin()">Войти</button>
@@ -83,6 +90,10 @@
             <input type="text" id="checkChildName" placeholder="ФИО ребёнка для проверки">
             <button onclick="addVisit()">Добавить посещение</button>
             <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
+            <input type="text" id="paidChildName" placeholder="ФИО ребёнка для оплаты">
+            <button onclick="markAsPaid()">Отметить как оплаченную</button>
+            <button onclick="showAllUsers()">Показать всех пользователей</button>
+            <div id="usersTable" class="users-table"></div>
         </div>
 
         <!-- Посетитель: вход -->
@@ -152,7 +163,17 @@
             let password = document.getElementById('newPassword').value;
             if (childName && parentName && birthDate && phone && login && password) {
                 if (!visitors[childName]) {
-                    visitors[childName] = { login, password, visits: 0, registered: true };
+                    let hashedPassword = CryptoJS.SHA256(password).toString();
+                    visitors[childName] = {
+                        login,
+                        password: hashedPassword,
+                        parentName,
+                        birthDate,
+                        phone,
+                        visits: 0,
+                        registered: true,
+                        paid: false
+                    };
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     alert("Карта зарегистрирована! Оплатите на кассе и войдите с вашим логином и паролем.");
                     document.getElementById('registerPanel').style.display = 'none';
@@ -168,12 +189,17 @@
         function visitorLogin() {
             let login = document.getElementById('visitorLoginInput').value;
             let password = document.getElementById('visitorPasswordInput').value;
+            let hashedPassword = CryptoJS.SHA256(password).toString();
             for (let childName in visitors) {
-                if (visitors[childName].login === login && visitors[childName].password === password && visitors[childName].registered) {
-                    document.getElementById('visitorLogin').style.display = 'none';
-                    document.getElementById('clubCard').style.display = 'block';
-                    document.getElementById('cardChildName').innerText = childName;
-                    updateCard(childName);
+                if (visitors[childName].login === login && visitors[childName].password === hashedPassword && visitors[childName].registered) {
+                    if (visitors[childName].paid) {
+                        document.getElementById('visitorLogin').style.display = 'none';
+                        document.getElementById('clubCard').style.display = 'block';
+                        document.getElementById('cardChildName').innerText = childName;
+                        updateCard(childName);
+                    } else {
+                        alert("Карта не оплачена. Пожалуйста, оплатите на кассе.");
+                    }
                     return;
                 }
             }
@@ -195,14 +221,36 @@
 
         function addVisit() {
             let childName = document.getElementById('checkChildName').value;
-            if (visitors[childName] && visitors[childName].registered) {
+            if (visitors[childName] && visitors[childName].registered && visitors[childName].paid) {
                 visitors[childName].visits++;
                 localStorage.setItem('visitors', JSON.stringify(visitors));
                 document.getElementById('adminVisits').innerText = visitors[childName].visits;
                 alert(`Посещение добавлено для ${childName}!`);
             } else {
-                alert("Ребёнок не зарегистрирован или неверное имя!");
+                alert("Ребёнок не зарегистрирован, карта не оплачена или неверное имя!");
             }
+        }
+
+        function markAsPaid() {
+            let childName = document.getElementById('paidChildName').value;
+            if (visitors[childName]) {
+                visitors[childName].paid = true;
+                localStorage.setItem('visitors', JSON.stringify(visitors));
+                alert(`Карта для ${childName} отмечена как оплаченная.`);
+            } else {
+                alert("Ребёнок не найден.");
+            }
+        }
+
+        function showAllUsers() {
+            let table = "<table><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th></tr>";
+            for (let childName in visitors) {
+                let user = visitors[childName];
+                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td></tr>`;
+            }
+            table += "</table>";
+            document.getElementById('usersTable').innerHTML = table;
+            document.getElementById('usersTable').style.display = 'block';
         }
     </script>
 </body>

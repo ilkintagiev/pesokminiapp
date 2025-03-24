@@ -71,6 +71,11 @@
             display: block;
             margin-left: auto;
             margin-right: auto;
+            animation: neonGlow 1.5s infinite alternate;
+        }
+        @keyframes neonGlow {
+            0% { box-shadow: 0 0 10px #00f, 0 0 20px #00f, 0 0 30px #00f; }
+            100% { box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff; }
         }
         iframe {
             width: 100%;
@@ -94,6 +99,16 @@
             margin-left: 10px;
             font-size: 14px;
             padding: 5px 10px;
+        }
+        .notification-list {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .question-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -135,8 +150,12 @@
             <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
             <input type="text" class="form-control mt-2" id="paymentKey" placeholder="Введите ключ оплаты">
             <button class="btn btn-success w-100 mt-2" onclick="confirmPayment()">Подтвердить оплату</button>
+            <input type="text" class="form-control mt-2" id="notificationInput" placeholder="Введите уведомление">
+            <button class="btn btn-warning w-100 mt-2" onclick="sendNotification()">Отправить уведомление</button>
             <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">Показать всех пользователей</button>
             <div id="usersTable" class="mt-3"></div>
+            <h4 class="mt-3">Вопросы от пользователей</h4>
+            <div id="questionList" class="question-list"></div>
         </div>
 
         <!-- Секция посетителя: вход -->
@@ -169,6 +188,14 @@
             <p><strong>Код посещения:</strong> <span id="visitKeyDisplay"></span>
                 <button class="btn btn-outline-primary copy-btn" onclick="copyVisitKey()">Скопировать</button>
             </p>
+            <h4>Уведомления</h4>
+            <div id="notificationList" class="notification-list"></div>
+            <button class="btn btn-info w-100 mt-2" onclick="showQuestionForm()">Задать вопрос</button>
+            <div id="questionForm" style="display:none;" class="mt-2">
+                <textarea class="form-control" id="questionInput" placeholder="Ваш вопрос"></textarea>
+                <button class="btn btn-primary w-100 mt-2" onclick="sendQuestion()">Отправить</button>
+            </div>
+            <div id="answerList" class="mt-2"></div>
         </div>
     </div>
 
@@ -182,12 +209,16 @@
     <script>
         const ADMIN_PASSWORDS = ["SandMaster2023", "IslandGuardX7", "PesokKing99"];
         let visitors = JSON.parse(localStorage.getItem('visitors')) || {};
+        let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+        let questions = JSON.parse(localStorage.getItem('questions')) || [];
 
         function showSection(sectionId) {
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
             document.getElementById(sectionId).classList.add('active');
+            if (sectionId === 'clubCardSection') updateNotifications();
+            if (sectionId === 'adminPanelSection') updateQuestions();
         }
 
         function adminLogin() {
@@ -273,6 +304,8 @@
                 alert("Счётчик сброшен! Начинаем заново.");
                 updateCard(childName);
             }
+            updateNotifications();
+            updateAnswers(childName);
         }
 
         function addVisit() {
@@ -318,6 +351,79 @@
             let visitKey = document.getElementById('visitKeyDisplay').innerText;
             navigator.clipboard.writeText(visitKey).then(() => {
                 alert("Код посещения скопирован: " + visitKey);
+            });
+        }
+
+        function sendNotification() {
+            let message = document.getElementById('notificationInput').value;
+            if (message) {
+                notifications.push({ text: message, date: new Date().toLocaleString() });
+                localStorage.setItem('notifications', JSON.stringify(notifications));
+                alert("Уведомление отправлено!");
+                document.getElementById('notificationInput').value = '';
+                updateNotifications();
+            } else {
+                alert("Введите текст уведомления!");
+            }
+        }
+
+        function updateNotifications() {
+            let list = document.getElementById('notificationList');
+            list.innerHTML = '';
+            notifications.forEach(note => {
+                list.innerHTML += `<p>${note.date}: ${note.text}</p>`;
+            });
+        }
+
+        function showQuestionForm() {
+            document.getElementById('questionForm').style.display = 'block';
+        }
+
+        function sendQuestion() {
+            let question = document.getElementById('questionInput').value;
+            let childName = document.getElementById('cardChildName').innerText;
+            if (question && childName) {
+                questions.push({ childName, question, answer: '', date: new Date().toLocaleString() });
+                localStorage.setItem('questions', JSON.stringify(questions));
+                alert("Вопрос отправлен!");
+                document.getElementById('questionInput').value = '';
+                document.getElementById('questionForm').style.display = 'none';
+                updateQuestions();
+            } else {
+                alert("Введите вопрос!");
+            }
+        }
+
+        function updateQuestions() {
+            let list = document.getElementById('questionList');
+            list.innerHTML = '';
+            questions.forEach((q, index) => {
+                list.innerHTML += `
+                    <div>
+                        <p>${q.date}: ${q.childName}: ${q.question}</p>
+                        <input type="text" class="form-control" id="answerInput${index}" placeholder="Ответ" value="${q.answer}">
+                        <button class="btn btn-primary mt-1" onclick="sendAnswer(${index})">Отправить ответ</button>
+                    </div>`;
+            });
+        }
+
+        function sendAnswer(index) {
+            let answer = document.getElementById(`answerInput${index}`).value;
+            if (answer) {
+                questions[index].answer = answer;
+                localStorage.setItem('questions', JSON.stringify(questions));
+                alert("Ответ отправлен!");
+                updateAnswers(questions[index].childName);
+            } else {
+                alert("Введите ответ!");
+            }
+        }
+
+        function updateAnswers(childName) {
+            let list = document.getElementById('answerList');
+            list.innerHTML = '';
+            questions.filter(q => q.childName === childName && q.answer).forEach(q => {
+                list.innerHTML += `<p><strong>Ответ (${q.date}):</strong> ${q.answer}</p>`;
             });
         }
 

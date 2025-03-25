@@ -72,7 +72,11 @@
             display: block;
             margin-left: auto;
             margin-right: auto;
-            filter: drop-shadow(0 0 10px #ffca28);
+            animation: neonGlow 2s ease-in-out infinite alternate;
+        }
+        @keyframes neonGlow {
+            from { filter: drop-shadow(0 0 5px #ffca28); }
+            to { filter: drop-shadow(0 0 15px #ffca28); }
         }
         table {
             width: 100%;
@@ -115,6 +119,15 @@
             <p>"Песочные Острова" — это место, где рождаются улыбки и воспоминания!</p>
         </div>
 
+        <!-- Секция трансляции -->
+        <div id="broadcastSection" class="content-section">
+            <h3 class="neon-label">Прямая трансляция</h3>
+            <p>Присоединяйтесь к нашему Telegram-каналу, чтобы смотреть трансляцию в реальном времени!</p>
+            <button class="btn btn-warning w-75 mt-3" onclick="window.open('https://t.me/pesok_86', '_blank')">
+                <i class="fas fa-video"></i> Смотреть в Telegram
+            </button>
+        </div>
+
         <!-- Секция администратора: вход -->
         <div id="adminLoginSection" class="content-section">
             <h3 class="neon-label">Вход для администратора</h3>
@@ -133,6 +146,7 @@
             <input type="text" class="form-control mt-2" id="pushMessage" placeholder="Текст уведомления">
             <button class="btn btn-warning w-100 mt-2" onclick="sendPushNotification()">Отправить уведомление всем</button>
             <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">Показать всех пользователей</button>
+            <input type="email" class="form-control mt-2" id="adminEmail" placeholder="Email для Excel">
             <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">Экспорт в Excel</button>
             <div id="usersTable" class="mt-3"></div>
             <h4 class="neon-label mt-3">Вопросы от пользователей</h4>
@@ -144,6 +158,7 @@
             <input type="number" class="form-control mt-2" id="productPriceRegular" placeholder="Цена (без карты)">
             <input type="number" class="form-control mt-2" id="productPriceCard" placeholder="Цена (с картой)">
             <button class="btn btn-primary w-100 mt-2" onclick="addProduct()">Добавить товар</button>
+            <button class="btn btn-info w-100 mt-2" onclick="toggleAdminChat()">Показать чат с покупателями</button>
             <div id="adminChat" class="mt-3" style="display: none;">
                 <h4 class="neon-label">Чат с покупателями</h4>
                 <div id="chatMessages"></div>
@@ -211,6 +226,7 @@
 
     <!-- Нижняя панель навигации -->
     <nav class="navbar-bottom">
+        <button class="btn" onclick="showSection('broadcastSection')" title="Трансляция"><i class="fas fa-video"></i></button>
         <button class="btn" onclick="showSection('adminLoginSection')" title="Администратор"><i class="fas fa-user-tie"></i></button>
         <button class="btn" onclick="showSection('visitorLoginSection')" title="Семья"><i class="fas fa-users"></i></button>
         <button class="btn" onclick="showSection('catalogSection')" title="Каталог"><i class="fas fa-shopping-cart"></i></button>
@@ -218,7 +234,7 @@
 
     <script>
         const ADMIN_PASSWORDS = ["SandMaster2023", "IslandGuardX7", "PesokKing99"];
-        const CHATGPT_API_KEY = "YOUR_CHATGPT_API_KEY_HERE"; // Замени на свой ключ API
+        const CHATGPT_API_KEY = "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";
         let visitors = JSON.parse(localStorage.getItem('visitors')) || {};
         let subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
         let questions = JSON.parse(localStorage.getItem('questions')) || [];
@@ -230,15 +246,15 @@
                 section.classList.remove('active');
             });
             document.getElementById(sectionId).classList.add('active');
-            if (sectionId === 'adminPanelSection') displayAdminChat();
+            if (sectionId === 'adminPanelSection') displayQuestions();
             if (sectionId === 'clubCardSection') displayUserChat();
+            window.scrollTo(0, 0); // Прокрутка вверх при смене секции
         }
 
         function adminLogin() {
             let password = document.getElementById('adminPassword').value;
             if (ADMIN_PASSWORDS.includes(password)) {
                 showSection('adminPanelSection');
-                displayQuestions();
             } else {
                 alert("Неверный пароль!");
             }
@@ -446,7 +462,7 @@
             }
         }
 
-        // Вопрос эксперту (ChatGPT)
+        // Вопрос эксперту (ChatGPT GPT-4o)
         function showExpertForm() {
             document.getElementById('expertForm').style.display = 'block';
         }
@@ -462,9 +478,9 @@
                             'Authorization': `Bearer ${CHATGPT_API_KEY}`
                         },
                         body: JSON.stringify({
-                            model: "gpt-3.5-turbo",
+                            model: "gpt-4o",
                             messages: [
-                                { role: "system", content: "Ты — логопед, психолог и воспитатель. Дай родителям полезный совет." },
+                                { role: "system", content: "Ты — логопед, психолог и воспитатель. Дай родителям полезный совет на русском языке." },
                                 { role: "user", content: question }
                             ],
                             max_tokens: 150
@@ -504,20 +520,35 @@
             let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения"], ...data]);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Посетители");
-            XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx");
+            let excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            let blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+            let url = URL.createObjectURL(blob);
+            let email = document.getElementById('adminEmail').value;
+            if (email) {
+                let link = document.createElement('a');
+                link.href = `mailto:${email}?subject=Посетители Песочные Острова&body=Список посетителей во вложении.&attachment=${url}`;
+                link.click();
+                URL.revokeObjectURL(url);
+            } else {
+                alert("Введите email!");
+            }
         }
 
         // Каталог
         function displayCatalog() {
             let list = '';
+            let isAdmin = ADMIN_PASSWORDS.includes(document.getElementById('adminPassword')?.value || '');
             products.forEach((product, index) => {
                 list += `<div class="catalog-item mt-3">
                     <img src="${product.image}" alt="${product.name}">
                     <p><strong>${product.name}</strong></p>
                     <p>Цена (без карты): ${product.priceRegular} руб.</p>
                     <p>Цена (с картой): ${product.priceCard} руб.</p>
-                    <button class="btn btn-success" onclick="orderProduct(${index})">Купить</button>
-                </div>`;
+                    <button class="btn btn-success" onclick="orderProduct(${index})">Купить</button>`;
+                if (isAdmin) {
+                    list += `<button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>`;
+                }
+                list += `</div>`;
             });
             document.getElementById('catalogList').innerHTML = list;
         }
@@ -549,6 +580,14 @@
                 reader.readAsDataURL(file);
             } else {
                 alert("Заполните все поля!");
+            }
+        }
+
+        function deleteProduct(index) {
+            if (confirm(`Удалить "${products[index].name}" из каталога?`)) {
+                products.splice(index, 1);
+                localStorage.setItem('products', JSON.stringify(products));
+                displayCatalog();
             }
         }
 
@@ -598,13 +637,24 @@
         }
 
         function displayAdminChat() {
-            document.getElementById('adminChat').style.display = 'block';
             let messages = '';
             chatMessages.forEach(msg => {
                 messages += `<p><strong>${msg.sender}:</strong> ${msg.text}</p>`;
             });
             document.getElementById('chatMessages').innerHTML = messages;
         }
+
+        function toggleAdminChat() {
+            let chat = document.getElementById('adminChat');
+            chat.style.display = chat.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Автоматический скролл вверх при фокусе на текстовые поля
+        document.querySelectorAll('textarea, input').forEach(input => {
+            input.addEventListener('focus', () => {
+                window.scrollTo(0, 0);
+            });
+        });
 
         // Инициализация
         showSection('welcomeSection');

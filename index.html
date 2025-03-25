@@ -252,7 +252,8 @@
 
     <script>
         const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
-        const CHATGPT_API_KEY = "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";
+        const OPENAI_API_KEY = "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";
+        const OPENAI_MODEL = "gpt-3.5-turbo";
         let visitors = JSON.parse(localStorage.getItem('visitors')) || {};
         let subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
         let questions = JSON.parse(localStorage.getItem('questions')) || [];
@@ -525,10 +526,10 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${CHATGPT_API_KEY}`
+                            'Authorization': `Bearer ${OPENAI_API_KEY}`
                         },
                         body: JSON.stringify({
-                            model: "gpt-3.5-turbo",
+                            model: OPENAI_MODEL,
                             messages: [
                                 { role: "system", content: "Ты — логопед, психолог и воспитатель. Дай родителям полезный совет на русском языке." },
                                 { role: "user", content: question }
@@ -563,10 +564,10 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${CHATGPT_API_KEY}`
+                            'Authorization': `Bearer ${OPENAI_API_KEY}`
                         },
                         body: JSON.stringify({
-                            model: "gpt-3.5-turbo",
+                            model: OPENAI_MODEL,
                             messages: [
                                 { role: "system", content: "Ты — логопед, психолог и воспитатель. Отвечай как эксперт на русском языке." },
                                 { role: "user", content: message }

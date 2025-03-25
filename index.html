@@ -72,12 +72,14 @@
             display: block;
             margin-left: auto;
             margin-right: auto;
-            animation: neonGlow 1.5s ease-in-out infinite alternate;
+            animation: neonGlow 4s ease-in-out infinite;
         }
         @keyframes neonGlow {
-            0% { filter: drop-shadow(0 0 5px #ffca28) brightness(1); }
-            50% { filter: drop-shadow(0 0 15px #ffca28) brightness(1.2); }
-            100% { filter: drop-shadow(0 0 5px #ffca28) brightness(1); }
+            0% { filter: drop-shadow(0 0 5px #ffca28) brightness(1); } /* Жёлтый */
+            25% { filter: drop-shadow(0 0 15px #ff00ff) brightness(1.2); } /* Розовый */
+            50% { filter: drop-shadow(0 0 10px #00ffff) brightness(1.1); } /* Голубой */
+            75% { filter: drop-shadow(0 0 15px #00ff00) brightness(1.2); } /* Зелёный */
+            100% { filter: drop-shadow(0 0 5px #ffca28) brightness(1); } /* Жёлтый (возврат) */
         }
         table {
             width: 100%;
@@ -267,34 +269,24 @@
         }
 
         function generateAdminKey(childFullName, parentFullName, birthDate) {
-            // Разбиваем ФИО ребёнка на части
             let childParts = childFullName.trim().split(/\s+/);
             let initials = '';
             if (childParts.length === 3) {
-                initials = childParts[0][0] + childParts[1][0] + childParts[2][0]; // ФИО
+                initials = childParts[0][0] + childParts[1][0] + childParts[2][0];
             } else if (childParts.length === 2) {
-                initials = childParts[0][0] + childParts[1][0]; // ФИ
+                initials = childParts[0][0] + childParts[1][0];
             } else {
-                initials = childParts[0][0]; // Только фамилия
+                initials = childParts[0][0];
             }
-
-            // Первая буква имени родителя
             let parentInitial = parentFullName.trim()[0];
-
-            // Год рождения ребёнка
             let birthYear = new Date(birthDate).getFullYear();
-
-            // Базовый ключ
             let baseKey = `${initials}${parentInitial}${birthYear}`;
-
-            // Проверка уникальности
             let uniqueKey = baseKey;
             let counter = 1;
             while (Object.values(visitors).some(v => v.adminKey === uniqueKey)) {
                 uniqueKey = `${baseKey}${counter}`;
                 counter++;
             }
-
             return uniqueKey;
         }
 
@@ -415,7 +407,6 @@
             });
         }
 
-        // Push-уведомления
         function subscribeToPush(childName) {
             if ('Notification' in window && 'serviceWorker' in navigator) {
                 Notification.requestPermission().then(permission => {
@@ -449,7 +440,6 @@
             }
         }
 
-        // Обратная связь
         function showFeedbackForm() {
             document.getElementById('feedbackForm').style.display = 'block';
         }
@@ -494,7 +484,6 @@
             }
         }
 
-        // Удаление аккаунта
         function deleteAccount() {
             let childName = document.getElementById('cardChildName').innerText;
             if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
@@ -505,7 +494,6 @@
             }
         }
 
-        // Экспорт в Excel
         function exportToExcel() {
             let data = [];
             for (let childName in visitors) {
@@ -529,7 +517,6 @@
             }
         }
 
-        // Каталог
         function displayCatalog() {
             let list = '';
             let isAdmin = ADMIN_PASSWORDS.includes(document.getElementById('adminPassword')?.value || '');
@@ -593,7 +580,6 @@
             sendUserMessage();
         }
 
-        // Чат с администратором
         function sendUserMessage() {
             let message = document.getElementById('userChatInput').value;
             let childName = document.getElementById('cardChildName')?.innerText || "Гость";
@@ -644,14 +630,12 @@
             chat.style.display = chat.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Прокрутка вверх при фокусе на поля ввода
         document.querySelectorAll('input, textarea').forEach(input => {
             input.addEventListener('focus', () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
 
-        // Инициализация
         showSection('welcomeSection');
         displayCatalog();
         if ('serviceWorker' in navigator) {

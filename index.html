@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,22 +67,12 @@
             color: #fff;
         }
         img.logo {
-            max-width: 150px;
+            max-width: 200px;
             margin-bottom: 20px;
             display: block;
             margin-left: auto;
             margin-right: auto;
-            animation: neonGlow 1.5s infinite alternate;
-        }
-        @keyframes neonGlow {
-            0% { box-shadow: 0 0 10px #00f, 0 0 20px #00f, 0 0 30px #00f; }
-            100% { box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff; }
-        }
-        iframe {
-            width: 100%;
-            height: 300px;
-            border: none;
-            border-radius: 10px;
+            filter: drop-shadow(0 0 10px #ffca28);
         }
         table {
             width: 100%;
@@ -100,15 +91,13 @@
             font-size: 14px;
             padding: 5px 10px;
         }
-        .notification-list {
-            max-height: 150px;
-            overflow-y: auto;
-            margin-top: 10px;
+        .neon-label {
+            color: #ffca28;
+            text-shadow: 0 0 5px #ffca28, 0 0 10px #ffca28, 0 0 20px #ffca28;
         }
-        .question-list {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 10px;
+        .catalog-item img {
+            max-width: 100px;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -119,48 +108,53 @@
 
         <!-- Секция приветствия -->
         <div id="welcomeSection" class="content-section">
-            <h3>Добро пожаловать!</h3>
+            <h3 class="neon-label">Добро пожаловать!</h3>
             <p>Здравствуйте, дорогие родители наших маленьких исследователей!</p>
             <p>Добро пожаловать в "Песочные Острова" — уголок радости, где дети наслаждаются игрой с мягким белым песком в любое время года! 🌴🌊</p>
-            <p>У нас ваш ребёнок проведёт время с удовольствием и пользой, а вы сможете расслабиться, зная, что всё организовано для его комфорта и безопасности. Следите за происходящим в прямом эфире через наши трансляции и будьте в курсе всех событий, акций и сюрпризов, подписавшись на канал!</p>
+            <p>У нас ваш ребёнок проведёт время с удовольствием и пользой, а вы сможете расслабиться, зная, что всё организовано для его комфорта и безопасности.</p>
             <p>"Песочные Острова" — это место, где рождаются улыбки и воспоминания!</p>
-        </div>
-
-        <!-- Секция трансляции -->
-        <div id="broadcastSection" class="content-section">
-            <h3>Прямая трансляция</h3>
-            <p>Присоединяйтесь к нашему Telegram-каналу, чтобы смотреть трансляцию в реальном времени!</p>
-            <button class="btn btn-warning w-75 mt-3" onclick="window.open('https://t.me/pesok_86', '_blank')">
-                <i class="fas fa-video"></i> Смотреть в Telegram
-            </button>
         </div>
 
         <!-- Секция администратора: вход -->
         <div id="adminLoginSection" class="content-section">
-            <h3>Вход для администратора</h3>
+            <h3 class="neon-label">Вход для администратора</h3>
             <input type="password" class="form-control" id="adminPassword" placeholder="Пароль">
             <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">Войти</button>
         </div>
 
         <!-- Секция администратора: панель -->
         <div id="adminPanelSection" class="content-section">
-            <h3>Панель администратора</h3>
+            <h3 class="neon-label">Панель администратора</h3>
             <input type="text" class="form-control" id="visitKeyInput" placeholder="Введите код посещения">
             <button class="btn btn-primary w-100 mt-2" onclick="addVisit()">Добавить посещение</button>
             <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
             <input type="text" class="form-control mt-2" id="paymentKey" placeholder="Введите ключ оплаты">
             <button class="btn btn-success w-100 mt-2" onclick="confirmPayment()">Подтвердить оплату</button>
-            <input type="text" class="form-control mt-2" id="notificationInput" placeholder="Введите уведомление">
-            <button class="btn btn-warning w-100 mt-2" onclick="sendNotification()">Отправить уведомление</button>
+            <input type="text" class="form-control mt-2" id="pushMessage" placeholder="Текст уведомления">
+            <button class="btn btn-warning w-100 mt-2" onclick="sendPushNotification()">Отправить уведомление всем</button>
             <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">Показать всех пользователей</button>
+            <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">Экспорт в Excel</button>
             <div id="usersTable" class="mt-3"></div>
-            <h4 class="mt-3">Вопросы от пользователей</h4>
-            <div id="questionList" class="question-list"></div>
+            <h4 class="neon-label mt-3">Вопросы от пользователей</h4>
+            <div id="questionsList" class="mt-2"></div>
+            <h4 class="neon-label mt-3">Добавить товар</h4>
+            <input type="file" class="form-control mt-2" id="productImage" accept="image/*">
+            <input type="text" class="form-control mt-2" id="productName" placeholder="Название товара">
+            <textarea class="form-control mt-2" id="productDescription" placeholder="Описание товара"></textarea>
+            <input type="number" class="form-control mt-2" id="productPriceRegular" placeholder="Цена (без карты)">
+            <input type="number" class="form-control mt-2" id="productPriceCard" placeholder="Цена (с картой)">
+            <button class="btn btn-primary w-100 mt-2" onclick="addProduct()">Добавить товар</button>
+            <div id="adminChat" class="mt-3" style="display: none;">
+                <h4 class="neon-label">Чат с покупателями</h4>
+                <div id="chatMessages"></div>
+                <textarea class="form-control mt-2" id="adminChatInput" placeholder="Ответить"></textarea>
+                <button class="btn btn-primary w-100 mt-2" onclick="sendAdminMessage()">Отправить</button>
+            </div>
         </div>
 
         <!-- Секция посетителя: вход -->
         <div id="visitorLoginSection" class="content-section">
-            <h3>Вход для посетителя</h3>
+            <h3 class="neon-label">Вход для посетителя</h3>
             <input type="text" class="form-control" id="visitorLoginInput" placeholder="Логин">
             <input type="password" class="form-control mt-2" id="visitorPasswordInput" placeholder="Пароль">
             <button class="btn btn-primary w-100 mt-2" onclick="visitorLogin()">Войти</button>
@@ -169,7 +163,7 @@
 
         <!-- Секция посетителя: регистрация -->
         <div id="registerSection" class="content-section">
-            <h3>Регистрация клубной карты</h3>
+            <h3 class="neon-label">Регистрация клубной карты</h3>
             <input type="text" class="form-control" id="childFullName" placeholder="ФИО ребёнка">
             <input type="text" class="form-control mt-2" id="parentFullName" placeholder="ФИО родителя">
             <input type="date" class="form-control mt-2" id="childBirthDate">
@@ -181,50 +175,70 @@
 
         <!-- Секция посетителя: карта -->
         <div id="clubCardSection" class="content-section">
-            <h3>Клубная карта</h3>
+            <h3 class="neon-label">Клубная карта</h3>
             <p><strong>Ребёнок:</strong> <span id="cardChildName"></span></p>
             <p><strong>Посещений:</strong> <span id="visits">0</span></p>
             <p><strong>Статус:</strong> <span id="status">0/5 до бонуса</span></p>
             <p><strong>Код посещения:</strong> <span id="visitKeyDisplay"></span>
                 <button class="btn btn-outline-primary copy-btn" onclick="copyVisitKey()">Скопировать</button>
             </p>
-            <h4>Уведомления</h4>
-            <div id="notificationList" class="notification-list"></div>
-            <button class="btn btn-info w-100 mt-2" onclick="showQuestionForm()">Задать вопрос</button>
-            <div id="questionForm" style="display:none;" class="mt-2">
-                <textarea class="form-control" id="questionInput" placeholder="Ваш вопрос"></textarea>
-                <button class="btn btn-primary w-100 mt-2" onclick="sendQuestion()">Отправить</button>
+            <button class="btn btn-info w-100 mt-2" onclick="showFeedbackForm()">Задать вопрос администратору</button>
+            <button class="btn btn-success w-100 mt-2" onclick="showExpertForm()">Задать вопрос эксперту</button>
+            <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">Удалить аккаунт</button>
+            <div id="feedbackForm" style="display: none;" class="mt-2">
+                <textarea class="form-control" id="feedbackText" placeholder="Ваш вопрос"></textarea>
+                <button class="btn btn-primary w-100 mt-2" onclick="submitFeedback()">Отправить</button>
             </div>
-            <div id="answerList" class="mt-2"></div>
+            <div id="expertForm" style="display: none;" class="mt-2">
+                <textarea class="form-control" id="expertText" placeholder="Ваш вопрос эксперту"></textarea>
+                <button class="btn btn-primary w-100 mt-2" onclick="submitExpertQuestion()">Отправить</button>
+                <div id="expertResponse" class="mt-2"></div>
+            </div>
+            <div id="userChat" style="display: none;" class="mt-2">
+                <h4>Чат с администратором</h4>
+                <div id="userChatMessages"></div>
+                <textarea class="form-control mt-2" id="userChatInput" placeholder="Сообщение"></textarea>
+                <button class="btn btn-primary w-100 mt-2" onclick="sendUserMessage()">Отправить</button>
+            </div>
+        </div>
+
+        <!-- Секция каталога -->
+        <div id="catalogSection" class="content-section">
+            <h3 class="neon-label">Каталог товаров</h3>
+            <div id="catalogList"></div>
         </div>
     </div>
 
     <!-- Нижняя панель навигации -->
     <nav class="navbar-bottom">
-        <button class="btn" onclick="showSection('broadcastSection')" title="Трансляция"><i class="fas fa-video"></i></button>
         <button class="btn" onclick="showSection('adminLoginSection')" title="Администратор"><i class="fas fa-user-tie"></i></button>
-        <button class="btn" onclick="showSection('visitorLoginSection')" title="Посетитель"><i class="fas fa-smile"></i></button>
+        <button class="btn" onclick="showSection('visitorLoginSection')" title="Семья"><i class="fas fa-users"></i></button>
+        <button class="btn" onclick="showSection('catalogSection')" title="Каталог"><i class="fas fa-shopping-cart"></i></button>
     </nav>
 
     <script>
         const ADMIN_PASSWORDS = ["SandMaster2023", "IslandGuardX7", "PesokKing99"];
+        const CHATGPT_API_KEY = "YOUR_CHATGPT_API_KEY_HERE"; // Замени на свой ключ API
         let visitors = JSON.parse(localStorage.getItem('visitors')) || {};
-        let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+        let subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
         let questions = JSON.parse(localStorage.getItem('questions')) || [];
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
 
         function showSection(sectionId) {
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
             document.getElementById(sectionId).classList.add('active');
-            if (sectionId === 'clubCardSection') updateNotifications();
-            if (sectionId === 'adminPanelSection') updateQuestions();
+            if (sectionId === 'adminPanelSection') displayAdminChat();
+            if (sectionId === 'clubCardSection') displayUserChat();
         }
 
         function adminLogin() {
             let password = document.getElementById('adminPassword').value;
             if (ADMIN_PASSWORDS.includes(password)) {
                 showSection('adminPanelSection');
+                displayQuestions();
             } else {
                 alert("Неверный пароль!");
             }
@@ -263,6 +277,7 @@
                         visitKey
                     };
                     localStorage.setItem('visitors', JSON.stringify(visitors));
+                    subscribeToPush(childName);
                     alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).\nКод посещения: ${visitKey} (сообщайте при каждом визите).`);
                     showSection('visitorLoginSection');
                 } else {
@@ -304,8 +319,6 @@
                 alert("Счётчик сброшен! Начинаем заново.");
                 updateCard(childName);
             }
-            updateNotifications();
-            updateAnswers(childName);
         }
 
         function addVisit() {
@@ -354,81 +367,251 @@
             });
         }
 
-        function sendNotification() {
-            let message = document.getElementById('notificationInput').value;
+        // Push-уведомления
+        function subscribeToPush(childName) {
+            if ('Notification' in window && 'serviceWorker' in navigator) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        navigator.serviceWorker.register('sw.js').then(registration => {
+                            registration.pushManager.subscribe({ userVisibleOnly: true }).then(subscription => {
+                                subscriptions.push({ childName, subscription: subscription.toJSON() });
+                                localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+                            });
+                        });
+                    }
+                });
+            }
+        }
+
+        function sendPushNotification() {
+            let message = document.getElementById('pushMessage').value;
             if (message) {
-                notifications.push({ text: message, date: new Date().toLocaleString() });
-                localStorage.setItem('notifications', JSON.stringify(notifications));
-                alert("Уведомление отправлено!");
-                document.getElementById('notificationInput').value = '';
-                updateNotifications();
+                subscriptions.forEach(sub => {
+                    navigator.serviceWorker.ready.then(registration => {
+                        registration.showNotification('Песочные Острова', {
+                            body: message,
+                            icon: 'Ресурс 1@10x.png'
+                        });
+                    });
+                });
+                document.getElementById('pushMessage').value = '';
+                alert("Уведомление отправлено всем подписчикам!");
             } else {
                 alert("Введите текст уведомления!");
             }
         }
 
-        function updateNotifications() {
-            let list = document.getElementById('notificationList');
-            list.innerHTML = '';
-            notifications.forEach(note => {
-                list.innerHTML += `<p>${note.date}: ${note.text}</p>`;
-            });
+        // Обратная связь
+        function showFeedbackForm() {
+            document.getElementById('feedbackForm').style.display = 'block';
         }
 
-        function showQuestionForm() {
-            document.getElementById('questionForm').style.display = 'block';
-        }
-
-        function sendQuestion() {
-            let question = document.getElementById('questionInput').value;
+        function submitFeedback() {
+            let question = document.getElementById('feedbackText').value;
             let childName = document.getElementById('cardChildName').innerText;
-            if (question && childName) {
-                questions.push({ childName, question, answer: '', date: new Date().toLocaleString() });
+            if (question) {
+                questions.push({ childName, question, answer: null });
                 localStorage.setItem('questions', JSON.stringify(questions));
-                alert("Вопрос отправлен!");
-                document.getElementById('questionInput').value = '';
-                document.getElementById('questionForm').style.display = 'none';
-                updateQuestions();
+                document.getElementById('feedbackText').value = '';
+                document.getElementById('feedbackForm').style.display = 'none';
+                alert("Вопрос отправлен администратору!");
             } else {
-                alert("Введите вопрос!");
+                alert("Введите ваш вопрос!");
             }
         }
 
-        function updateQuestions() {
-            let list = document.getElementById('questionList');
-            list.innerHTML = '';
+        function displayQuestions() {
+            let list = '';
             questions.forEach((q, index) => {
-                list.innerHTML += `
-                    <div>
-                        <p>${q.date}: ${q.childName}: ${q.question}</p>
-                        <input type="text" class="form-control" id="answerInput${index}" placeholder="Ответ" value="${q.answer}">
-                        <button class="btn btn-primary mt-1" onclick="sendAnswer(${index})">Отправить ответ</button>
-                    </div>`;
+                list += `<p><strong>${q.childName}:</strong> ${q.question} `;
+                if (q.answer) {
+                    list += `<br><strong>Ответ:</strong> ${q.answer}`;
+                } else {
+                    list += `<br><input type="text" id="answer${index}" placeholder="Ответ"><button onclick="submitAnswer(${index})">Ответить</button>`;
+                }
+                list += `</p>`;
             });
+            document.getElementById('questionsList').innerHTML = list;
         }
 
-        function sendAnswer(index) {
-            let answer = document.getElementById(`answerInput${index}`).value;
+        function submitAnswer(index) {
+            let answer = document.getElementById(`answer${index}`).value;
             if (answer) {
                 questions[index].answer = answer;
                 localStorage.setItem('questions', JSON.stringify(questions));
+                displayQuestions();
                 alert("Ответ отправлен!");
-                updateAnswers(questions[index].childName);
             } else {
                 alert("Введите ответ!");
             }
         }
 
-        function updateAnswers(childName) {
-            let list = document.getElementById('answerList');
-            list.innerHTML = '';
-            questions.filter(q => q.childName === childName && q.answer).forEach(q => {
-                list.innerHTML += `<p><strong>Ответ (${q.date}):</strong> ${q.answer}</p>`;
-            });
+        // Вопрос эксперту (ChatGPT)
+        function showExpertForm() {
+            document.getElementById('expertForm').style.display = 'block';
         }
 
-        // Показываем начальную секцию (приветствие)
+        async function submitExpertQuestion() {
+            let question = document.getElementById('expertText').value;
+            if (question) {
+                try {
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${CHATGPT_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-3.5-turbo",
+                            messages: [
+                                { role: "system", content: "Ты — логопед, психолог и воспитатель. Дай родителям полезный совет." },
+                                { role: "user", content: question }
+                            ],
+                            max_tokens: 150
+                        })
+                    });
+                    const data = await response.json();
+                    let answer = data.choices[0].message.content;
+                    document.getElementById('expertResponse').innerHTML = `<p><strong>Ответ эксперта:</strong> ${answer}</p>`;
+                    document.getElementById('expertText').value = '';
+                } catch (error) {
+                    console.error('Ошибка ChatGPT:', error);
+                    document.getElementById('expertResponse').innerHTML = `<p>Ошибка связи с экспертом. Попробуйте позже.</p>`;
+                }
+            } else {
+                alert("Введите вопрос!");
+            }
+        }
+
+        // Удаление аккаунта
+        function deleteAccount() {
+            let childName = document.getElementById('cardChildName').innerText;
+            if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
+                delete visitors[childName];
+                localStorage.setItem('visitors', JSON.stringify(visitors));
+                alert("Аккаунт удалён!");
+                showSection('visitorLoginSection');
+            }
+        }
+
+        // Экспорт в Excel
+        function exportToExcel() {
+            let data = [];
+            for (let childName in visitors) {
+                let user = visitors[childName];
+                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey]);
+            }
+            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения"], ...data]);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Посетители");
+            XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx");
+        }
+
+        // Каталог
+        function displayCatalog() {
+            let list = '';
+            products.forEach((product, index) => {
+                list += `<div class="catalog-item mt-3">
+                    <img src="${product.image}" alt="${product.name}">
+                    <p><strong>${product.name}</strong></p>
+                    <p>Цена (без карты): ${product.priceRegular} руб.</p>
+                    <p>Цена (с картой): ${product.priceCard} руб.</p>
+                    <button class="btn btn-success" onclick="orderProduct(${index})">Купить</button>
+                </div>`;
+            });
+            document.getElementById('catalogList').innerHTML = list;
+        }
+
+        function addProduct() {
+            let file = document.getElementById('productImage').files[0];
+            let name = document.getElementById('productName').value;
+            let description = document.getElementById('productDescription').value;
+            let priceRegular = document.getElementById('productPriceRegular').value;
+            let priceCard = document.getElementById('productPriceCard').value;
+            if (file && name && description && priceRegular && priceCard) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    products.push({
+                        image: e.target.result,
+                        name,
+                        description,
+                        priceRegular,
+                        priceCard
+                    });
+                    localStorage.setItem('products', JSON.stringify(products));
+                    displayCatalog();
+                    document.getElementById('productImage').value = '';
+                    document.getElementById('productName').value = '';
+                    document.getElementById('productDescription').value = '';
+                    document.getElementById('productPriceRegular').value = '';
+                    document.getElementById('productPriceCard').value = '';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert("Заполните все поля!");
+            }
+        }
+
+        function orderProduct(index) {
+            let childName = document.getElementById('cardChildName')?.innerText || "Гость";
+            document.getElementById('userChat').style.display = 'block';
+            document.getElementById('userChatInput').value = `Хочу заказать ${products[index].name}`;
+            sendUserMessage();
+        }
+
+        // Чат
+        function sendUserMessage() {
+            let message = document.getElementById('userChatInput').value;
+            let childName = document.getElementById('cardChildName')?.innerText || "Гость";
+            if (message) {
+                chatMessages.push({ sender: childName, text: message });
+                localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+                displayUserChat();
+                displayAdminChat();
+                document.getElementById('userChatInput').value = '';
+                setTimeout(() => {
+                    chatMessages.push({ sender: "Администратор", text: "Внесите оплату переводом или на терминале." });
+                    localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+                    displayUserChat();
+                    displayAdminChat();
+                }, 1000);
+            }
+        }
+
+        function sendAdminMessage() {
+            let message = document.getElementById('adminChatInput').value;
+            if (message) {
+                chatMessages.push({ sender: "Администратор", text: message });
+                localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+                displayAdminChat();
+                displayUserChat();
+                document.getElementById('adminChatInput').value = '';
+            }
+        }
+
+        function displayUserChat() {
+            let messages = '';
+            chatMessages.forEach(msg => {
+                messages += `<p><strong>${msg.sender}:</strong> ${msg.text}</p>`;
+            });
+            document.getElementById('userChatMessages').innerHTML = messages;
+        }
+
+        function displayAdminChat() {
+            document.getElementById('adminChat').style.display = 'block';
+            let messages = '';
+            chatMessages.forEach(msg => {
+                messages += `<p><strong>${msg.sender}:</strong> ${msg.text}</p>`;
+            });
+            document.getElementById('chatMessages').innerHTML = messages;
+        }
+
+        // Инициализация
         showSection('welcomeSection');
+        displayCatalog();
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
     </script>
 </body>
 </html>

@@ -72,11 +72,12 @@
             display: block;
             margin-left: auto;
             margin-right: auto;
-            animation: neonGlow 2s ease-in-out infinite alternate;
+            animation: neonGlow 1.5s ease-in-out infinite alternate;
         }
         @keyframes neonGlow {
-            from { filter: drop-shadow(0 0 5px #ffca28); }
-            to { filter: drop-shadow(0 0 15px #ffca28); }
+            0% { filter: drop-shadow(0 0 5px #ffca28); }
+            50% { filter: drop-shadow(0 0 15px #ffca28); }
+            100% { filter: drop-shadow(0 0 5px #ffca28); }
         }
         table {
             width: 100%;
@@ -99,8 +100,8 @@
             color: #ffca28;
             text-shadow: 0 0 5px #ffca28, 0 0 10px #ffca28, 0 0 20px #ffca28;
         }
-        .plain-label {
-            color: #fff;
+        .black-label {
+            color: #000;
             text-shadow: none;
         }
         .catalog-item img {
@@ -125,7 +126,7 @@
 
         <!-- Секция трансляции -->
         <div id="broadcastSection" class="content-section">
-            <h3 class="plain-label">Видеотрансляция</h3>
+            <h3 class="black-label">Видеотрансляция</h3>
             <p>Присоединяйтесь к нашему Telegram-каналу, чтобы смотреть трансляцию в реальном времени!</p>
             <button class="btn btn-warning w-75 mt-3" onclick="window.open('https://t.me/pesok_86', '_blank')">
                 <i class="fas fa-video"></i> Смотреть в Telegram
@@ -134,14 +135,14 @@
 
         <!-- Секция администратора: вход -->
         <div id="adminLoginSection" class="content-section">
-            <h3 class="plain-label">Вход для администратора</h3>
+            <h3 class="black-label">Вход для администратора</h3>
             <input type="password" class="form-control" id="adminPassword" placeholder="Пароль">
             <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">Войти</button>
         </div>
 
         <!-- Секция администратора: панель -->
         <div id="adminPanelSection" class="content-section">
-            <h3 class="neon-label">Панель администратора</h3>
+            <h3 class="black-label">Панель администратора</h3>
             <input type="text" class="form-control" id="visitKeyInput" placeholder="Введите код посещения">
             <button class="btn btn-primary w-100 mt-2" onclick="addVisit()">Добавить посещение</button>
             <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
@@ -173,7 +174,7 @@
 
         <!-- Секция посетителя: вход -->
         <div id="visitorLoginSection" class="content-section">
-            <h3 class="plain-label">Вход для посетителя</h3>
+            <h3 class="black-label">Вход для посетителя</h3>
             <input type="text" class="form-control" id="visitorLoginInput" placeholder="Логин">
             <input type="password" class="form-control mt-2" id="visitorPasswordInput" placeholder="Пароль">
             <button class="btn btn-primary w-100 mt-2" onclick="visitorLogin()">Войти</button>
@@ -189,13 +190,12 @@
             <input type="tel" class="form-control mt-2" id="parentPhone" placeholder="Номер телефона">
             <input type="text" class="form-control mt-2" id="newLogin" placeholder="Придумайте логин">
             <input type="password" class="form-control mt-2" id="newPassword" placeholder="Придумайте пароль">
-            <label><input type="checkbox" id="includeChatGPT" class="mt-2"> Включить чат с экспертом (+500 руб)</label>
             <button class="btn btn-primary w-100 mt-2" onclick="registerCard()">Зарегистрировать и оплатить</button>
         </div>
 
         <!-- Секция посетителя: карта -->
         <div id="clubCardSection" class="content-section">
-            <h3 class="neon-label">Клубная карта</h3>
+            <h3 class="black-label">Клубная карта</h3>
             <p><strong>Ребёнок:</strong> <span id="cardChildName"></span></p>
             <p><strong>Посещений:</strong> <span id="visits">0</span></p>
             <p><strong>Статус:</strong> <span id="status">0/5 до бонуса</span></p>
@@ -204,7 +204,6 @@
             </p>
             <button class="btn btn-info w-100 mt-2" onclick="showFeedbackForm()">Задать вопрос администратору</button>
             <button class="btn btn-success w-100 mt-2" onclick="showExpertForm()">Задать вопрос эксперту</button>
-            <button class="btn btn-primary w-100 mt-2" onclick="showChatGPTSection()" id="chatGPTButton" style="display: none;">Чат с экспертом</button>
             <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">Удалить аккаунт</button>
             <div id="feedbackForm" style="display: none;" class="mt-2">
                 <textarea class="form-control" id="feedbackText" placeholder="Ваш вопрос"></textarea>
@@ -225,16 +224,20 @@
 
         <!-- Секция каталога -->
         <div id="catalogSection" class="content-section">
-            <h3 class="neon-label">Каталог товаров</h3>
+            <h3 class="black-label">Каталог товаров</h3>
             <div id="catalogList"></div>
         </div>
 
-        <!-- Секция чата с ChatGPT -->
+        <!-- Секция чата с экспертом -->
         <div id="chatGPTSection" class="content-section">
             <h3 class="neon-label">Чат с экспертом</h3>
+            <p>Стоимость: 500 руб. После оплаты передайте ключ администратору.</p>
+            <p><strong>Ключ оплаты:</strong> <span id="chatGPTPaymentKey"></span>
+                <button class="btn btn-outline-primary copy-btn" onclick="copyChatGPTKey()">Скопировать</button>
+            </p>
             <div id="chatGPTMessages" class="mt-2"></div>
-            <textarea class="form-control mt-2" id="chatGPTInput" placeholder="Введите сообщение"></textarea>
-            <button class="btn btn-primary w-100 mt-2" onclick="sendChatGPTMessage()">Отправить</button>
+            <textarea class="form-control mt-2" id="chatGPTInput" placeholder="Введите сообщение" disabled></textarea>
+            <button class="btn btn-primary w-100 mt-2" onclick="sendChatGPTMessage()" disabled id="chatGPTSendButton">Отправить</button>
         </div>
     </div>
 
@@ -244,6 +247,7 @@
         <button class="btn" onclick="showSection('catalogSection')" title="Каталог"><i class="fas fa-shopping-cart"></i></button>
         <button class="btn" onclick="showSection('broadcastSection')" title="Трансляция"><i class="fas fa-video"></i></button>
         <button class="btn" onclick="showSection('adminLoginSection')" title="Администратор"><i class="fas fa-user-tie"></i></button>
+        <button class="btn" onclick="showSection('chatGPTSection')" title="Чат с экспертом"><i class="fas fa-robot"></i></button>
     </nav>
 
     <script>
@@ -255,6 +259,7 @@
         let products = JSON.parse(localStorage.getItem('products')) || [];
         let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
         let chatGPTMessages = JSON.parse(localStorage.getItem('chatGPTMessages')) || [];
+        let chatGPTPayment = JSON.parse(localStorage.getItem('chatGPTPayment')) || { key: generateKey('CHAT'), paid: false };
 
         function showSection(sectionId) {
             document.querySelectorAll('.content-section').forEach(section => {
@@ -263,7 +268,14 @@
             document.getElementById(sectionId).classList.add('active');
             if (sectionId === 'adminPanelSection') displayQuestions();
             if (sectionId === 'clubCardSection') displayUserChat();
-            if (sectionId === 'chatGPTSection') displayChatGPTMessages();
+            if (sectionId === 'chatGPTSection') {
+                displayChatGPTMessages();
+                document.getElementById('chatGPTPaymentKey').innerText = chatGPTPayment.key;
+                if (chatGPTPayment.paid) {
+                    document.getElementById('chatGPTInput').disabled = false;
+                    document.getElementById('chatGPTSendButton').disabled = false;
+                }
+            }
             window.scrollTo(0, 0);
         }
 
@@ -271,6 +283,7 @@
             let password = document.getElementById('adminPassword').value;
             if (ADMIN_PASSWORDS.includes(password)) {
                 showSection('adminPanelSection');
+                checkChatGPTPayment();
             } else {
                 alert("Неверный пароль!");
             }
@@ -291,7 +304,6 @@
             let phone = document.getElementById('parentPhone').value;
             let login = document.getElementById('newLogin').value;
             let password = document.getElementById('newPassword').value;
-            let includeChatGPT = document.getElementById('includeChatGPT').checked;
             if (childName && parentName && birthDate && phone && login && password) {
                 if (!visitors[childName]) {
                     let hashedPassword = CryptoJS.SHA256(password).toString();
@@ -307,13 +319,11 @@
                         registered: true,
                         paid: false,
                         paymentKey,
-                        visitKey,
-                        chatGPTAccess: includeChatGPT
+                        visitKey
                     };
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     subscribeToPush(childName);
-                    let extraText = includeChatGPT ? "\nЧат с экспертом включён (+500 руб)." : "";
-                    alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).${extraText}\nКод посещения: ${visitKey} (сообщайте при каждом визите).`);
+                    alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).\nКод посещения: ${visitKey} (сообщайте при каждом визите).`);
                     showSection('visitorLoginSection');
                 } else {
                     alert("Этот ребёнок уже зарегистрирован!");
@@ -333,9 +343,6 @@
                         showSection('clubCardSection');
                         document.getElementById('cardChildName').innerText = childName;
                         document.getElementById('visitKeyDisplay').innerText = visitors[childName].visitKey;
-                        if (visitors[childName].chatGPTAccess) {
-                            document.getElementById('chatGPTButton').style.display = 'block';
-                        }
                         updateCard(childName);
                     } else {
                         alert("Карта не оплачена. Передайте ключ оплаты администратору.");
@@ -385,14 +392,28 @@
                     return;
                 }
             }
+            if (paymentKey === chatGPTPayment.key) {
+                chatGPTPayment.paid = true;
+                localStorage.setItem('chatGPTPayment', JSON.stringify(chatGPTPayment));
+                alert("Оплата чата с экспертом подтверждена!");
+                document.getElementById('paymentKey').value = '';
+                return;
+            }
             alert("Неверный ключ оплаты!");
         }
 
+        function checkChatGPTPayment() {
+            if (chatGPTPayment.paid) {
+                document.getElementById('chatGPTInput').disabled = false;
+                document.getElementById('chatGPTSendButton').disabled = false;
+            }
+        }
+
         function showAllUsers() {
-            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Чат GPT</th></tr>";
+            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th></tr>";
             for (let childName in visitors) {
                 let user = visitors[childName];
-                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.chatGPTAccess ? 'Да' : 'Нет'}</td></tr>`;
+                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td></tr>`;
             }
             table += "</table>";
             document.getElementById('usersTable').innerHTML = table;
@@ -402,6 +423,13 @@
             let visitKey = document.getElementById('visitKeyDisplay').innerText;
             navigator.clipboard.writeText(visitKey).then(() => {
                 alert("Код посещения скопирован: " + visitKey);
+            });
+        }
+
+        function copyChatGPTKey() {
+            let key = document.getElementById('chatGPTPaymentKey').innerText;
+            navigator.clipboard.writeText(key).then(() => {
+                alert("Ключ оплаты чата скопирован: " + key);
             });
         }
 
@@ -484,7 +512,7 @@
             }
         }
 
-        // Вопрос эксперту (ChatGPT GPT-4o)
+        // Вопрос эксперту (ChatGPT GPT-3.5-turbo)
         function showExpertForm() {
             document.getElementById('expertForm').style.display = 'block';
         }
@@ -500,7 +528,7 @@
                             'Authorization': `Bearer ${CHATGPT_API_KEY}`
                         },
                         body: JSON.stringify({
-                            model: "gpt-4o",
+                            model: "gpt-3.5-turbo",
                             messages: [
                                 { role: "system", content: "Ты — логопед, психолог и воспитатель. Дай родителям полезный совет на русском языке." },
                                 { role: "user", content: question }
@@ -523,15 +551,10 @@
         }
 
         // Чат с ChatGPT
-        function showChatGPTSection() {
-            showSection('chatGPTSection');
-        }
-
         async function sendChatGPTMessage() {
             let message = document.getElementById('chatGPTInput').value;
-            let childName = document.getElementById('cardChildName').innerText;
-            if (message && visitors[childName].chatGPTAccess) {
-                chatGPTMessages.push({ sender: childName, text: message });
+            if (message && chatGPTPayment.paid) {
+                chatGPTMessages.push({ sender: "Вы", text: message });
                 localStorage.setItem('chatGPTMessages', JSON.stringify(chatGPTMessages));
                 displayChatGPTMessages();
                 document.getElementById('chatGPTInput').value = '';
@@ -543,7 +566,7 @@
                             'Authorization': `Bearer ${CHATGPT_API_KEY}`
                         },
                         body: JSON.stringify({
-                            model: "gpt-4o",
+                            model: "gpt-3.5-turbo",
                             messages: [
                                 { role: "system", content: "Ты — логопед, психолог и воспитатель. Отвечай как эксперт на русском языке." },
                                 { role: "user", content: message }
@@ -592,9 +615,9 @@
             let data = [];
             for (let childName in visitors) {
                 let user = visitors[childName];
-                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.chatGPTAccess ? 'Да' : 'Нет']);
+                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey]);
             }
-            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Чат GPT"], ...data]);
+            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения"], ...data]);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Посетители");
             let excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -726,10 +749,10 @@
             chat.style.display = chat.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Автоматический скролл вверх при фокусе на текстовые поля
-        document.querySelectorAll('textarea, input').forEach(input => {
+        // Прокрутка вверх при фокусе на поля ввода
+        document.querySelectorAll('input, textarea').forEach(input => {
             input.addEventListener('focus', () => {
-                window.scrollTo(0, 0);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
 

@@ -72,6 +72,12 @@
             display: block;
             margin-left: auto;
             margin-right: auto;
+            animation: neonGlow 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes neonGlow {
+            0% { filter: drop-shadow(0 0 5px #ffca28) brightness(1); }
+            50% { filter: drop-shadow(0 0 15px #ffca28) brightness(1.2); }
+            100% { filter: drop-shadow(0 0 5px #ffca28) brightness(1); }
         }
         table {
             width: 100%;
@@ -260,6 +266,38 @@
             return prefix + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         }
 
+        function generateAdminKey(childFullName, parentFullName, birthDate) {
+            // Разбиваем ФИО ребёнка на части
+            let childParts = childFullName.trim().split(/\s+/);
+            let initials = '';
+            if (childParts.length === 3) {
+                initials = childParts[0][0] + childParts[1][0] + childParts[2][0]; // ФИО
+            } else if (childParts.length === 2) {
+                initials = childParts[0][0] + childParts[1][0]; // ФИ
+            } else {
+                initials = childParts[0][0]; // Только фамилия
+            }
+
+            // Первая буква имени родителя
+            let parentInitial = parentFullName.trim()[0];
+
+            // Год рождения ребёнка
+            let birthYear = new Date(birthDate).getFullYear();
+
+            // Базовый ключ
+            let baseKey = `${initials}${parentInitial}${birthYear}`;
+
+            // Проверка уникальности
+            let uniqueKey = baseKey;
+            let counter = 1;
+            while (Object.values(visitors).some(v => v.adminKey === uniqueKey)) {
+                uniqueKey = `${baseKey}${counter}`;
+                counter++;
+            }
+
+            return uniqueKey;
+        }
+
         function registerCard() {
             let childName = document.getElementById('childFullName').value;
             let parentName = document.getElementById('parentFullName').value;
@@ -272,6 +310,7 @@
                     let hashedPassword = CryptoJS.SHA256(password).toString();
                     let paymentKey = generateKey('PAY');
                     let visitKey = generateKey('VISIT');
+                    let adminKey = generateAdminKey(childName, parentName, birthDate);
                     visitors[childName] = {
                         login,
                         password: hashedPassword,
@@ -282,11 +321,12 @@
                         registered: true,
                         paid: false,
                         paymentKey,
-                        visitKey
+                        visitKey,
+                        adminKey
                     };
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     subscribeToPush(childName);
-                    alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).\nКод посещения: ${visitKey} (сообщайте при каждом визите).`);
+                    alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).\nКод посещения: ${visitKey} (сообщайте при каждом визите).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
                     showSection('visitorLoginSection');
                 } else {
                     alert("Этот ребёнок уже зарегистрирован!");
@@ -359,10 +399,10 @@
         }
 
         function showAllUsers() {
-            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th></tr>";
+            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Админ-ключ</th></tr>";
             for (let childName in visitors) {
                 let user = visitors[childName];
-                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td></tr>`;
+                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.adminKey}</td></tr>`;
             }
             table += "</table>";
             document.getElementById('usersTable').innerHTML = table;
@@ -470,9 +510,9 @@
             let data = [];
             for (let childName in visitors) {
                 let user = visitors[childName];
-                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey]);
+                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.adminKey]);
             }
-            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения"], ...data]);
+            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Админ-ключ"], ...data]);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Посетители");
             let excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });

@@ -85,11 +85,14 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 14px;
         }
         th, td {
-            padding: 8px;
+            padding: 6px;
             border: 1px solid #ddd;
             text-align: left;
+            word-wrap: break-word;
+            max-width: 100px;
         }
         th {
             background-color: rgba(255, 245, 200, 0.9);
@@ -173,25 +176,16 @@
             <input type="text" class="form-control mt-2" id="pushMessage" placeholder="Текст уведомления">
             <button class="btn btn-warning w-100 mt-2" onclick="sendPushNotification()">Отправить уведомление всем</button>
             <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">Показать всех пользователей</button>
-            <input type="email" class="form-control mt-2" id="adminEmail" placeholder="Email для Excel">
             <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">Экспорт в Excel</button>
-            <div id="usersTable" class="mt-3"></div>
-            <h4 class="neon-label mt-3">Вопросы от пользователей</h4>
-            <div id="questionsList" class="mt-2"></div>
-            <h4 class="neon-label mt-3">Добавить товар</h4>
+            <button class="btn btn-danger w-100 mt-2" onclick="removeVisit()">Удалить последнее посещение</button>
+            <div id="usersTable" class="mt-3" style="overflow-x: auto;"></div>
+            <h4 class="black-label mt-3">Добавить товар</h4>
             <input type="file" class="form-control mt-2" id="productImage" accept="image/*">
             <input type="text" class="form-control mt-2" id="productName" placeholder="Название товара">
             <textarea class="form-control mt-2" id="productDescription" placeholder="Описание товара"></textarea>
             <input type="number" class="form-control mt-2" id="productPriceRegular" placeholder="Цена (без карты)">
             <input type="number" class="form-control mt-2" id="productPriceCard" placeholder="Цена (с картой)">
             <button class="btn btn-primary w-100 mt-2" onclick="addProduct()">Добавить товар</button>
-            <button class="btn btn-info w-100 mt-2" onclick="toggleAdminChat()">Показать чат с покупателями</button>
-            <div id="adminChat" class="mt-3" style="display: none;">
-                <h4 class="neon-label">Чат с покупателями</h4>
-                <div id="chatMessages"></div>
-                <textarea class="form-control mt-2" id="adminChatInput" placeholder="Ответить"></textarea>
-                <button class="btn btn-primary w-100 mt-2" onclick="sendAdminMessage()">Отправить</button>
-            </div>
         </div>
 
         <!-- Секция посетителя: вход -->
@@ -209,7 +203,7 @@
 
         <!-- Секция посетителя: регистрация -->
         <div id="registerSection" class="content-section">
-            <h3 class="neon-label">Регистрация клубной карты</h3>
+            <h3 class="black-label">Регистрация клубной карты</h3>
             <input type="text" class="form-control" id="childFullName" placeholder="ФИО ребёнка">
             <input type="text" class="form-control mt-2" id="parentFullName" placeholder="ФИО родителя">
             <input type="date" class="form-control mt-2" id="childBirthDate">
@@ -231,18 +225,7 @@
             <p><strong>QR-код для посещения:</strong></p>
             <div id="visitQRCode" class="qr-container"></div>
             <p><small>Код посещения: <span id="visitKeyDisplay"></span></small></p>
-            <button class="btn btn-info w-100 mt-2" onclick="showFeedbackForm()">Задать вопрос администратору</button>
             <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">Удалить аккаунт</button>
-            <div id="feedbackForm" style="display: none;" class="mt-2">
-                <textarea class="form-control" id="feedbackText" placeholder="Ваш вопрос"></textarea>
-                <button class="btn btn-primary w-100 mt-2" onclick="submitFeedback()">Отправить</button>
-            </div>
-            <div id="userChat" style="display: none;" class="mt-2">
-                <h4>Чат с администратором</h4>
-                <div id="userChatMessages"></div>
-                <textarea class="form-control mt-2" id="userChatInput" placeholder="Сообщение"></textarea>
-                <button class="btn btn-primary w-100 mt-2" onclick="sendUserMessage()">Отправить</button>
-            </div>
         </div>
 
         <!-- Секция каталога -->
@@ -264,17 +247,13 @@
         const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
         let visitors = JSON.parse(localStorage.getItem('visitors')) || {};
         let subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
-        let questions = JSON.parse(localStorage.getItem('questions')) || [];
         let products = JSON.parse(localStorage.getItem('products')) || [];
-        let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
 
         function showSection(sectionId) {
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
             document.getElementById(sectionId).classList.add('active');
-            if (sectionId === 'adminPanelSection') displayQuestions();
-            if (sectionId === 'clubCardSection') displayUserChat();
             window.scrollTo(0, 0);
         }
 
@@ -354,6 +333,7 @@
                 if (!visitors[childName]) {
                     let hashedPassword = CryptoJS.SHA256(password).toString();
                     let adminKey = generateAdminKey(childName, parentName, birthDate);
+                    let registrationDate = new Date().toISOString().split('T')[0]; // Дата регистрации
                     visitors[childName] = {
                         login,
                         password: hashedPassword,
@@ -363,14 +343,14 @@
                         visits: 0,
                         registered: true,
                         paid: false,
-                        adminKey
+                        adminKey,
+                        registrationDate
                     };
                     let visitKey = generateVisitQR(childName);
                     let paymentKey = generatePaymentQR(childName);
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     subscribeToPush(childName);
                     alert(`Карта зарегистрирована!\nПокажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).\nПосле оплаты используйте QR-код посещения (код: ${visitKey}).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
-                    // Остаёмся в секции регистрации, чтобы показать QR-код оплаты
                 } else {
                     alert("Этот ребёнок уже зарегистрирован!");
                 }
@@ -389,7 +369,7 @@
                     if (visitors[childName].paid) {
                         if (rememberMe) {
                             localStorage.setItem('savedLogin', login);
-                            localStorage.setItem('savedPassword', password); // Храним открытый пароль для удобства (небезопасно в реальном приложении)
+                            localStorage.setItem('savedPassword', password);
                         } else {
                             localStorage.removeItem('savedLogin');
                             localStorage.removeItem('savedPassword');
@@ -407,7 +387,6 @@
             alert("Неверный логин или пароль!");
         }
 
-        // Загрузка сохранённых данных при открытии страницы
         window.onload = function() {
             let savedLogin = localStorage.getItem('savedLogin');
             let savedPassword = localStorage.getItem('savedPassword');
@@ -432,9 +411,9 @@
         }
 
         let video = null;
-        let scanType = 'visit'; // По умолчанию сканируем посещение
+        let scanType = 'visit';
         function startQRScanner(type) {
-            scanType = type; // 'visit' или 'payment'
+            scanType = type;
             const qrScanner = document.getElementById('qrScanner');
             const qrVideo = document.getElementById('qrVideo');
             const qrCanvas = document.getElementById('qrCanvas');
@@ -577,11 +556,28 @@
             }
         }
 
+        function removeVisit() {
+            let childName = prompt("Введите ФИО ребёнка, у которого нужно удалить последнее посещение:");
+            if (childName && visitors[childName]) {
+                if (visitors[childName].visits > 0) {
+                    visitors[childName].visits--;
+                    localStorage.setItem('visitors', JSON.stringify(visitors));
+                    document.getElementById('adminVisits').innerText = visitors[childName].visits;
+                    alert(`Последнее посещение для ${childName} удалено!`);
+                    showAllUsers(); // Обновляем таблицу
+                } else {
+                    alert("У этого ребёнка нет посещений!");
+                }
+            } else {
+                alert("Ребёнок не найден!");
+            }
+        }
+
         function showAllUsers() {
-            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Админ-ключ</th></tr>";
+            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th></tr>";
             for (let childName in visitors) {
                 let user = visitors[childName];
-                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.visits}</td><td>${user.adminKey}</td></tr>`;
+                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.visits}</td><td>${user.registrationDate}</td><td>${user.adminKey}</td></tr>`;
             }
             table += "</table>";
             document.getElementById('usersTable').innerHTML = table;
@@ -620,50 +616,6 @@
             }
         }
 
-        function showFeedbackForm() {
-            document.getElementById('feedbackForm').style.display = 'block';
-        }
-
-        function submitFeedback() {
-            let question = document.getElementById('feedbackText').value;
-            let childName = document.getElementById('cardChildName').innerText;
-            if (question) {
-                questions.push({ childName, question, answer: null });
-                localStorage.setItem('questions', JSON.stringify(questions));
-                document.getElementById('feedbackText').value = '';
-                document.getElementById('feedbackForm').style.display = 'none';
-                alert("Вопрос отправлен администратору!");
-            } else {
-                alert("Введите ваш вопрос!");
-            }
-        }
-
-        function displayQuestions() {
-            let list = '';
-            questions.forEach((q, index) => {
-                list += `<p><strong>${q.childName}:</strong> ${q.question} `;
-                if (q.answer) {
-                    list += `<br><strong>Ответ:</strong> ${q.answer}`;
-                } else {
-                    list += `<br><input type="text" id="answer${index}" placeholder="Ответ"><button onclick="submitAnswer(${index})">Ответить</button>`;
-                }
-                list += `</p>`;
-            });
-            document.getElementById('questionsList').innerHTML = list;
-        }
-
-        function submitAnswer(index) {
-            let answer = document.getElementById(`answer${index}`).value;
-            if (answer) {
-                questions[index].answer = answer;
-                localStorage.setItem('questions', JSON.stringify(questions));
-                displayQuestions();
-                alert("Ответ отправлен!");
-            } else {
-                alert("Введите ответ!");
-            }
-        }
-
         function deleteAccount() {
             let childName = document.getElementById('cardChildName').innerText;
             if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
@@ -680,24 +632,13 @@
             for (let childName in visitors) {
                 let user = visitors[childName];
                 totalVisits += user.visits;
-                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.visits, user.adminKey]);
+                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.visits, user.registrationDate, user.adminKey]);
             }
-            data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits]);
-            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Админ-ключ"], ...data]);
+            data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, ""]);
+            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Дата регистрации", "Админ-ключ"], ...data]);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Посетители");
-            let excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-            let blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-            let url = URL.createObjectURL(blob);
-            let email = document.getElementById('adminEmail').value;
-            if (email) {
-                let link = document.createElement('a');
-                link.href = `mailto:${email}?subject=Посетители Песочные Острова&body=Список посетителей во вложении.&attachment=${url}`;
-                link.click();
-                URL.revokeObjectURL(url);
-            } else {
-                alert("Введите email!");
-            }
+            XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx");
         }
 
         function displayCatalog() {
@@ -709,7 +650,7 @@
                     <p><strong>${product.name}</strong></p>
                     <p>Цена (без карты): ${product.priceRegular} руб.</p>
                     <p>Цена (с картой): ${product.priceCard} руб.</p>
-                    <button class="btn btn-success" onclick="orderProduct(${index})">Купить</button>`;
+                    <button class="btn btn-success" onclick="alert('Свяжитесь с администратором для покупки!')">Купить</button>`;
                 if (isAdmin) {
                     list += `<button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>`;
                 }
@@ -754,63 +695,6 @@
                 localStorage.setItem('products', JSON.stringify(products));
                 displayCatalog();
             }
-        }
-
-        function orderProduct(index) {
-            let childName = document.getElementById('cardChildName')?.innerText || "Гость";
-            document.getElementById('userChat').style.display = 'block';
-            document.getElementById('userChatInput').value = `Хочу заказать ${products[index].name}`;
-            sendUserMessage();
-        }
-
-        function sendUserMessage() {
-            let message = document.getElementById('userChatInput').value;
-            let childName = document.getElementById('cardChildName')?.innerText || "Гость";
-            if (message) {
-                chatMessages.push({ sender: childName, text: message });
-                localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
-                displayUserChat();
-                displayAdminChat();
-                document.getElementById('userChatInput').value = '';
-                setTimeout(() => {
-                    chatMessages.push({ sender: "Администратор", text: "Внесите оплату переводом или на терминале." });
-                    localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
-                    displayUserChat();
-                    displayAdminChat();
-                }, 1000);
-            }
-        }
-
-        function sendAdminMessage() {
-            let message = document.getElementById('adminChatInput').value;
-            if (message) {
-                chatMessages.push({ sender: "Администратор", text: message });
-                localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
-                displayAdminChat();
-                displayUserChat();
-                document.getElementById('adminChatInput').value = '';
-            }
-        }
-
-        function displayUserChat() {
-            let messages = '';
-            chatMessages.forEach(msg => {
-                messages += `<p><strong>${msg.sender}:</strong> ${msg.text}</p>`;
-            });
-            document.getElementById('userChatMessages').innerHTML = messages;
-        }
-
-        function displayAdminChat() {
-            let messages = '';
-            chatMessages.forEach(msg => {
-                messages += `<p><strong>${msg.sender}:</strong> ${msg.text}</p>`;
-            });
-            document.getElementById('chatMessages').innerHTML = messages;
-        }
-
-        function toggleAdminChat() {
-            let chat = document.getElementById('adminChat');
-            chat.style.display = chat.style.display === 'none' ? 'block' : 'none';
         }
 
         document.querySelectorAll('input, textarea').forEach(input => {

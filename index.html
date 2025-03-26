@@ -60,18 +60,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #fff;
-            color: #ffca28;
-            border: 2px solid #ffca28;
-            transition: transform 0.2s ease; /* Анимация кнопок */
+            background: #fff !important;
+            color: #ffca28 !important;
+            border: 2px solid #ffca28 !important;
+            transition: transform 0.2s ease !important;
         }
         .navbar-bottom .btn:hover {
-            background: #ffca28;
-            color: #fff;
-            transform: scale(1.1);
+            background: #ffca28 !important;
+            color: #fff !important;
+            transform: scale(1.1) !important;
         }
         .navbar-bottom .btn:active {
-            transform: scale(0.95);
+            transform: scale(0.95) !important;
         }
         img.logo {
             max-width: 200px;
@@ -278,8 +278,10 @@
             showSection('registerSection');
         }
 
-        function generateKey(prefix) {
-            return prefix + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        function generateKey(prefix, childName) {
+            // Создаём уникальный ключ на основе имени ребёнка и времени
+            const time = Date.now().toString(36);
+            return `${prefix}-${childName.replace(/\s+/g, '').slice(0, 5)}-${time}`.toUpperCase();
         }
 
         function generateAdminKey(childFullName, parentFullName, birthDate) {
@@ -305,9 +307,9 @@
         }
 
         function generateVisitQR(childName) {
-            let visitKey = generateKey('VISIT');
+            let visitKey = generateKey('VISIT', childName);
             visitors[childName].visitKey = visitKey;
-            visitors[childName].visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000; // 24 часа
+            visitors[childName].visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000;
             let qrCodeData = `visit:${visitKey}`;
             QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, function (error, canvas) {
                 if (error) console.error(error);
@@ -320,7 +322,7 @@
         }
 
         function generatePaymentQR(childName) {
-            let paymentKey = generateKey('PAY');
+            let paymentKey = generateKey('PAY', childName);
             visitors[childName].paymentKey = paymentKey;
             let qrCodeData = `payment:${paymentKey}`;
             QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, function (error, canvas) {
@@ -398,8 +400,18 @@
                         }
                         showSection('clubCardSection');
                         document.getElementById('cardChildName').innerText = childName;
-                        if (Date.now() > visitors[childName].visitKeyExpiration) {
+                        // Пересоздаём QR-код, если он отсутствует или устарел
+                        if (!visitors[childName].visitKey || Date.now() > visitors[childName].visitKeyExpiration) {
                             generateVisitQR(childName);
+                        } else {
+                            // Отображаем существующий QR-код
+                            let qrCodeData = `visit:${visitors[childName].visitKey}`;
+                            QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, function (error, canvas) {
+                                if (error) console.error(error);
+                                document.getElementById('visitQRCode').innerHTML = '';
+                                document.getElementById('visitQRCode').appendChild(canvas);
+                            });
+                            document.getElementById('visitKeyDisplay').innerText = visitors[childName].visitKey;
                         }
                         updateCard(childName);
                     } else {
@@ -535,7 +547,7 @@
                     document.getElementById('adminVisits').innerText = visitors[childName].visits;
                     document.getElementById('removeVisitBtn').disabled = false;
                     alert(`Посещение добавлено для ${childName}!`);
-                    generateVisitQR(childName); // Обновляем QR-код
+                    generateVisitQR(childName);
                     return;
                 }
             }
@@ -560,7 +572,7 @@
                         document.getElementById('removeVisitBtn').disabled = false;
                         alert(`Посещение добавлено для ${childName}!`);
                         document.getElementById('manualVisitKey').value = '';
-                        generateVisitQR(childName); // Обновляем QR-код
+                        generateVisitQR(childName);
                         return;
                     }
                 }
@@ -613,7 +625,14 @@
                         body: message,
                         icon: 'Ресурс 1@10x.png'
                     });
+                    console.log(`Push отправлен для ${childName}: ${message}`);
+                }).catch(err => {
+                    console.error('Ошибка отправки Push:', err);
+                    alert('Push-уведомления не работают. Требуется HTTPS.');
                 });
+            } else {
+                console.log(`Push для ${childName}: ${message} (тест без HTTPS)`);
+                alert(`Push для ${childName}: ${message} (тест без HTTPS)`);
             }
         }
 
@@ -638,10 +657,10 @@
         }
 
         function showAllUsers() {
-            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th></tr>";
+            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr>";
             for (let childName in visitors) {
                 let user = visitors[childName];
-                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.visits}</td><td>${user.registrationDate}</td><td>${user.adminKey}</td></tr>`;
+                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.visits}</td><td>${user.registrationDate}</td><td>${user.adminKey}</td><td>${user.login}</td><td>${user.password}</td></tr>`;
             }
             table += "</table>";
             document.getElementById('usersTable').innerHTML = table;
@@ -655,6 +674,8 @@
                             registration.pushManager.subscribe({ userVisibleOnly: true }).then(subscription => {
                                 subscriptions.push({ childName, subscription: subscription.toJSON() });
                                 localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+                            }).catch(err => {
+                                console.error('Ошибка подписки на Push:', err);
                             });
                         });
                     }
@@ -671,10 +692,14 @@
                             body: message,
                             icon: 'Ресурс 1@10x.png'
                         });
+                        console.log(`Push отправлен всем: ${message}`);
+                    }).catch(err => {
+                        console.error('Ошибка отправки Push:', err);
+                        alert('Push-уведомления не работают. Требуется HTTPS.');
                     });
                 });
                 document.getElementById('pushMessage').value = '';
-                alert("Уведомление отправлено всем подписчикам!");
+                alert("Уведомление отправлено всем подписчикам (тест без HTTPS)");
             } else {
                 alert("Введите текст уведомления!");
             }
@@ -696,10 +721,10 @@
             for (let childName in visitors) {
                 let user = visitors[childName];
                 totalVisits += user.visits;
-                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.visits, user.registrationDate, user.adminKey]);
+                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.visits, user.registrationDate, user.adminKey, user.login, user.password]);
             }
-            data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, ""]);
-            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Дата регистрации", "Админ-ключ"], ...data]);
+            data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, "", "", ""]);
+            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Дата регистрации", "Админ-ключ", "Логин", "Пароль (хэш)"], ...data]);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Посетители");
             XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx", { bookSST: true, type: 'binary' });
@@ -784,7 +809,7 @@
         showSection('welcomeSection');
         displayCatalog();
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            navigator.serviceWorker.register('sw.js').catch(err => console.error('Service Worker регистрация не удалась:', err));
         }
     </script>
 </body>

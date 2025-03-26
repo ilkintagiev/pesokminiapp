@@ -63,10 +63,15 @@
             background: #fff;
             color: #ffca28;
             border: 2px solid #ffca28;
+            transition: transform 0.2s ease; /* Анимация кнопок */
         }
         .navbar-bottom .btn:hover {
             background: #ffca28;
             color: #fff;
+            transform: scale(1.1);
+        }
+        .navbar-bottom .btn:active {
+            transform: scale(0.95);
         }
         img.logo {
             max-width: 200px;
@@ -97,10 +102,6 @@
         th {
             background-color: rgba(255, 245, 200, 0.9);
         }
-        .neon-label {
-            color: #ffca28;
-            text-shadow: 0 0 5px #ffca28, 0 0 10px #ffca28, 0 0 20px #ffca28;
-        }
         .black-label {
             color: #000;
             text-shadow: none;
@@ -124,6 +125,10 @@
             font-size: 12px;
             color: #666;
             margin-top: 10px;
+        }
+        .form-control:focus {
+            position: relative;
+            z-index: 10;
         }
     </style>
 </head>
@@ -177,7 +182,8 @@
             <button class="btn btn-warning w-100 mt-2" onclick="sendPushNotification()">Отправить уведомление всем</button>
             <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">Показать всех пользователей</button>
             <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">Экспорт в Excel</button>
-            <button class="btn btn-danger w-100 mt-2" onclick="removeVisit()">Удалить последнее посещение</button>
+            <button class="btn btn-danger w-100 mt-2" id="removeVisitBtn" onclick="removeVisit()" disabled>Удалить последнее посещение</button>
+            <button class="btn btn-info w-100 mt-2" onclick="showErrorLog()">Показать лог ошибок</button>
             <div id="usersTable" class="mt-3" style="overflow-x: auto;"></div>
             <h4 class="black-label mt-3">Добавить товар</h4>
             <input type="file" class="form-control mt-2" id="productImage" accept="image/*">
@@ -248,6 +254,8 @@
         let visitors = JSON.parse(localStorage.getItem('visitors')) || {};
         let subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
         let products = JSON.parse(localStorage.getItem('products')) || [];
+        let errorLog = JSON.parse(localStorage.getItem('errorLog')) || [];
+        let lastScannedChild = null;
 
         function showSection(sectionId) {
             document.querySelectorAll('.content-section').forEach(section => {
@@ -299,6 +307,7 @@
         function generateVisitQR(childName) {
             let visitKey = generateKey('VISIT');
             visitors[childName].visitKey = visitKey;
+            visitors[childName].visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000; // 24 часа
             let qrCodeData = `visit:${visitKey}`;
             QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, function (error, canvas) {
                 if (error) console.error(error);
@@ -306,6 +315,7 @@
                 document.getElementById('visitQRCode').appendChild(canvas);
             });
             document.getElementById('visitKeyDisplay').innerText = visitKey;
+            localStorage.setItem('visitors', JSON.stringify(visitors));
             return visitKey;
         }
 
@@ -319,43 +329,55 @@
                 document.getElementById('paymentQRCode').appendChild(canvas);
             });
             document.getElementById('paymentKeyDisplay').innerText = paymentKey;
+            localStorage.setItem('visitors', JSON.stringify(visitors));
             return paymentKey;
         }
 
         function registerCard() {
-            let childName = document.getElementById('childFullName').value;
-            let parentName = document.getElementById('parentFullName').value;
+            let childName = document.getElementById('childFullName').value.trim();
+            let parentName = document.getElementById('parentFullName').value.trim();
             let birthDate = document.getElementById('childBirthDate').value;
-            let phone = document.getElementById('parentPhone').value;
-            let login = document.getElementById('newLogin').value;
-            let password = document.getElementById('newPassword').value;
-            if (childName && parentName && birthDate && phone && login && password) {
-                if (!visitors[childName]) {
-                    let hashedPassword = CryptoJS.SHA256(password).toString();
-                    let adminKey = generateAdminKey(childName, parentName, birthDate);
-                    let registrationDate = new Date().toISOString().split('T')[0]; // Дата регистрации
-                    visitors[childName] = {
-                        login,
-                        password: hashedPassword,
-                        parentName,
-                        birthDate,
-                        phone,
-                        visits: 0,
-                        registered: true,
-                        paid: false,
-                        adminKey,
-                        registrationDate
-                    };
-                    let visitKey = generateVisitQR(childName);
-                    let paymentKey = generatePaymentQR(childName);
-                    localStorage.setItem('visitors', JSON.stringify(visitors));
-                    subscribeToPush(childName);
-                    alert(`Карта зарегистрирована!\nПокажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).\nПосле оплаты используйте QR-код посещения (код: ${visitKey}).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
-                } else {
-                    alert("Этот ребёнок уже зарегистрирован!");
-                }
-            } else {
+            let phone = document.getElementById('parentPhone').value.trim();
+            let login = document.getElementById('newLogin').value.trim();
+            let password = document.getElementById('newPassword').value.trim();
+
+            if (!childName || !parentName || !birthDate || !phone || !login || !password) {
                 alert("Заполните все поля!");
+                return;
+            }
+            if (password.length < 6) {
+                alert("Пароль должен быть не менее 6 символов!");
+                return;
+            }
+            if (!/^\+?\d{10,12}$/.test(phone)) {
+                alert("Введите корректный номер телефона (10-12 цифр)!");
+                return;
+            }
+            if (!visitors[childName]) {
+                let hashedPassword = CryptoJS.SHA256(password).toString();
+                let adminKey = generateAdminKey(childName, parentName, birthDate);
+                let registrationDate = new Date().toISOString().split('T')[0];
+                visitors[childName] = {
+                    login,
+                    password: hashedPassword,
+                    parentName,
+                    birthDate,
+                    phone,
+                    visits: 0,
+                    registered: true,
+                    paid: false,
+                    adminKey,
+                    registrationDate,
+                    visitKey: '',
+                    paymentKey: '',
+                    visitKeyExpiration: 0
+                };
+                let visitKey = generateVisitQR(childName);
+                let paymentKey = generatePaymentQR(childName);
+                subscribeToPush(childName);
+                alert(`Карта зарегистрирована!\nПокажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).\nПосле оплаты используйте QR-код посещения (код: ${visitKey}).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
+            } else {
+                alert("Этот ребёнок уже зарегистрирован!");
             }
         }
 
@@ -376,7 +398,9 @@
                         }
                         showSection('clubCardSection');
                         document.getElementById('cardChildName').innerText = childName;
-                        generateVisitQR(childName);
+                        if (Date.now() > visitors[childName].visitKeyExpiration) {
+                            generateVisitQR(childName);
+                        }
                         updateCard(childName);
                     } else {
                         alert("Карта не оплачена. Покажите QR-код оплаты администратору.");
@@ -441,6 +465,7 @@
                             })
                             .catch(err => {
                                 debugInfo.innerText = `Ошибка камеры: ${err.message}`;
+                                logError(`Ошибка камеры: ${err.message}`);
                                 alert(`Не удалось открыть камеру: ${err.message}. Проверьте разрешения и попробуйте снова.`);
                                 qrScanner.style.display = 'none';
                             });
@@ -448,6 +473,7 @@
                 })
                 .catch(err => {
                     debugInfo.innerText = `Ошибка проверки устройств: ${err.message}`;
+                    logError(`Ошибка проверки устройств: ${err.message}`);
                     alert("Не удалось проверить устройства: " + err.message);
                     qrScanner.style.display = 'none';
                 });
@@ -475,6 +501,7 @@
                         confirmPaymentQR(paymentKey);
                     } else {
                         debugInfo.innerText = "Неверный формат QR-кода для выбранного типа.";
+                        logError(`Неверный формат QR-кода: ${qrData}`);
                     }
                     stopQRScanner();
                 } else {
@@ -497,13 +524,22 @@
         function addVisitFromQR(visitKey) {
             for (let childName in visitors) {
                 if (visitors[childName].visitKey === visitKey && visitors[childName].registered && visitors[childName].paid) {
+                    if (Date.now() > visitors[childName].visitKeyExpiration) {
+                        logError(`QR-код посещения устарел для ${childName}`);
+                        alert("QR-код посещения устарел! Попросите посетителя обновить его.");
+                        return;
+                    }
                     visitors[childName].visits++;
+                    lastScannedChild = childName;
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     document.getElementById('adminVisits').innerText = visitors[childName].visits;
+                    document.getElementById('removeVisitBtn').disabled = false;
                     alert(`Посещение добавлено для ${childName}!`);
+                    generateVisitQR(childName); // Обновляем QR-код
                     return;
                 }
             }
+            logError(`Неверный QR-код посещения: ${visitKey}`);
             alert("Неверный QR-код посещения или карта не оплачена!");
         }
 
@@ -512,14 +548,23 @@
             if (visitKey) {
                 for (let childName in visitors) {
                     if (visitors[childName].visitKey === visitKey && visitors[childName].registered && visitors[childName].paid) {
+                        if (Date.now() > visitors[childName].visitKeyExpiration) {
+                            logError(`Код посещения устарел для ${childName}`);
+                            alert("Код посещения устарел! Попросите посетителя обновить его.");
+                            return;
+                        }
                         visitors[childName].visits++;
+                        lastScannedChild = childName;
                         localStorage.setItem('visitors', JSON.stringify(visitors));
                         document.getElementById('adminVisits').innerText = visitors[childName].visits;
+                        document.getElementById('removeVisitBtn').disabled = false;
                         alert(`Посещение добавлено для ${childName}!`);
                         document.getElementById('manualVisitKey').value = '';
+                        generateVisitQR(childName); // Обновляем QR-код
                         return;
                     }
                 }
+                logError(`Неверный код посещения: ${visitKey}`);
                 alert("Неверный код посещения или карта не оплачена!");
             } else {
                 alert("Введите код посещения!");
@@ -532,44 +577,63 @@
                     visitors[childName].paid = true;
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
+                    sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
                     return;
                 }
             }
+            logError(`Неверный QR-код оплаты: ${paymentKey}`);
             alert("Неверный QR-код оплаты!");
         }
 
         function confirmPaymentManual() {
-            let paymentKey = document.getElementById('manualPaymentKey').value;
+            let paymentKey = document.getElementById('manualPaymentKey').value.trim();
             if (paymentKey) {
                 for (let childName in visitors) {
                     if (visitors[childName].paymentKey === paymentKey) {
                         visitors[childName].paid = true;
                         localStorage.setItem('visitors', JSON.stringify(visitors));
                         alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
+                        sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
                         document.getElementById('manualPaymentKey').value = '';
                         return;
                     }
                 }
+                logError(`Неверный ключ оплаты: ${paymentKey}`);
                 alert("Неверный ключ оплаты!");
             } else {
                 alert("Введите ключ оплаты!");
             }
         }
 
+        function sendPushToUser(childName, message) {
+            const sub = subscriptions.find(s => s.childName === childName);
+            if (sub && 'serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification('Песочные Острова', {
+                        body: message,
+                        icon: 'Ресурс 1@10x.png'
+                    });
+                });
+            }
+        }
+
         function removeVisit() {
-            let childName = prompt("Введите ФИО ребёнка, у которого нужно удалить последнее посещение:");
-            if (childName && visitors[childName]) {
-                if (visitors[childName].visits > 0) {
-                    visitors[childName].visits--;
+            if (lastScannedChild && visitors[lastScannedChild]) {
+                if (visitors[lastScannedChild].visits > 0) {
+                    visitors[lastScannedChild].visits--;
                     localStorage.setItem('visitors', JSON.stringify(visitors));
-                    document.getElementById('adminVisits').innerText = visitors[childName].visits;
-                    alert(`Последнее посещение для ${childName} удалено!`);
-                    showAllUsers(); // Обновляем таблицу
+                    document.getElementById('adminVisits').innerText = visitors[lastScannedChild].visits;
+                    alert(`Последнее посещение для ${lastScannedChild} удалено!`);
+                    if (visitors[lastScannedChild].visits === 0) {
+                        document.getElementById('removeVisitBtn').disabled = true;
+                    }
+                    showAllUsers();
                 } else {
                     alert("У этого ребёнка нет посещений!");
+                    document.getElementById('removeVisitBtn').disabled = true;
                 }
             } else {
-                alert("Ребёнок не найден!");
+                alert("Сначала отсканируйте QR-код посещения!");
             }
         }
 
@@ -638,7 +702,18 @@
             let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Дата регистрации", "Админ-ключ"], ...data]);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Посетители");
-            XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx");
+            XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx", { bookSST: true, type: 'binary' });
+        }
+
+        function logError(message) {
+            errorLog.push({ date: new Date().toISOString(), message });
+            localStorage.setItem('errorLog', JSON.stringify(errorLog));
+        }
+
+        function showErrorLog() {
+            let logDiv = document.createElement('div');
+            logDiv.innerHTML = '<h4 class="black-label">Лог ошибок</h4>' + errorLog.map(e => `<p>${e.date}: ${e.message}</p>`).join('');
+            document.getElementById('adminPanelSection').appendChild(logDiv);
         }
 
         function displayCatalog() {
@@ -699,7 +774,10 @@
 
         document.querySelectorAll('input, textarea').forEach(input => {
             input.addEventListener('focus', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
             });
         });
 

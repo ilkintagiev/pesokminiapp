@@ -9,6 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -75,10 +77,10 @@
             animation: neonGlow 4s ease-in-out infinite;
         }
         @keyframes neonGlow {
-            0% { filter: drop-shadow(0 0 5px #ffca28) brightness(1); } /* Жёлтый */
-            33% { filter: drop-shadow(0 0 15px #00ffff) brightness(1.2); } /* Голубой */
-            66% { filter: drop-shadow(0 0 15px #00ff00) brightness(1.2); } /* Зелёный */
-            100% { filter: drop-shadow(0 0 10px #e0f7ff) brightness(1.1); } /* Холодный белый */
+            0% { filter: drop-shadow(0 0 5px #ffca28) brightness(1); }
+            33% { filter: drop-shadow(0 0 15px #00ffff) brightness(1.2); }
+            66% { filter: drop-shadow(0 0 15px #00ff00) brightness(1.2); }
+            100% { filter: drop-shadow(0 0 10px #e0f7ff) brightness(1.1); }
         }
         table {
             width: 100%;
@@ -107,6 +109,17 @@
         }
         .catalog-item img {
             max-width: 100px;
+            border-radius: 5px;
+        }
+        .qr-container {
+            margin-top: 10px;
+        }
+        #qrCanvas {
+            display: none;
+        }
+        #qrVideo {
+            width: 100%;
+            max-width: 300px;
             border-radius: 5px;
         }
     </style>
@@ -144,8 +157,11 @@
         <!-- Секция администратора: панель -->
         <div id="adminPanelSection" class="content-section">
             <h3 class="black-label">Панель администратора</h3>
-            <input type="text" class="form-control" id="visitKeyInput" placeholder="Введите код посещения">
-            <button class="btn btn-primary w-100 mt-2" onclick="addVisit()">Добавить посещение</button>
+            <button class="btn btn-primary w-100 mt-2" onclick="startQRScanner()">Сканировать QR-код посещения</button>
+            <div id="qrScanner" class="qr-container" style="display: none;">
+                <video id="qrVideo"></video>
+                <canvas id="qrCanvas"></canvas>
+            </div>
             <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
             <input type="text" class="form-control mt-2" id="paymentKey" placeholder="Введите ключ оплаты">
             <button class="btn btn-success w-100 mt-2" onclick="confirmPayment()">Подтвердить оплату</button>
@@ -200,9 +216,8 @@
             <p><strong>Ребёнок:</strong> <span id="cardChildName"></span></p>
             <p><strong>Посещений:</strong> <span id="visits">0</span></p>
             <p><strong>Статус:</strong> <span id="status">0/5 до бонуса</span></p>
-            <p><strong>Код посещения:</strong> <span id="visitKeyDisplay"></span>
-                <button class="btn btn-outline-primary copy-btn" onclick="copyVisitKey()">Скопировать</button>
-            </p>
+            <p><strong>QR-код для посещения:</strong></p>
+            <div id="visitQRCode" class="qr-container"></div>
             <button class="btn btn-info w-100 mt-2" onclick="showFeedbackForm()">Задать вопрос администратору</button>
             <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">Удалить аккаунт</button>
             <div id="feedbackForm" style="display: none;" class="mt-2">
@@ -289,6 +304,18 @@
             return uniqueKey;
         }
 
+        function generateVisitQR(childName) {
+            let visitKey = generateKey('VISIT');
+            visitors[childName].visitKey = visitKey;
+            let qrCodeData = `visit:${visitKey}`;
+            QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, function (error, canvas) {
+                if (error) console.error(error);
+                document.getElementById('visitQRCode').innerHTML = '';
+                document.getElementById('visitQRCode').appendChild(canvas);
+            });
+            return visitKey;
+        }
+
         function registerCard() {
             let childName = document.getElementById('childFullName').value;
             let parentName = document.getElementById('parentFullName').value;
@@ -300,7 +327,6 @@
                 if (!visitors[childName]) {
                     let hashedPassword = CryptoJS.SHA256(password).toString();
                     let paymentKey = generateKey('PAY');
-                    let visitKey = generateKey('VISIT');
                     let adminKey = generateAdminKey(childName, parentName, birthDate);
                     visitors[childName] = {
                         login,
@@ -312,12 +338,12 @@
                         registered: true,
                         paid: false,
                         paymentKey,
-                        visitKey,
                         adminKey
                     };
+                    let visitKey = generateVisitQR(childName);
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     subscribeToPush(childName);
-                    alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).\nКод посещения: ${visitKey} (сообщайте при каждом визите).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
+                    alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).\nQR-код посещения сгенерирован — покажите его администратору при визите.\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
                     showSection('visitorLoginSection');
                 } else {
                     alert("Этот ребёнок уже зарегистрирован!");
@@ -336,7 +362,7 @@
                     if (visitors[childName].paid) {
                         showSection('clubCardSection');
                         document.getElementById('cardChildName').innerText = childName;
-                        document.getElementById('visitKeyDisplay').innerText = visitors[childName].visitKey;
+                        generateVisitQR(childName);
                         updateCard(childName);
                     } else {
                         alert("Карта не оплачена. Передайте ключ оплаты администратору.");
@@ -360,19 +386,67 @@
             }
         }
 
-        function addVisit() {
-            let visitKey = document.getElementById('visitKeyInput').value;
+        let video = null;
+        function startQRScanner() {
+            const qrScanner = document.getElementById('qrScanner');
+            const qrVideo = document.getElementById('qrVideo');
+            const qrCanvas = document.getElementById('qrCanvas');
+            qrScanner.style.display = 'block';
+            
+            if (!video) {
+                video = qrVideo;
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                    .then(stream => {
+                        video.srcObject = stream;
+                        video.play();
+                        scanQRCode();
+                    })
+                    .catch(err => {
+                        alert("Не удалось получить доступ к камере: " + err);
+                        qrScanner.style.display = 'none';
+                    });
+            }
+
+            function scanQRCode() {
+                const canvasContext = qrCanvas.getContext('2d');
+                qrCanvas.width = video.videoWidth;
+                qrCanvas.height = video.videoHeight;
+                canvasContext.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
+                const imageData = canvasContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code) {
+                    const qrData = code.data;
+                    if (qrData.startsWith('visit:')) {
+                        const visitKey = qrData.split(':')[1];
+                        addVisitFromQR(visitKey);
+                    }
+                    stopQRScanner();
+                } else {
+                    requestAnimationFrame(scanQRCode);
+                }
+            }
+        }
+
+        function stopQRScanner() {
+            if (video && video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            document.getElementById('qrScanner').style.display = 'none';
+        }
+
+        function addVisitFromQR(visitKey) {
             for (let childName in visitors) {
                 if (visitors[childName].visitKey === visitKey && visitors[childName].registered && visitors[childName].paid) {
                     visitors[childName].visits++;
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     document.getElementById('adminVisits').innerText = visitors[childName].visits;
                     alert(`Посещение добавлено для ${childName}!`);
-                    document.getElementById('visitKeyInput').value = '';
                     return;
                 }
             }
-            alert("Неверный код посещения или карта не оплачена!");
+            alert("Неверный QR-код посещения или карта не оплачена!");
         }
 
         function confirmPayment() {
@@ -397,13 +471,6 @@
             }
             table += "</table>";
             document.getElementById('usersTable').innerHTML = table;
-        }
-
-        function copyVisitKey() {
-            let visitKey = document.getElementById('visitKeyDisplay').innerText;
-            navigator.clipboard.writeText(visitKey).then(() => {
-                alert("Код посещения скопирован: " + visitKey);
-            });
         }
 
         function subscribeToPush(childName) {

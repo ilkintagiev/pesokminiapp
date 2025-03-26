@@ -157,7 +157,8 @@
         <!-- Секция администратора: панель -->
         <div id="adminPanelSection" class="content-section">
             <h3 class="black-label">Панель администратора</h3>
-            <button class="btn btn-primary w-100 mt-2" onclick="startQRScanner()">Сканировать QR-код посещения</button>
+            <button class="btn btn-primary w-100 mt-2" onclick="startQRScanner('visit')">Сканировать QR-код посещения</button>
+            <button class="btn btn-success w-100 mt-2" onclick="startQRScanner('payment')">Сканировать QR-код оплаты</button>
             <div id="qrScanner" class="qr-container" style="display: none;">
                 <video id="qrVideo"></video>
                 <canvas id="qrCanvas"></canvas>
@@ -166,9 +167,9 @@
             </div>
             <input type="text" class="form-control mt-2" id="manualVisitKey" placeholder="Или введите код посещения вручную">
             <button class="btn btn-primary w-100 mt-2" onclick="addVisitFromManual()">Добавить посещение вручную</button>
+            <input type="text" class="form-control mt-2" id="manualPaymentKey" placeholder="Или введите ключ оплаты вручную">
+            <button class="btn btn-success w-100 mt-2" onclick="confirmPaymentManual()">Подтвердить оплату вручную</button>
             <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
-            <input type="text" class="form-control mt-2" id="paymentKey" placeholder="Введите ключ оплаты">
-            <button class="btn btn-success w-100 mt-2" onclick="confirmPayment()">Подтвердить оплату</button>
             <input type="text" class="form-control mt-2" id="pushMessage" placeholder="Текст уведомления">
             <button class="btn btn-warning w-100 mt-2" onclick="sendPushNotification()">Отправить уведомление всем</button>
             <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">Показать всех пользователей</button>
@@ -198,6 +199,10 @@
             <h3 class="black-label">Вход для посетителя</h3>
             <input type="text" class="form-control" id="visitorLoginInput" placeholder="Логин">
             <input type="password" class="form-control mt-2" id="visitorPasswordInput" placeholder="Пароль">
+            <div class="form-check mt-2">
+                <input type="checkbox" class="form-check-input" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">Запомнить меня</label>
+            </div>
             <button class="btn btn-primary w-100 mt-2" onclick="visitorLogin()">Войти</button>
             <button class="btn btn-secondary w-100 mt-2" onclick="showRegister()">Купить клубную карту</button>
         </div>
@@ -211,7 +216,10 @@
             <input type="tel" class="form-control mt-2" id="parentPhone" placeholder="Номер телефона">
             <input type="text" class="form-control mt-2" id="newLogin" placeholder="Придумайте логин">
             <input type="password" class="form-control mt-2" id="newPassword" placeholder="Придумайте пароль">
-            <button class="btn btn-primary w-100 mt-2" onclick="registerCard()">Зарегистрировать и оплатить</button>
+            <button class="btn btn-primary w-100 mt-2" onclick="registerCard()">Зарегистрировать</button>
+            <p class="mt-2"><strong>QR-код оплаты:</strong></p>
+            <div id="paymentQRCode" class="qr-container"></div>
+            <p><small>Ключ оплаты: <span id="paymentKeyDisplay"></span></small></p>
         </div>
 
         <!-- Секция посетителя: карта -->
@@ -318,8 +326,21 @@
                 document.getElementById('visitQRCode').innerHTML = '';
                 document.getElementById('visitQRCode').appendChild(canvas);
             });
-            document.getElementById('visitKeyDisplay').innerText = visitKey; // Показываем код для ручного ввода
+            document.getElementById('visitKeyDisplay').innerText = visitKey;
             return visitKey;
+        }
+
+        function generatePaymentQR(childName) {
+            let paymentKey = generateKey('PAY');
+            visitors[childName].paymentKey = paymentKey;
+            let qrCodeData = `payment:${paymentKey}`;
+            QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, function (error, canvas) {
+                if (error) console.error(error);
+                document.getElementById('paymentQRCode').innerHTML = '';
+                document.getElementById('paymentQRCode').appendChild(canvas);
+            });
+            document.getElementById('paymentKeyDisplay').innerText = paymentKey;
+            return paymentKey;
         }
 
         function registerCard() {
@@ -332,7 +353,6 @@
             if (childName && parentName && birthDate && phone && login && password) {
                 if (!visitors[childName]) {
                     let hashedPassword = CryptoJS.SHA256(password).toString();
-                    let paymentKey = generateKey('PAY');
                     let adminKey = generateAdminKey(childName, parentName, birthDate);
                     visitors[childName] = {
                         login,
@@ -343,14 +363,14 @@
                         visits: 0,
                         registered: true,
                         paid: false,
-                        paymentKey,
                         adminKey
                     };
                     let visitKey = generateVisitQR(childName);
+                    let paymentKey = generatePaymentQR(childName);
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     subscribeToPush(childName);
-                    alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).\nQR-код посещения сгенерирован — покажите его администратору при визите (или используйте код: ${visitKey}).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
-                    showSection('visitorLoginSection');
+                    alert(`Карта зарегистрирована!\nПокажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).\nПосле оплаты используйте QR-код посещения (код: ${visitKey}).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
+                    // Остаёмся в секции регистрации, чтобы показать QR-код оплаты
                 } else {
                     alert("Этот ребёнок уже зарегистрирован!");
                 }
@@ -362,22 +382,41 @@
         function visitorLogin() {
             let login = document.getElementById('visitorLoginInput').value;
             let password = document.getElementById('visitorPasswordInput').value;
+            let rememberMe = document.getElementById('rememberMe').checked;
             let hashedPassword = CryptoJS.SHA256(password).toString();
             for (let childName in visitors) {
                 if (visitors[childName].login === login && visitors[childName].password === hashedPassword && visitors[childName].registered) {
                     if (visitors[childName].paid) {
+                        if (rememberMe) {
+                            localStorage.setItem('savedLogin', login);
+                            localStorage.setItem('savedPassword', password); // Храним открытый пароль для удобства (небезопасно в реальном приложении)
+                        } else {
+                            localStorage.removeItem('savedLogin');
+                            localStorage.removeItem('savedPassword');
+                        }
                         showSection('clubCardSection');
                         document.getElementById('cardChildName').innerText = childName;
                         generateVisitQR(childName);
                         updateCard(childName);
                     } else {
-                        alert("Карта не оплачена. Передайте ключ оплаты администратору.");
+                        alert("Карта не оплачена. Покажите QR-код оплаты администратору.");
                     }
                     return;
                 }
             }
             alert("Неверный логин или пароль!");
         }
+
+        // Загрузка сохранённых данных при открытии страницы
+        window.onload = function() {
+            let savedLogin = localStorage.getItem('savedLogin');
+            let savedPassword = localStorage.getItem('savedPassword');
+            if (savedLogin && savedPassword) {
+                document.getElementById('visitorLoginInput').value = savedLogin;
+                document.getElementById('visitorPasswordInput').value = savedPassword;
+                document.getElementById('rememberMe').checked = true;
+            }
+        };
 
         function updateCard(childName) {
             let visits = visitors[childName].visits;
@@ -393,7 +432,9 @@
         }
 
         let video = null;
-        function startQRScanner() {
+        let scanType = 'visit'; // По умолчанию сканируем посещение
+        function startQRScanner(type) {
+            scanType = type; // 'visit' или 'payment'
             const qrScanner = document.getElementById('qrScanner');
             const qrVideo = document.getElementById('qrVideo');
             const qrCanvas = document.getElementById('qrCanvas');
@@ -416,7 +457,7 @@
                             .then(stream => {
                                 video.srcObject = stream;
                                 video.play();
-                                debugInfo.innerText = "Камера активна, сканирование началось...";
+                                debugInfo.innerText = `Камера активна, сканирование ${type === 'visit' ? 'посещения' : 'оплаты'}...`;
                                 scanQRCode();
                             })
                             .catch(err => {
@@ -447,15 +488,18 @@
                 if (code) {
                     debugInfo.innerText = `QR-код распознан: ${code.data}`;
                     const qrData = code.data;
-                    if (qrData.startsWith('visit:')) {
+                    if (scanType === 'visit' && qrData.startsWith('visit:')) {
                         const visitKey = qrData.split(':')[1];
                         addVisitFromQR(visitKey);
+                    } else if (scanType === 'payment' && qrData.startsWith('payment:')) {
+                        const paymentKey = qrData.split(':')[1];
+                        confirmPaymentQR(paymentKey);
                     } else {
-                        debugInfo.innerText = "Неверный формат QR-кода.";
+                        debugInfo.innerText = "Неверный формат QR-кода для выбранного типа.";
                     }
                     stopQRScanner();
                 } else {
-                    debugInfo.innerText = "QR-код не найден, продолжение сканирования...";
+                    debugInfo.innerText = `QR-код не найден, продолжение сканирования ${type === 'visit' ? 'посещения' : 'оплаты'}...`;
                     requestAnimationFrame(scanQRCode);
                 }
             }
@@ -503,25 +547,41 @@
             }
         }
 
-        function confirmPayment() {
-            let paymentKey = document.getElementById('paymentKey').value;
+        function confirmPaymentQR(paymentKey) {
             for (let childName in visitors) {
                 if (visitors[childName].paymentKey === paymentKey) {
                     visitors[childName].paid = true;
                     localStorage.setItem('visitors', JSON.stringify(visitors));
-                    alert(`Оплата для ${childName} подтверждена!`);
-                    document.getElementById('paymentKey').value = '';
+                    alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
                     return;
                 }
             }
-            alert("Неверный ключ оплаты!");
+            alert("Неверный QR-код оплаты!");
+        }
+
+        function confirmPaymentManual() {
+            let paymentKey = document.getElementById('manualPaymentKey').value;
+            if (paymentKey) {
+                for (let childName in visitors) {
+                    if (visitors[childName].paymentKey === paymentKey) {
+                        visitors[childName].paid = true;
+                        localStorage.setItem('visitors', JSON.stringify(visitors));
+                        alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
+                        document.getElementById('manualPaymentKey').value = '';
+                        return;
+                    }
+                }
+                alert("Неверный ключ оплаты!");
+            } else {
+                alert("Введите ключ оплаты!");
+            }
         }
 
         function showAllUsers() {
-            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Админ-ключ</th></tr>";
+            let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Админ-ключ</th></tr>";
             for (let childName in visitors) {
                 let user = visitors[childName];
-                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.adminKey}</td></tr>`;
+                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.visits}</td><td>${user.adminKey}</td></tr>`;
             }
             table += "</table>";
             document.getElementById('usersTable').innerHTML = table;
@@ -616,11 +676,14 @@
 
         function exportToExcel() {
             let data = [];
+            let totalVisits = 0;
             for (let childName in visitors) {
                 let user = visitors[childName];
-                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.adminKey]);
+                totalVisits += user.visits;
+                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.visits, user.adminKey]);
             }
-            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Админ-ключ"], ...data]);
+            data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits]);
+            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Админ-ключ"], ...data]);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Посетители");
             let excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });

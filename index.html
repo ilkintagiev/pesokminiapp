@@ -94,11 +94,6 @@
         th {
             background-color: rgba(255, 245, 200, 0.9);
         }
-        .copy-btn {
-            margin-left: 10px;
-            font-size: 14px;
-            padding: 5px 10px;
-        }
         .neon-label {
             color: #ffca28;
             text-shadow: 0 0 5px #ffca28, 0 0 10px #ffca28, 0 0 20px #ffca28;
@@ -121,6 +116,11 @@
             width: 100%;
             max-width: 300px;
             border-radius: 5px;
+        }
+        #debugInfo {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -161,7 +161,11 @@
             <div id="qrScanner" class="qr-container" style="display: none;">
                 <video id="qrVideo"></video>
                 <canvas id="qrCanvas"></canvas>
+                <button class="btn btn-danger w-100 mt-2" onclick="stopQRScanner()">Остановить сканирование</button>
+                <div id="debugInfo"></div>
             </div>
+            <input type="text" class="form-control mt-2" id="manualVisitKey" placeholder="Или введите код посещения вручную">
+            <button class="btn btn-primary w-100 mt-2" onclick="addVisitFromManual()">Добавить посещение вручную</button>
             <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
             <input type="text" class="form-control mt-2" id="paymentKey" placeholder="Введите ключ оплаты">
             <button class="btn btn-success w-100 mt-2" onclick="confirmPayment()">Подтвердить оплату</button>
@@ -218,6 +222,7 @@
             <p><strong>Статус:</strong> <span id="status">0/5 до бонуса</span></p>
             <p><strong>QR-код для посещения:</strong></p>
             <div id="visitQRCode" class="qr-container"></div>
+            <p><small>Код посещения: <span id="visitKeyDisplay"></span></small></p>
             <button class="btn btn-info w-100 mt-2" onclick="showFeedbackForm()">Задать вопрос администратору</button>
             <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">Удалить аккаунт</button>
             <div id="feedbackForm" style="display: none;" class="mt-2">
@@ -313,6 +318,7 @@
                 document.getElementById('visitQRCode').innerHTML = '';
                 document.getElementById('visitQRCode').appendChild(canvas);
             });
+            document.getElementById('visitKeyDisplay').innerText = visitKey; // Показываем код для ручного ввода
             return visitKey;
         }
 
@@ -343,7 +349,7 @@
                     let visitKey = generateVisitQR(childName);
                     localStorage.setItem('visitors', JSON.stringify(visitors));
                     subscribeToPush(childName);
-                    alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).\nQR-код посещения сгенерирован — покажите его администратору при визите.\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
+                    alert(`Карта зарегистрирована!\nКлюч оплаты: ${paymentKey} (передайте администратору для подтверждения оплаты).\nQR-код посещения сгенерирован — покажите его администратору при визите (или используйте код: ${visitKey}).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
                     showSection('visitorLoginSection');
                 } else {
                     alert("Этот ребёнок уже зарегистрирован!");
@@ -391,38 +397,65 @@
             const qrScanner = document.getElementById('qrScanner');
             const qrVideo = document.getElementById('qrVideo');
             const qrCanvas = document.getElementById('qrCanvas');
+            const debugInfo = document.getElementById('debugInfo');
             qrScanner.style.display = 'block';
-            
-            if (!video) {
-                video = qrVideo;
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                    .then(stream => {
-                        video.srcObject = stream;
-                        video.play();
-                        scanQRCode();
-                    })
-                    .catch(err => {
-                        alert("Не удалось получить доступ к камере: " + err);
+            debugInfo.innerText = "Запуск камеры...";
+
+            navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    if (videoDevices.length === 0) {
+                        alert("На устройстве нет доступных камер.");
                         qrScanner.style.display = 'none';
-                    });
-            }
+                        return;
+                    }
+
+                    if (!video) {
+                        video = qrVideo;
+                        navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
+                            .then(stream => {
+                                video.srcObject = stream;
+                                video.play();
+                                debugInfo.innerText = "Камера активна, сканирование началось...";
+                                scanQRCode();
+                            })
+                            .catch(err => {
+                                debugInfo.innerText = `Ошибка камеры: ${err.message}`;
+                                alert(`Не удалось открыть камеру: ${err.message}. Проверьте разрешения и попробуйте снова.`);
+                                qrScanner.style.display = 'none';
+                            });
+                    }
+                })
+                .catch(err => {
+                    debugInfo.innerText = `Ошибка проверки устройств: ${err.message}`;
+                    alert("Не удалось проверить устройства: " + err.message);
+                    qrScanner.style.display = 'none';
+                });
 
             function scanQRCode() {
+                if (!video || !video.srcObject) {
+                    debugInfo.innerText = "Камера не активна.";
+                    return;
+                }
                 const canvasContext = qrCanvas.getContext('2d');
-                qrCanvas.width = video.videoWidth;
-                qrCanvas.height = video.videoHeight;
+                qrCanvas.width = video.videoWidth || 300;
+                qrCanvas.height = video.videoHeight || 300;
                 canvasContext.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
                 const imageData = canvasContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
-                
+
                 if (code) {
+                    debugInfo.innerText = `QR-код распознан: ${code.data}`;
                     const qrData = code.data;
                     if (qrData.startsWith('visit:')) {
                         const visitKey = qrData.split(':')[1];
                         addVisitFromQR(visitKey);
+                    } else {
+                        debugInfo.innerText = "Неверный формат QR-кода.";
                     }
                     stopQRScanner();
                 } else {
+                    debugInfo.innerText = "QR-код не найден, продолжение сканирования...";
                     requestAnimationFrame(scanQRCode);
                 }
             }
@@ -432,8 +465,10 @@
             if (video && video.srcObject) {
                 video.srcObject.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
+                video = null;
             }
             document.getElementById('qrScanner').style.display = 'none';
+            document.getElementById('debugInfo').innerText = "";
         }
 
         function addVisitFromQR(visitKey) {
@@ -447,6 +482,25 @@
                 }
             }
             alert("Неверный QR-код посещения или карта не оплачена!");
+        }
+
+        function addVisitFromManual() {
+            let visitKey = document.getElementById('manualVisitKey').value;
+            if (visitKey) {
+                for (let childName in visitors) {
+                    if (visitors[childName].visitKey === visitKey && visitors[childName].registered && visitors[childName].paid) {
+                        visitors[childName].visits++;
+                        localStorage.setItem('visitors', JSON.stringify(visitors));
+                        document.getElementById('adminVisits').innerText = visitors[childName].visits;
+                        alert(`Посещение добавлено для ${childName}!`);
+                        document.getElementById('manualVisitKey').value = '';
+                        return;
+                    }
+                }
+                alert("Неверный код посещения или карта не оплачена!");
+            } else {
+                alert("Введите код посещения!");
+            }
         }
 
         function confirmPayment() {

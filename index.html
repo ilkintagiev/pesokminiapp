@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
@@ -261,7 +261,7 @@
     </nav>
 
     <script>
-        // Инициализация Firebase
+        // Инициализация Firebase (замените на свои данные, если нужно)
         const firebaseConfig = {
             apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
             authDomain: "pesochnyeostrova.firebaseapp.com",
@@ -282,26 +282,33 @@
 
         // Загрузка данных из Firestore при старте
         async function loadData() {
-            const visitorsSnapshot = await db.collection('visitors').get();
-            const productsSnapshot = await db.collection('products').get();
-            const subscriptionsSnapshot = await db.collection('subscriptions').get();
-            const errorsSnapshot = await db.collection('errorLog').get();
+            try {
+                const visitorsSnapshot = await db.collection('visitors').get();
+                const productsSnapshot = await db.collection('products').get();
+                const subscriptionsSnapshot = await db.collection('subscriptions').get();
+                const errorsSnapshot = await db.collection('errorLog').get();
 
-            visitorsSnapshot.forEach(doc => visitors[doc.id] = doc.data());
-            products = productsSnapshot.docs.map(doc => doc.data());
-            subscriptions = subscriptionsSnapshot.docs.map(doc => doc.data());
-            errorLog = errorsSnapshot.docs.map(doc => doc.data());
+                visitorsSnapshot.forEach(doc => visitors[doc.id] = doc.data());
+                products = productsSnapshot.docs.map(doc => doc.data());
+                subscriptions = subscriptionsSnapshot.docs.map(doc => doc.data());
+                errorLog = errorsSnapshot.docs.map(doc => doc.data());
 
-            displayCatalog();
+                displayCatalog();
+            } catch (err) {
+                console.error("Ошибка при загрузке данных Firestore:", err);
+            }
         }
         loadData();
 
+        // Функция переключения секций
         function showSection(sectionId) {
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
             document.getElementById(sectionId).classList.add('active');
             window.scrollTo(0, 0);
+
+            // Если переходим в админ-секцию, сбрасываем отладку
             if (sectionId === 'adminLoginSection') {
                 document.getElementById('debugInfo').innerText = "";
             }
@@ -360,7 +367,7 @@
         async function generateVisitQR(childName) {
             let visitKey = generateKey('VISIT', childName);
             visitors[childName].visitKey = visitKey;
-            visitors[childName].visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000;
+            visitors[childName].visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000; // 24 часа
             await db.collection('visitors').doc(childName).update({
                 visitKey: visitKey,
                 visitKeyExpiration: visitors[childName].visitKeyExpiration
@@ -414,7 +421,7 @@
             if (!visitorSnapshot.exists) {
                 let hashedPassword = CryptoJS.SHA256(password).toString();
                 let adminKey = generateAdminKey(childName, parentName, birthDate);
-                let registrationDate = new Date().toISOString().split('T')[0];
+                let registrationDate = new Date().toISOString().split('T')[0]; 
                 let visitorData = {
                     login,
                     password: hashedPassword,
@@ -447,7 +454,11 @@
             let rememberMe = document.getElementById('rememberMe').checked;
             let hashedPassword = CryptoJS.SHA256(password).toString();
 
-            let snapshot = await db.collection('visitors').where('login', '==', login).where('password', '==', hashedPassword).get();
+            let snapshot = await db.collection('visitors')
+                .where('login', '==', login)
+                .where('password', '==', hashedPassword)
+                .get();
+
             if (!snapshot.empty) {
                 let childName = snapshot.docs[0].id;
                 let user = snapshot.docs[0].data();
@@ -462,6 +473,7 @@
                         }
                         showSection('clubCardSection');
                         document.getElementById('cardChildName').innerText = childName;
+                        // Проверяем, не просрочен ли текущий visitKey
                         if (!user.visitKey || Date.now() > user.visitKeyExpiration) {
                             await generateVisitQR(childName);
                         } else {
@@ -483,6 +495,7 @@
             }
         }
 
+        // Автозаполнение полей при загрузке
         window.onload = function() {
             let savedLogin = localStorage.getItem('savedLogin');
             let savedPassword = localStorage.getItem('savedPassword');
@@ -502,6 +515,7 @@
             let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
             document.getElementById('visits').innerText = visits;
             document.getElementById('status').innerText = statusText;
+            // Если visits >= 6 — сбрасываем счётчик (после использования бесплатного посещения)
             if (visits >= 6) {
                 db.collection('visitors').doc(childName).update({ visits: 0 });
                 alert("Счётчик сброшен! Начинаем заново.");
@@ -607,7 +621,7 @@
                         alert("QR-код посещения устарел! Попросите посетителя обновить его.");
                         return;
                     }
-                    let newVisits = user.vis disseminatingits + 1;
+                    let newVisits = user.visits + 1; // Исправлено здесь
                     await db.collection('visitors').doc(childName).update({ visits: newVisits });
                     visitors[childName].visits = newVisits;
                     lastScannedChild = childName;
@@ -728,7 +742,7 @@
                     document.getElementById('removeVisitBtn').disabled = true;
                 }
             } else {
-                alert("Сначала отсканируйте QR-код посещения!");
+                alert("Сначала отсканируйте QR-код посещения или добавьте посещение!");
             }
         }
 
@@ -737,7 +751,20 @@
             let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr>";
             snapshot.forEach(doc => {
                 let user = doc.data();
-                table += `<tr><td>${doc.id}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.visits}</td><td>${user.registrationDate}</td><td>${user.adminKey}</td><td>${user.login}</td><td>${user.password}</td></tr>`;
+                table += `<tr>
+                    <td>${doc.id}</td>
+                    <td>${user.parentName}</td>
+                    <td>${user.birthDate}</td>
+                    <td>${user.phone}</td>
+                    <td>${user.paid ? 'Да' : 'Нет'}</td>
+                    <td>${user.paymentKey}</td>
+                    <td>${user.visitKey}</td>
+                    <td>${user.visits}</td>
+                    <td>${user.registrationDate || ''}</td>
+                    <td>${user.adminKey || ''}</td>
+                    <td>${user.login}</td>
+                    <td>${user.password}</td>
+                </tr>`;
             });
             table += "</table>";
             document.getElementById('usersTable').innerHTML = table;
@@ -800,10 +827,26 @@
             snapshot.forEach(doc => {
                 let user = doc.data();
                 totalVisits += user.visits;
-                data.push([doc.id, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.visits, user.registrationDate, user.adminKey, user.login, user.password]);
+                data.push([
+                    doc.id,
+                    user.parentName,
+                    user.birthDate,
+                    user.phone,
+                    user.paid ? 'Да' : 'Нет',
+                    user.paymentKey,
+                    user.visitKey,
+                    user.visits,
+                    user.registrationDate || '',
+                    user.adminKey || '',
+                    user.login,
+                    user.password
+                ]);
             });
             data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, "", "", ""]);
-            let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Дата регистрации", "Админ-ключ", "Логин", "Пароль (хэш)"], ...data]);
+            let ws = XLSX.utils.aoa_to_sheet([
+                ["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Дата регистрации", "Админ-ключ", "Логин", "Пароль (хэш)"],
+                ...data
+            ]);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Посетители");
             XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx", { bookSST: true, type: 'binary' });
@@ -823,7 +866,7 @@
 
         function displayCatalog() {
             let list = '';
-            let isAdmin = document.getElementById('adminPassword')?.value === ADMIN_PASSWORD;
+            let isAdmin = (document.getElementById('adminPassword')?.value === ADMIN_PASSWORD);
             products.forEach((product, index) => {
                 list += `<div class="catalog-item mt-3">
                     <img src="${product.image}" alt="${product.name}">
@@ -858,6 +901,7 @@
                     products.push(productData);
                     await db.collection('products').doc(name).set(productData);
                     displayCatalog();
+                    // Сброс полей
                     document.getElementById('productImage').value = '';
                     document.getElementById('productName').value = '';
                     document.getElementById('productDescription').value = '';
@@ -878,6 +922,7 @@
             }
         }
 
+        // Скролл к полям при фокусе (мобильные устройства)
         document.querySelectorAll('input, textarea').forEach(input => {
             input.addEventListener('focus', () => {
                 setTimeout(() => {
@@ -887,8 +932,10 @@
             });
         });
 
+        // Регистрация Service Worker (если нужен push)
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.error('Service Worker регистрация не удалась:', err));
+            navigator.serviceWorker.register('sw.js')
+                .catch(err => console.error('Service Worker регистрация не удалась:', err));
         }
     </script>
 </body>

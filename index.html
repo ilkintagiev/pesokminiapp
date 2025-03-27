@@ -162,24 +162,26 @@
         <!-- Секция администратора: вход -->
         <div id="adminLoginSection" class="content-section">
             <h3 class="black-label">Вход для администратора</h3>
-            <input type="text" class="form-control" id="adminPassword" placeholder="Пароль">
+            <input type="password" class="form-control" id="adminPassword" placeholder="Пароль">
             <div class="form-check mt-2">
                 <input type="checkbox" class="form-check-input" id="adminRememberMe">
                 <label class="form-check-label" for="adminRememberMe">Запомнить меня</label>
             </div>
             <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">Войти</button>
+            <div id="debugInfo"></div>
         </div>
 
         <!-- Секция администратора: панель -->
         <div id="adminPanelSection" class="content-section">
             <h3 class="black-label">Панель администратора</h3>
+            <p>Ты вошёл как администратор!</p>
             <button class="btn btn-primary w-100 mt-2" onclick="startQRScanner('visit')">Сканировать QR-код посещения</button>
             <button class="btn btn-success w-100 mt-2" onclick="startQRScanner('payment')">Сканировать QR-код оплаты</button>
             <div id="qrScanner" class="qr-container" style="display: none;">
                 <video id="qrVideo"></video>
                 <canvas id="qrCanvas"></canvas>
                 <button class="btn btn-danger w-100 mt-2" onclick="stopQRScanner()">Остановить сканирование</button>
-                <div id="debugInfo"></div>
+                <div id="debugInfoQR"></div>
             </div>
             <input type="text" class="form-control mt-2" id="manualVisitKey" placeholder="Или введите код посещения вручную">
             <button class="btn btn-primary w-100 mt-2" onclick="addVisitFromManual()">Добавить посещение вручную</button>
@@ -200,6 +202,7 @@
             <input type="number" class="form-control mt-2" id="productPriceRegular" placeholder="Цена (без карты)">
             <input type="number" class="form-control mt-2" id="productPriceCard" placeholder="Цена (с картой)">
             <button class="btn btn-primary w-100 mt-2" onclick="addProduct()">Добавить товар</button>
+            <button class="btn btn-danger w-100 mt-3" onclick="logout()">Выйти</button>
         </div>
 
         <!-- Секция посетителя: вход -->
@@ -270,7 +273,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const ADMIN_PASSWORDS = ["admin"];
+        const ADMIN_PASSWORD = "admin2025";
         let visitors = {};
         let subscriptions = [];
         let products = [];
@@ -299,13 +302,20 @@
             });
             document.getElementById(sectionId).classList.add('active');
             window.scrollTo(0, 0);
+            if (sectionId === 'adminLoginSection') {
+                document.getElementById('debugInfo').innerText = "";
+            }
         }
 
         function adminLogin() {
             let password = document.getElementById('adminPassword').value;
             let rememberMe = document.getElementById('adminRememberMe').checked;
-            console.log("Введённый пароль:", password); // Для отладки
-            if (ADMIN_PASSWORDS.includes(password)) {
+            let debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerText = `Проверяю пароль: "${password}"`;
+            console.log("Введённый пароль:", password);
+
+            if (password === ADMIN_PASSWORD) {
+                debugInfo.innerText += "\nПароль верный! Вхожу...";
                 if (rememberMe) {
                     localStorage.setItem('adminPassword', password);
                 } else {
@@ -313,8 +323,14 @@
                 }
                 showSection('adminPanelSection');
             } else {
+                debugInfo.innerText += "\nПароль неверный!";
                 alert("Неверный пароль!");
             }
+        }
+
+        function logout() {
+            document.getElementById('adminPassword').value = "";
+            showSection('adminLoginSection');
         }
 
         function showRegister() {
@@ -500,9 +516,9 @@
             const qrScanner = document.getElementById('qrScanner');
             const qrVideo = document.getElementById('qrVideo');
             const qrCanvas = document.getElementById('qrCanvas');
-            const debugInfo = document.getElementById('debugInfo');
+            const debugInfoQR = document.getElementById('debugInfoQR');
             qrScanner.style.display = 'block';
-            debugInfo.innerText = "Запуск камеры...";
+            debugInfoQR.innerText = "Запуск камеры...";
 
             navigator.mediaDevices.enumerateDevices()
                 .then(devices => {
@@ -519,11 +535,11 @@
                             .then(stream => {
                                 video.srcObject = stream;
                                 video.play();
-                                debugInfo.innerText = `Камера активна, сканирование ${type === 'visit' ? 'посещения' : 'оплаты'}...`;
+                                debugInfoQR.innerText = `Камера активна, сканирование ${type === 'visit' ? 'посещения' : 'оплаты'}...`;
                                 scanQRCode();
                             })
                             .catch(err => {
-                                debugInfo.innerText = `Ошибка камеры: ${err.message}`;
+                                debugInfoQR.innerText = `Ошибка камеры: ${err.message}`;
                                 logError(`Ошибка камеры: ${err.message}`);
                                 alert(`Не удалось открыть камеру: ${err.message}. Проверьте разрешения и попробуйте снова.`);
                                 qrScanner.style.display = 'none';
@@ -531,7 +547,7 @@
                     }
                 })
                 .catch(err => {
-                    debugInfo.innerText = `Ошибка проверки устройств: ${err.message}`;
+                    debugInfoQR.innerText = `Ошибка проверки устройств: ${err.message}`;
                     logError(`Ошибка проверки устройств: ${err.message}`);
                     alert("Не удалось проверить устройства: " + err.message);
                     qrScanner.style.display = 'none';
@@ -539,7 +555,7 @@
 
             function scanQRCode() {
                 if (!video || !video.srcObject) {
-                    debugInfo.innerText = "Камера не активна.";
+                    debugInfoQR.innerText = "Камера не активна.";
                     return;
                 }
                 const canvasContext = qrCanvas.getContext('2d');
@@ -550,7 +566,7 @@
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
 
                 if (code) {
-                    debugInfo.innerText = `QR-код распознан: ${code.data}`;
+                    debugInfoQR.innerText = `QR-код распознан: ${code.data}`;
                     const qrData = code.data;
                     if (scanType === 'visit' && qrData.startsWith('visit:')) {
                         const visitKey = qrData.split(':')[1];
@@ -559,12 +575,12 @@
                         const paymentKey = qrData.split(':')[1];
                         confirmPaymentQR(paymentKey);
                     } else {
-                        debugInfo.innerText = "Неверный формат QR-кода для выбранного типа.";
+                        debugInfoQR.innerText = "Неверный формат QR-кода для выбранного типа.";
                         logError(`Неверный формат QR-кода: ${qrData}`);
                     }
                     stopQRScanner();
                 } else {
-                    debugInfo.innerText = `QR-код не найден, продолжение сканирования ${type === 'visit' ? 'посещения' : 'оплаты'}...`;
+                    debugInfoQR.innerText = `QR-код не найден, продолжение сканирования ${type === 'visit' ? 'посещения' : 'оплаты'}...`;
                     requestAnimationFrame(scanQRCode);
                 }
             }
@@ -577,7 +593,7 @@
                 video = null;
             }
             document.getElementById('qrScanner').style.display = 'none';
-            document.getElementById('debugInfo').innerText = "";
+            document.getElementById('debugInfoQR').innerText = "";
         }
 
         async function addVisitFromQR(visitKey) {
@@ -591,7 +607,7 @@
                         alert("QR-код посещения устарел! Попросите посетителя обновить его.");
                         return;
                     }
-                    let newVisits = user.visits + 1;
+                    let newVisits = user.vis disseminatingits + 1;
                     await db.collection('visitors').doc(childName).update({ visits: newVisits });
                     visitors[childName].visits = newVisits;
                     lastScannedChild = childName;
@@ -807,7 +823,7 @@
 
         function displayCatalog() {
             let list = '';
-            let isAdmin = ADMIN_PASSWORDS.includes(document.getElementById('adminPassword')?.value || '');
+            let isAdmin = document.getElementById('adminPassword')?.value === ADMIN_PASSWORD;
             products.forEach((product, index) => {
                 list += `<div class="catalog-item mt-3">
                     <img src="${product.image}" alt="${product.name}">

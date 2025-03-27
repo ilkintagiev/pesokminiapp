@@ -159,16 +159,11 @@
             </button>
         </div>
 
-        <!-- Секция администратора: вход -->
+        <!-- Секция администратора: вход (убрали ввод пароля) -->
         <div id="adminLoginSection" class="content-section">
             <h3 class="black-label">Вход для администратора</h3>
-            <input type="password" class="form-control" id="adminPassword" placeholder="Пароль">
-            <div class="form-check mt-2">
-                <input type="checkbox" class="form-check-input" id="adminRememberMe">
-                <label class="form-check-label" for="adminRememberMe">Запомнить меня</label>
-            </div>
-            <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">Войти</button>
-            <div id="debugInfo"></div>
+            <!-- Кнопка сразу переходит в админ-панель -->
+            <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">Перейти в панель</button>
         </div>
 
         <!-- Секция администратора: панель -->
@@ -273,8 +268,17 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // ** ЗДЕСЬ МЫ МЕНЯЕМ СТАРЫЙ ПАРОЛЬ НА НОВЫЙ **
-        const ADMIN_PASSWORD = "Pesok2024!";
+        // Удалили проверку пароля
+        // Теперь вход в админ-панель происходит без пароля
+        function adminLogin() {
+            // Просто переходим в панель администратора
+            showSection('adminPanelSection');
+        }
+
+        function logout() {
+            // Вернуться обратно на «Вход для администратора»
+            showSection('adminLoginSection');
+        }
 
         let visitors = {};
         let subscriptions = [];
@@ -309,37 +313,6 @@
             });
             document.getElementById(sectionId).classList.add('active');
             window.scrollTo(0, 0);
-
-            // Если переходим в админ-секцию, сбрасываем отладку
-            if (sectionId === 'adminLoginSection') {
-                document.getElementById('debugInfo').innerText = "";
-            }
-        }
-
-        function adminLogin() {
-            let password = document.getElementById('adminPassword').value;
-            let rememberMe = document.getElementById('adminRememberMe').checked;
-            let debugInfo = document.getElementById('debugInfo');
-            debugInfo.innerText = `Проверяю пароль: "${password}"`;
-            console.log("Введённый пароль:", password);
-
-            if (password === ADMIN_PASSWORD) {
-                debugInfo.innerText += "\nПароль верный! Вхожу...";
-                if (rememberMe) {
-                    localStorage.setItem('adminPassword', password);
-                } else {
-                    localStorage.removeItem('adminPassword');
-                }
-                showSection('adminPanelSection');
-            } else {
-                debugInfo.innerText += "\nПароль неверный!";
-                alert("Неверный пароль!");
-            }
-        }
-
-        function logout() {
-            document.getElementById('adminPassword').value = "";
-            showSection('adminLoginSection');
         }
 
         function showRegister() {
@@ -496,22 +469,6 @@
                 alert("Неверный логин или пароль!");
             }
         }
-
-        // Автозаполнение полей при загрузке
-        window.onload = function() {
-            let savedLogin = localStorage.getItem('savedLogin');
-            let savedPassword = localStorage.getItem('savedPassword');
-            if (savedLogin && savedPassword) {
-                document.getElementById('visitorLoginInput').value = savedLogin;
-                document.getElementById('visitorPasswordInput').value = savedPassword;
-                document.getElementById('rememberMe').checked = true;
-            }
-            let savedAdminPassword = localStorage.getItem('adminPassword');
-            if (savedAdminPassword) {
-                document.getElementById('adminPassword').value = savedAdminPassword;
-                document.getElementById('adminRememberMe').checked = true;
-            }
-        };
 
         function updateCard(childName, visits) {
             let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
@@ -868,8 +825,8 @@
 
         function displayCatalog() {
             let list = '';
-            // Проверка, вошли ли мы как админ (нужно для кнопки "Удалить")
-            let isAdmin = (document.getElementById('adminPassword')?.value === ADMIN_PASSWORD);
+            // Всегда считаем, что мы "админ" и показываем кнопку "Удалить"
+            let isAdmin = true;
             products.forEach((product, index) => {
                 list += `<div class="catalog-item mt-3">
                     <img src="${product.image}" alt="${product.name}">

@@ -273,7 +273,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const ADMIN_PASSWORD = "admin2025";
+        // ** ЗДЕСЬ МЫ МЕНЯЕМ СТАРЫЙ ПАРОЛЬ НА НОВЫЙ **
+        const ADMIN_PASSWORD = "Pesok2024!";
+
         let visitors = {};
         let subscriptions = [];
         let products = [];
@@ -621,7 +623,7 @@
                         alert("QR-код посещения устарел! Попросите посетителя обновить его.");
                         return;
                     }
-                    let newVisits = user.visits + 1; // Исправлено здесь
+                    let newVisits = user.visits + 1;
                     await db.collection('visitors').doc(childName).update({ visits: newVisits });
                     visitors[childName].visits = newVisits;
                     lastScannedChild = childName;
@@ -849,7 +851,7 @@
             ]);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Посетители");
-            XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx", { bookSST: true, type: 'binary' });
+            XLSX.writeFile(wb, "Visitors_Pесочные_Острова.xlsx", { bookSST: true, type: 'binary' });
         }
 
         async function logError(message) {
@@ -866,6 +868,7 @@
 
         function displayCatalog() {
             let list = '';
+            // Проверка, вошли ли мы как админ (нужно для кнопки "Удалить")
             let isAdmin = (document.getElementById('adminPassword')?.value === ADMIN_PASSWORD);
             products.forEach((product, index) => {
                 list += `<div class="catalog-item mt-3">

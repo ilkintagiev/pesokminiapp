@@ -270,7 +270,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const ADMIN_PASSWORDS = ["PesokAdmin2025"];
+        const ADMIN_PASSWORDS = ["SandKing2025"];
         let visitors = {};
         let subscriptions = [];
         let products = [];
@@ -313,6 +313,7 @@
                 showSection('adminPanelSection');
             } else {
                 alert("Неверный пароль!");
+                console.log("Введённый пароль:", password); // Для отладки
             }
         }
 

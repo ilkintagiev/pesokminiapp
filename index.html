@@ -162,7 +162,7 @@
         <!-- Секция администратора: вход -->
         <div id="adminLoginSection" class="content-section">
             <h3 class="black-label">Вход для администратора</h3>
-            <input type="password" class="form-control" id="adminPassword" placeholder="Пароль">
+            <input type="text" class="form-control" id="adminPassword" placeholder="Пароль">
             <div class="form-check mt-2">
                 <input type="checkbox" class="form-check-input" id="adminRememberMe">
                 <label class="form-check-label" for="adminRememberMe">Запомнить меня</label>
@@ -270,7 +270,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const ADMIN_PASSWORDS = ["SandKing2025"];
+        const ADMIN_PASSWORDS = ["Pesok2025"];
         let visitors = {};
         let subscriptions = [];
         let products = [];
@@ -304,6 +304,7 @@
         function adminLogin() {
             let password = document.getElementById('adminPassword').value;
             let rememberMe = document.getElementById('adminRememberMe').checked;
+            console.log("Введённый пароль:", password); // Для отладки
             if (ADMIN_PASSWORDS.includes(password)) {
                 if (rememberMe) {
                     localStorage.setItem('adminPassword', password);
@@ -313,7 +314,6 @@
                 showSection('adminPanelSection');
             } else {
                 alert("Неверный пароль!");
-                console.log("Введённый пароль:", password); // Для отладки
             }
         }
 

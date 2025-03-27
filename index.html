@@ -2,37 +2,20 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Песочные Острова</title>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-
-  <!-- Дополнительные библиотеки -->
+  
+  <!-- Подключение сторонних библиотек -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-  ></script>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-  />
-  <script
-    src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
-  ></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"
-  ></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"
-  ></script>
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  
   <style>
+    /* Стили, как в вашем примере */
     body {
       font-family: Arial, sans-serif;
       background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80')
@@ -52,16 +35,12 @@
     }
     .content-section {
       display: none;
-      background: linear-gradient(
-        135deg,
-        rgba(255, 235, 200, 0.9),
-        rgba(255, 255, 255, 0.8)
-      );
+      background: linear-gradient(135deg, rgba(255, 235, 200, 0.9), rgba(255, 255, 255, 0.8));
       padding: 20px;
       border-radius: 15px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
       max-width: 500px;
-      margin: 0 auto;
+      margin: 20px auto;
       text-align: center;
     }
     .content-section.active {
@@ -101,10 +80,8 @@
     }
     img.logo {
       max-width: 200px;
-      margin-bottom: 20px;
+      margin: 20px auto;
       display: block;
-      margin-left: auto;
-      margin-right: auto;
       animation: neonGlow 4s ease-in-out infinite;
     }
     @keyframes neonGlow {
@@ -167,7 +144,6 @@
     }
   </style>
 </head>
-
 <body>
   <div class="main-container">
     <!-- Логотип -->
@@ -178,226 +154,83 @@
       <h3 class="black-label">Добро пожаловать!</h3>
       <p>Здравствуйте, дорогие родители наших маленьких исследователей!</p>
       <p>
-        Добро пожаловать в "Песочные Острова" — уголок радости, где дети
-        наслаждаются игрой с мягким белым песком в любое время года! 🌴🌊
+        Добро пожаловать в "Песочные Острова" — уголок радости, где дети наслаждаются игрой с мягким белым песком в любое время года! 🌴🌊
       </p>
       <p>
-        У нас ваш ребёнок проведёт время с удовольствием и пользой, а вы сможете
-        расслабиться, зная, что всё организовано для его комфорта и безопасности.
+        У нас ваш ребёнок проведёт время с удовольствием и пользой, а вы сможете расслабиться, зная, что всё организовано для его комфорта и безопасности.
       </p>
       <p>"Песочные Острова" — это место, где рождаются улыбки и воспоминания!</p>
     </div>
 
-    <!-- Секция трансляции -->
-    <div id="broadcastSection" class="content-section">
-      <h3 class="black-label">Видеотрансляция</h3>
-      <p>
-        Присоединяйтесь к нашему Telegram-каналу, чтобы смотреть трансляцию в
-        реальном времени!
-      </p>
-      <button
-        class="btn btn-warning w-75 mt-3"
-        onclick="window.open('https://t.me/pesok_86', '_blank')"
-      >
-        <i class="fas fa-video"></i> Смотреть в Telegram
-      </button>
-    </div>
-
-    <!-- Секция администратора: вход -->
+    <!-- Секция входа для администратора -->
     <div id="adminLoginSection" class="content-section">
       <h3 class="black-label">Вход для администратора</h3>
-      <input
-        type="password"
-        class="form-control"
-        id="adminPassword"
-        placeholder="Пароль"
-      />
-      <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">
-        Войти
-      </button>
+      <input type="password" class="form-control" id="adminPassword" placeholder="Пароль" />
+      <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">Войти</button>
     </div>
 
-    <!-- Секция администратора: панель -->
+    <!-- Секция панели администратора -->
     <div id="adminPanelSection" class="content-section">
       <h3 class="black-label">Панель администратора</h3>
-      <button
-        class="btn btn-primary w-100 mt-2"
-        onclick="startQRScanner('visit')"
-      >
-        Сканировать QR-код посещения
-      </button>
-      <button
-        class="btn btn-success w-100 mt-2"
-        onclick="startQRScanner('payment')"
-      >
-        Сканировать QR-код оплаты
-      </button>
-      <div id="qrScanner" class="qr-container" style="display: none">
+      <button class="btn btn-primary w-100 mt-2" onclick="startQRScanner('visit')">Сканировать QR-код посещения</button>
+      <button class="btn btn-success w-100 mt-2" onclick="startQRScanner('payment')">Сканировать QR-код оплаты</button>
+      <div id="qrScanner" class="qr-container" style="display: none;">
         <video id="qrVideo"></video>
         <canvas id="qrCanvas"></canvas>
-        <button class="btn btn-danger w-100 mt-2" onclick="stopQRScanner()">
-          Остановить сканирование
-        </button>
+        <button class="btn btn-danger w-100 mt-2" onclick="stopQRScanner()">Остановить сканирование</button>
         <div id="debugInfo"></div>
       </div>
-      <input
-        type="text"
-        class="form-control mt-2"
-        id="manualVisitKey"
-        placeholder="Или введите код посещения вручную"
-      />
-      <button class="btn btn-primary w-100 mt-2" onclick="addVisitFromManual()">
-        Добавить посещение вручную
-      </button>
-      <input
-        type="text"
-        class="form-control mt-2"
-        id="manualPaymentKey"
-        placeholder="Или введите ключ оплаты вручную"
-      />
-      <button
-        class="btn btn-success w-100 mt-2"
-        onclick="confirmPaymentManual()"
-      >
-        Подтвердить оплату вручную
-      </button>
+      <input type="text" class="form-control mt-2" id="manualVisitKey" placeholder="Или введите код посещения вручную" />
+      <button class="btn btn-primary w-100 mt-2" onclick="addVisitFromManual()">Добавить посещение вручную</button>
+      <input type="text" class="form-control mt-2" id="manualPaymentKey" placeholder="Или введите ключ оплаты вручную" />
+      <button class="btn btn-success w-100 mt-2" onclick="confirmPaymentManual()">Подтвердить оплату вручную</button>
       <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
-      <input
-        type="text"
-        class="form-control mt-2"
-        id="pushMessage"
-        placeholder="Текст уведомления"
-      />
-      <button class="btn btn-warning w-100 mt-2" onclick="sendPushNotification()">
-        Отправить уведомление всем
-      </button>
-      <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">
-        Показать всех пользователей
-      </button>
-      <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">
-        Экспорт в Excel
-      </button>
-      <button
-        class="btn btn-danger w-100 mt-2"
-        id="removeVisitBtn"
-        onclick="removeVisit()"
-        disabled
-      >
-        Удалить последнее посещение
-      </button>
-      <button class="btn btn-info w-100 mt-2" onclick="showErrorLog()">
-        Показать лог ошибок
-      </button>
-      <div id="usersTable" class="mt-3" style="overflow-x: auto"></div>
+      <input type="text" class="form-control mt-2" id="pushMessage" placeholder="Текст уведомления" />
+      <button class="btn btn-warning w-100 mt-2" onclick="sendPushNotification()">Отправить уведомление всем</button>
+      <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">Показать всех пользователей</button>
+      <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">Экспорт в Excel</button>
+      <button class="btn btn-danger w-100 mt-2" id="removeVisitBtn" onclick="removeVisit()" disabled>Удалить последнее посещение</button>
+      <button class="btn btn-info w-100 mt-2" onclick="showErrorLog()">Показать лог ошибок</button>
+      <div id="usersTable" class="mt-3" style="overflow-x: auto;"></div>
       <h4 class="black-label mt-3">Добавить товар</h4>
-      <input
-        type="file"
-        class="form-control mt-2"
-        id="productImage"
-        accept="image/*"
-      />
-      <input
-        type="text"
-        class="form-control mt-2"
-        id="productName"
-        placeholder="Название товара"
-      />
-      <textarea
-        class="form-control mt-2"
-        id="productDescription"
-        placeholder="Описание товара"
-      ></textarea>
-      <input
-        type="number"
-        class="form-control mt-2"
-        id="productPriceRegular"
-        placeholder="Цена (без карты)"
-      />
-      <input
-        type="number"
-        class="form-control mt-2"
-        id="productPriceCard"
-        placeholder="Цена (с картой)"
-      />
-      <button class="btn btn-primary w-100 mt-2" onclick="addProduct()">
-        Добавить товар
-      </button>
+      <input type="file" class="form-control mt-2" id="productImage" accept="image/*" />
+      <input type="text" class="form-control mt-2" id="productName" placeholder="Название товара" />
+      <textarea class="form-control mt-2" id="productDescription" placeholder="Описание товара"></textarea>
+      <input type="number" class="form-control mt-2" id="productPriceRegular" placeholder="Цена (без карты)" />
+      <input type="number" class="form-control mt-2" id="productPriceCard" placeholder="Цена (с картой)" />
+      <button class="btn btn-primary w-100 mt-2" onclick="addProduct()">Добавить товар</button>
     </div>
 
-    <!-- Секция посетителя: вход -->
+    <!-- Секция входа для посетителя -->
     <div id="visitorLoginSection" class="content-section">
       <h3 class="black-label">Вход для посетителя</h3>
-      <input
-        type="text"
-        class="form-control"
-        id="visitorLoginInput"
-        placeholder="Логин"
-      />
-      <input
-        type="password"
-        class="form-control mt-2"
-        id="visitorPasswordInput"
-        placeholder="Пароль"
-      />
+      <input type="text" class="form-control" id="visitorLoginInput" placeholder="Логин" />
+      <input type="password" class="form-control mt-2" id="visitorPasswordInput" placeholder="Пароль" />
       <div class="form-check mt-2">
         <input type="checkbox" class="form-check-input" id="rememberMe" />
-        <label class="form-check-label" for="rememberMe"
-          >Запомнить меня</label
-        >
+        <label class="form-check-label" for="rememberMe">Запомнить меня</label>
       </div>
-      <button class="btn btn-primary w-100 mt-2" onclick="visitorLogin()">
-        Войти
-      </button>
-      <button class="btn btn-secondary w-100 mt-2" onclick="showRegister()">
-        Купить клубную карту
-      </button>
+      <button class="btn btn-primary w-100 mt-2" onclick="visitorLogin()">Войти</button>
+      <button class="btn btn-secondary w-100 mt-2" onclick="showRegister()">Купить клубную карту</button>
     </div>
 
-    <!-- Секция посетителя: регистрация -->
+    <!-- Секция регистрации клубной карты -->
     <div id="registerSection" class="content-section">
       <h3 class="black-label">Регистрация клубной карты</h3>
-      <input
-        type="text"
-        class="form-control"
-        id="childFullName"
-        placeholder="ФИО ребёнка"
-      />
-      <input
-        type="text"
-        class="form-control mt-2"
-        id="parentFullName"
-        placeholder="ФИО родителя"
-      />
+      <input type="text" class="form-control" id="childFullName" placeholder="ФИО ребёнка" />
+      <input type="text" class="form-control mt-2" id="parentFullName" placeholder="ФИО родителя" />
       <input type="date" class="form-control mt-2" id="childBirthDate" />
-      <input
-        type="tel"
-        class="form-control mt-2"
-        id="parentPhone"
-        placeholder="Номер телефона"
-      />
-      <input
-        type="text"
-        class="form-control mt-2"
-        id="newLogin"
-        placeholder="Придумайте логин"
-      />
-      <input
-        type="password"
-        class="form-control mt-2"
-        id="newPassword"
-        placeholder="Придумайте пароль"
-      />
-      <button class="btn btn-primary w-100 mt-2" onclick="registerCard()">
-        Зарегистрировать
-      </button>
+      <input type="tel" class="form-control mt-2" id="parentPhone" placeholder="Номер телефона" />
+      <input type="text" class="form-control mt-2" id="newLogin" placeholder="Придумайте логин" />
+      <input type="password" class="form-control mt-2" id="newPassword" placeholder="Придумайте пароль" />
+      <button class="btn btn-primary w-100 mt-2" onclick="registerCard()">Зарегистрировать</button>
+      <!-- Здесь можно добавить вывод QR-кода оплаты, если требуется -->
       <p class="mt-2"><strong>QR-код оплаты:</strong></p>
       <div id="paymentQRCode" class="qr-container"></div>
-      <p>
-        <small>Ключ оплаты: <span id="paymentKeyDisplay"></span></small>
-      </p>
+      <p><small>Ключ оплаты: <span id="paymentKeyDisplay"></span></small></p>
     </div>
 
-    <!-- Секция посетителя: карта -->
+    <!-- Секция клубной карты -->
     <div id="clubCardSection" class="content-section">
       <h3 class="black-label">Клубная карта</h3>
       <p><strong>Ребёнок:</strong> <span id="cardChildName"></span></p>
@@ -405,55 +238,43 @@
       <p><strong>Статус:</strong> <span id="status">0/5 до бонуса</span></p>
       <p><strong>QR-код для посещения:</strong></p>
       <div id="visitQRCode" class="qr-container"></div>
-      <p>
-        <small>Код посещения: <span id="visitKeyDisplay"></span></small>
-      </p>
-      <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">
-        Удалить аккаунт
-      </button>
+      <p><small>Код посещения: <span id="visitKeyDisplay"></span></small></p>
+      <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">Удалить аккаунт</button>
     </div>
 
-    <!-- Секция каталога -->
+    <!-- Секция каталога товаров -->
     <div id="catalogSection" class="content-section">
       <h3 class="black-label">Каталог товаров</h3>
       <div id="catalogList"></div>
+    </div>
+
+    <!-- Секция трансляции -->
+    <div id="broadcastSection" class="content-section">
+      <h3 class="black-label">Видеотрансляция</h3>
+      <p>Присоединяйтесь к нашему Telegram-каналу для просмотра трансляции в реальном времени!</p>
+      <button class="btn btn-warning w-75 mt-3" onclick="window.open('https://t.me/pesok_86', '_blank')">
+        <i class="fas fa-video"></i> Смотреть в Telegram
+      </button>
     </div>
   </div>
 
   <!-- Нижняя панель навигации -->
   <nav class="navbar-bottom">
-    <button
-      class="btn"
-      onclick="showSection('visitorLoginSection')"
-      title="Семья"
-    >
-      <i class="fas fa-users"></i>
-    </button>
-    <button class="btn" onclick="showSection('catalogSection')" title="Каталог">
-      <i class="fas fa-shopping-cart"></i>
-    </button>
-    <button
-      class="btn"
-      onclick="showSection('broadcastSection')"
-      title="Трансляция"
-    >
-      <i class="fas fa-video"></i>
-    </button>
-    <button
-      class="btn"
-      onclick="showSection('adminLoginSection')"
-      title="Администратор"
-    >
-      <i class="fas fa-user-tie"></i>
-    </button>
+    <button class="btn" onclick="showSection('visitorLoginSection')" title="Семья"><i class="fas fa-users"></i></button>
+    <button class="btn" onclick="showSection('catalogSection')" title="Каталог"><i class="fas fa-shopping-cart"></i></button>
+    <button class="btn" onclick="showSection('broadcastSection')" title="Трансляция"><i class="fas fa-video"></i></button>
+    <button class="btn" onclick="showSection('adminLoginSection')" title="Администратор"><i class="fas fa-user-tie"></i></button>
   </nav>
 
-  <script>
-    /*******************************************************
-     * 1) ИНИЦИАЛИЗАЦИЯ FIREBASE
-     *******************************************************/
-
-    // Ваши данные firebaseConfig из консоли (вставляю, как вы прислали)
+  <!-- Основной скрипт с интеграцией Firebase -->
+  <script type="module">
+    // Импорт необходимых функций из Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { 
+      getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc 
+    } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+    
+    // Конфигурация Firebase (из вашего кода)
     const firebaseConfig = {
       apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
       authDomain: "pesochnyeostrova.firebaseapp.com",
@@ -462,86 +283,86 @@
       messagingSenderId: "632919679127",
       appId: "1:632919679127:web:564b427bca7f0052a289d2"
     };
-
-    // Инициализируем Firebase
-    firebase.initializeApp(firebaseConfig);
-    // Получаем Firestore
-    const db = firebase.firestore();
-
-    // Пароли админа
-    const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
-
-    // Для хранения временных данных (например, последнее отсканированное имя)
-    let lastScannedChild = null;
-    // Локальный кэш подписок (мы будем хранить их и в Firestore)
+    
+    // Инициализация Firebase и Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    // Локальные переменные для данных
+    let visitors = {};
     let subscriptions = [];
-    // Локальный кэш товаров
     let products = [];
-    // Локальный кэш лога ошибок
     let errorLog = [];
-
-    /*******************************************************
-     * 2) ПОДГРУЗКА НАЧАЛЬНЫХ ДАННЫХ
-     *******************************************************/
-    // При запуске страницы, подгружаем товары, подписки, ошибки. Посетителей обычно подгружаем по запросам (регистрация, логин, ...)
-    async function loadData() {
-      try {
-        // Подгрузим товары
-        const productsSnap = await db.collection("products").get();
-        products = productsSnap.docs.map((doc) => doc.data());
-
-        // Подгрузим subscriptions
-        const subsSnap = await db.collection("subscriptions").get();
-        subscriptions = subsSnap.docs.map((doc) => doc.data());
-
-        // Подгрузим ошибки
-        const errorsSnap = await db.collection("errorLog").get();
-        errorLog = errorsSnap.docs.map((doc) => doc.data());
-
-        displayCatalog();
-      } catch (err) {
-        console.error("Ошибка при загрузке Firestore:", err);
-      }
-    }
-    loadData();
-
-    /*******************************************************
-     * 3) ПЕРЕКЛЮЧЕНИЕ СЕКЦИЙ
-     *******************************************************/
-    function showSection(sectionId) {
-      document.querySelectorAll(".content-section").forEach((section) => {
-        section.classList.remove("active");
+    let lastScannedChild = null;
+    const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
+    
+    // Загрузка данных из Firestore при запуске
+    async function loadFirebaseData() {
+      // Загрузка посетителей
+      const visitorsSnapshot = await getDocs(collection(db, "visitors"));
+      visitors = {};
+      visitorsSnapshot.forEach(docSnap => {
+        visitors[docSnap.id] = docSnap.data();
       });
-      document.getElementById(sectionId).classList.add("active");
+      
+      // Загрузка товаров
+      const productsSnapshot = await getDocs(collection(db, "products"));
+      products = [];
+      productsSnapshot.forEach(docSnap => {
+        let product = docSnap.data();
+        product.id = docSnap.id;
+        products.push(product);
+      });
+      displayCatalog();
+      
+      // Загрузка лога ошибок
+      const errorLogSnapshot = await getDocs(collection(db, "errorLog"));
+      errorLog = [];
+      errorLogSnapshot.forEach(docSnap => {
+        errorLog.push(docSnap.data());
+      });
+      
+      // Загрузка подписок
+      const subscriptionsSnapshot = await getDocs(collection(db, "subscriptions"));
+      subscriptions = [];
+      subscriptionsSnapshot.forEach(docSnap => {
+        subscriptions.push(docSnap.data());
+      });
+    }
+    loadFirebaseData();
+    
+    // Функция переключения секций
+    function showSection(sectionId) {
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(sectionId).classList.add('active');
       window.scrollTo(0, 0);
     }
-
-    // При старте показываем welcome
-    // (у нас уже есть `active` на welcomeSection)
-
-    /*******************************************************
-     * 4) АДМИН-ВХОД
-     *******************************************************/
+    
+    // Администраторский вход
     function adminLogin() {
-      let password = document.getElementById("adminPassword").value;
+      let password = document.getElementById('adminPassword')?.value;
       if (ADMIN_PASSWORDS.includes(password)) {
-        showSection("adminPanelSection");
+        showSection('adminPanelSection');
       } else {
         alert("Неверный пароль!");
       }
     }
-
-    /*******************************************************
-     * 5) РЕГИСТРАЦИЯ КАРТЫ
-     *******************************************************/
+    
+    function showRegister() {
+      showSection('registerSection');
+    }
+    
+    // Генерация уникального ключа
     function generateKey(prefix, childName) {
       const time = Date.now().toString(36);
-      return `${prefix}-${childName.replace(/\s+/g, "").slice(0, 5)}-${time}`.toUpperCase();
+      return `${prefix}-${childName.replace(/\s+/g, '').slice(0, 5)}-${time}`.toUpperCase();
     }
-
+    
     function generateAdminKey(childFullName, parentFullName, birthDate) {
       let childParts = childFullName.trim().split(/\s+/);
-      let initials = "";
+      let initials = '';
       if (childParts.length === 3) {
         initials = childParts[0][0] + childParts[1][0] + childParts[2][0];
       } else if (childParts.length === 2) {
@@ -551,53 +372,67 @@
       }
       let parentInitial = parentFullName.trim()[0];
       let birthYear = new Date(birthDate).getFullYear();
-      return `${initials}${parentInitial}${birthYear}`;
+      let baseKey = `${initials}${parentInitial}${birthYear}`;
+      let uniqueKey = baseKey;
+      let counter = 1;
+      while (Object.values(visitors).some(v => v.adminKey === uniqueKey)) {
+        uniqueKey = `${baseKey}${counter}`;
+        counter++;
+      }
+      return uniqueKey;
     }
-
-    async function generateVisitQR(childName) {
-      let visitKey = generateKey("VISIT", childName);
-      let visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000;
-      // Запись в Firestore
-      await db.collection("visitors").doc(childName).update({
-        visitKey,
-        visitKeyExpiration
-      });
-
+    
+    // Генерация QR-кода для посещения и обновление Firestore
+    function generateVisitQR(childName) {
+      let visitKey = generateKey('VISIT', childName);
+      visitors[childName].visitKey = visitKey;
+      visitors[childName].visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000;
       let qrCodeData = `visit:${visitKey}`;
-      QRCode.toCanvas(document.createElement("canvas"), qrCodeData, { width: 150 }, function (error, canvas) {
+      QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, (error, canvas) => {
         if (error) console.error(error);
-        document.getElementById("visitQRCode").innerHTML = "";
-        document.getElementById("visitQRCode").appendChild(canvas);
+        if(document.getElementById('visitQRCode')){
+          document.getElementById('visitQRCode').innerHTML = '';
+          document.getElementById('visitQRCode').appendChild(canvas);
+        }
       });
-      document.getElementById("visitKeyDisplay").innerText = visitKey;
+      if(document.getElementById('visitKeyDisplay')){
+        document.getElementById('visitKeyDisplay').innerText = visitKey;
+      }
+      setDoc(doc(db, "visitors", childName), visitors[childName])
+        .then(() => console.log("Visitor updated in Firestore"))
+        .catch(err => console.error("Error updating visitor:", err));
       return visitKey;
     }
-
-    async function generatePaymentQR(childName) {
-      let paymentKey = generateKey("PAY", childName);
-      // Запись в Firestore
-      await db.collection("visitors").doc(childName).update({
-        paymentKey
-      });
-
+    
+    // Генерация QR-кода для оплаты
+    function generatePaymentQR(childName) {
+      let paymentKey = generateKey('PAY', childName);
+      visitors[childName].paymentKey = paymentKey;
       let qrCodeData = `payment:${paymentKey}`;
-      QRCode.toCanvas(document.createElement("canvas"), qrCodeData, { width: 150 }, function (error, canvas) {
+      QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, (error, canvas) => {
         if (error) console.error(error);
-        document.getElementById("paymentQRCode").innerHTML = "";
-        document.getElementById("paymentQRCode").appendChild(canvas);
+        if(document.getElementById('paymentQRCode')){
+          document.getElementById('paymentQRCode').innerHTML = '';
+          document.getElementById('paymentQRCode').appendChild(canvas);
+        }
       });
-      document.getElementById("paymentKeyDisplay").innerText = paymentKey;
+      if(document.getElementById('paymentKeyDisplay')){
+        document.getElementById('paymentKeyDisplay').innerText = paymentKey;
+      }
+      setDoc(doc(db, "visitors", childName), visitors[childName])
+        .then(() => console.log("Visitor updated in Firestore"))
+        .catch(err => console.error("Error updating visitor:", err));
       return paymentKey;
     }
-
+    
+    // Регистрация карты посетителя
     async function registerCard() {
-      let childName = document.getElementById("childFullName").value.trim();
-      let parentName = document.getElementById("parentFullName").value.trim();
-      let birthDate = document.getElementById("childBirthDate").value;
-      let phone = document.getElementById("parentPhone").value.trim();
-      let login = document.getElementById("newLogin").value.trim();
-      let password = document.getElementById("newPassword").value.trim();
-
+      let childName = document.getElementById('childFullName')?.value.trim();
+      let parentName = document.getElementById('parentFullName')?.value.trim();
+      let birthDate = document.getElementById('childBirthDate')?.value;
+      let phone = document.getElementById('parentPhone')?.value.trim();
+      let login = document.getElementById('newLogin')?.value.trim();
+      let password = document.getElementById('newPassword')?.value.trim();
       if (!childName || !parentName || !birthDate || !phone || !login || !password) {
         alert("Заполните все поля!");
         return;
@@ -610,686 +445,497 @@
         alert("Введите корректный номер телефона (10-12 цифр)!");
         return;
       }
-
-      // Проверим, не зарегистрирован ли уже
-      let docRef = db.collection("visitors").doc(childName);
-      let docSnap = await docRef.get();
-      if (docSnap.exists) {
+      if (!visitors[childName]) {
+        let hashedPassword = CryptoJS.SHA256(password).toString();
+        let adminKey = generateAdminKey(childName, parentName, birthDate);
+        let registrationDate = new Date().toISOString().split('T')[0];
+        visitors[childName] = {
+          login,
+          password: hashedPassword,
+          parentName,
+          birthDate,
+          phone,
+          visits: 0,
+          registered: true,
+          paid: false,
+          adminKey,
+          registrationDate,
+          visitKey: '',
+          paymentKey: '',
+          visitKeyExpiration: 0
+        };
+        let visitKey = generateVisitQR(childName);
+        let paymentKey = generatePaymentQR(childName);
+        subscribeToPush(childName);
+        alert(`Карта зарегистрирована!
+Покажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).
+После оплаты используйте QR-код посещения (код: ${visitKey}).
+Админ-ключ: ${adminKey} (для внутреннего использования).`);
+        await setDoc(doc(db, "visitors", childName), visitors[childName])
+          .then(() => console.log("New visitor saved in Firestore"))
+          .catch(err => console.error("Error saving visitor:", err));
+      } else {
         alert("Этот ребёнок уже зарегистрирован!");
-        return;
       }
-
-      let hashedPassword = CryptoJS.SHA256(password).toString();
-      let adminKey = generateAdminKey(childName, parentName, birthDate);
-      let registrationDate = new Date().toISOString().split("T")[0];
-
-      let newVisitor = {
-        login,
-        password: hashedPassword,
-        parentName,
-        birthDate,
-        phone,
-        visits: 0,
-        registered: true,
-        paid: false,
-        adminKey,
-        registrationDate,
-        visitKey: "",
-        paymentKey: "",
-        visitKeyExpiration: 0
-      };
-
-      // Создаём в Firestore
-      await docRef.set(newVisitor);
-
-      // Генерим QR
-      let visitKey = await generateVisitQR(childName);
-      let paymentKey = await generatePaymentQR(childName);
-
-      subscribeToPush(childName);
-      alert(
-        `Карта зарегистрирована!\nПокажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).\nПосле оплаты используйте QR-код посещения (код: ${visitKey}).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`
-      );
     }
-
-    /*******************************************************
-     * 6) ВХОД ПОСЕТИТЕЛЯ
-     *******************************************************/
-    async function visitorLogin() {
-      let login = document.getElementById("visitorLoginInput").value;
-      let password = document.getElementById("visitorPasswordInput").value;
-      let rememberMe = document.getElementById("rememberMe").checked;
+    
+    // Вход посетителя
+    function visitorLogin() {
+      let login = document.getElementById('visitorLoginInput')?.value;
+      let password = document.getElementById('visitorPasswordInput')?.value;
+      let rememberMe = document.getElementById('rememberMe')?.checked;
       let hashedPassword = CryptoJS.SHA256(password).toString();
-
-      let snap = await db
-        .collection("visitors")
-        .where("login", "==", login)
-        .where("password", "==", hashedPassword)
-        .get();
-
-      if (snap.empty) {
-        alert("Неверный логин или пароль!");
-        return;
+      for (let childName in visitors) {
+        if (visitors[childName].login === login && visitors[childName].password === hashedPassword && visitors[childName].registered) {
+          if (visitors[childName].paid) {
+            if (rememberMe) {
+              localStorage.setItem('savedLogin', login);
+              localStorage.setItem('savedPassword', password);
+            } else {
+              localStorage.removeItem('savedLogin');
+              localStorage.removeItem('savedPassword');
+            }
+            showSection('clubCardSection');
+            if(document.getElementById('cardChildName')){
+              document.getElementById('cardChildName').innerText = childName;
+            }
+            if (!visitors[childName].visitKey || Date.now() > visitors[childName].visitKeyExpiration) {
+              generateVisitQR(childName);
+            } else {
+              let qrCodeData = `visit:${visitors[childName].visitKey}`;
+              QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, (error, canvas) => {
+                if (error) console.error(error);
+                if(document.getElementById('visitQRCode')){
+                  document.getElementById('visitQRCode').innerHTML = '';
+                  document.getElementById('visitQRCode').appendChild(canvas);
+                }
+              });
+              if(document.getElementById('visitKeyDisplay')){
+                document.getElementById('visitKeyDisplay').innerText = visitors[childName].visitKey;
+              }
+            }
+            updateCard(childName);
+          } else {
+            alert("Карта не оплачена. Покажите QR-код оплаты администратору.");
+          }
+          return;
+        }
       }
-      // Берём первую подходящую запись
-      let doc = snap.docs[0];
-      let childName = doc.id;
-      let user = doc.data();
-
-      if (!user.registered) {
-        alert("Профиль не завершён!");
-        return;
-      }
-
-      if (!user.paid) {
-        alert("Карта не оплачена. Покажите QR-код оплаты администратору.");
-        return;
-      }
-
-      if (rememberMe) {
-        localStorage.setItem("savedLogin", login);
-        localStorage.setItem("savedPassword", password);
-      } else {
-        localStorage.removeItem("savedLogin");
-        localStorage.removeItem("savedPassword");
-      }
-
-      showSection("clubCardSection");
-      document.getElementById("cardChildName").innerText = childName;
-
-      // Если visitKey просрочен или отсутствует
-      if (!user.visitKey || Date.now() > user.visitKeyExpiration) {
-        await generateVisitQR(childName);
-        user = (await doc.ref.get()).data(); // обновим локальный user
-      } else {
-        // Показать существующий
-        let qrCodeData = `visit:${user.visitKey}`;
-        QRCode.toCanvas(document.createElement("canvas"), qrCodeData, { width: 150 }, function (error, canvas) {
-          if (error) console.error(error);
-          document.getElementById("visitQRCode").innerHTML = "";
-          document.getElementById("visitQRCode").appendChild(canvas);
-        });
-        document.getElementById("visitKeyDisplay").innerText = user.visitKey;
-      }
-      updateCard(childName, user.visits);
+      alert("Неверный логин или пароль!");
     }
-
-    window.onload = function () {
-      let savedLogin = localStorage.getItem("savedLogin");
-      let savedPassword = localStorage.getItem("savedPassword");
+    
+    window.onload = function() {
+      let savedLogin = localStorage.getItem('savedLogin');
+      let savedPassword = localStorage.getItem('savedPassword');
       if (savedLogin && savedPassword) {
-        document.getElementById("visitorLoginInput").value = savedLogin;
-        document.getElementById("visitorPasswordInput").value = savedPassword;
-        document.getElementById("rememberMe").checked = true;
+        document.getElementById('visitorLoginInput').value = savedLogin;
+        document.getElementById('visitorPasswordInput').value = savedPassword;
+        document.getElementById('rememberMe').checked = true;
       }
     };
-
-    function updateCard(childName, visitsCount) {
-      // При повторном вызове, если visitsCount не передан — надо спросить Firestore
-      if (typeof visitsCount === "undefined") {
-        db.collection("visitors")
-          .doc(childName)
-          .get()
-          .then((docSnap) => {
-            if (!docSnap.exists) return;
-            let user = docSnap.data();
-            setCardUI(childName, user.visits);
-          });
-      } else {
-        setCardUI(childName, visitsCount);
-      }
-    }
-
-    function setCardUI(childName, visits) {
+    
+    function updateCard(childName) {
+      let visits = visitors[childName].visits;
       let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
-      document.getElementById("visits").innerText = visits;
-      document.getElementById("status").innerText = statusText;
+      if(document.getElementById('visits')){
+        document.getElementById('visits').innerText = visits;
+      }
+      if(document.getElementById('status')){
+        document.getElementById('status').innerText = statusText;
+      }
       if (visits >= 6) {
-        // Сброс в Firestore
-        db.collection("visitors").doc(childName).update({ visits: 0 });
+        visitors[childName].visits = 0;
+        setDoc(doc(db, "visitors", childName), visitors[childName]);
         alert("Счётчик сброшен! Начинаем заново.");
-        setCardUI(childName, 0);
+        updateCard(childName);
       }
     }
-
-    /*******************************************************
-     * 7) СКАНЕР QR
-     *******************************************************/
+    
+    // Работа с QR-сканером
     let video = null;
-    let scanType = "visit";
-
+    let scanType = 'visit';
+    
     function startQRScanner(type) {
       scanType = type;
-      const qrScanner = document.getElementById("qrScanner");
-      const qrVideo = document.getElementById("qrVideo");
-      const qrCanvas = document.getElementById("qrCanvas");
-      const debugInfo = document.getElementById("debugInfo");
-      qrScanner.style.display = "block";
+      const qrScanner = document.getElementById('qrScanner');
+      const qrVideo = document.getElementById('qrVideo');
+      const qrCanvas = document.getElementById('qrCanvas');
+      const debugInfo = document.getElementById('debugInfo');
+      qrScanner.style.display = 'block';
       debugInfo.innerText = "Запуск камеры...";
-
-      navigator.mediaDevices
-        .enumerateDevices()
-        .then((devices) => {
-          const videoDevices = devices.filter((d) => d.kind === "videoinput");
+      navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          const videoDevices = devices.filter(device => device.kind === 'videoinput');
           if (videoDevices.length === 0) {
             alert("На устройстве нет доступных камер.");
-            qrScanner.style.display = "none";
+            qrScanner.style.display = 'none';
             return;
           }
-
           if (!video) {
             video = qrVideo;
-            navigator.mediaDevices
-              .getUserMedia({
-                video: { facingMode: { ideal: "environment" } },
-              })
-              .then((stream) => {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
+              .then(stream => {
                 video.srcObject = stream;
                 video.play();
-                debugInfo.innerText = `Камера активна, сканирование ${
-                  type === "visit" ? "посещения" : "оплаты"
-                }...`;
+                debugInfo.innerText = `Камера активна, сканирование ${type === 'visit' ? 'посещения' : 'оплаты'}...`;
                 scanQRCode();
               })
-              .catch((err) => {
+              .catch(err => {
                 debugInfo.innerText = `Ошибка камеры: ${err.message}`;
-                logError(`Ошибка камеры: ${err.message}`);
                 alert(`Не удалось открыть камеру: ${err.message}. Проверьте разрешения и попробуйте снова.`);
-                qrScanner.style.display = "none";
+                qrScanner.style.display = 'none';
               });
           }
         })
-        .catch((err) => {
+        .catch(err => {
           debugInfo.innerText = `Ошибка проверки устройств: ${err.message}`;
-          logError(`Ошибка проверки устройств: ${err.message}`);
           alert("Не удалось проверить устройства: " + err.message);
-          qrScanner.style.display = "none";
+          qrScanner.style.display = 'none';
         });
-
+    
       function scanQRCode() {
         if (!video || !video.srcObject) {
           debugInfo.innerText = "Камера не активна.";
           return;
         }
-        const canvasContext = qrCanvas.getContext("2d");
+        const canvasContext = qrCanvas.getContext('2d');
         qrCanvas.width = video.videoWidth || 300;
         qrCanvas.height = video.videoHeight || 300;
         canvasContext.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
         const imageData = canvasContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
         const code = jsQR(imageData.data, imageData.width, imageData.height);
-
         if (code) {
           debugInfo.innerText = `QR-код распознан: ${code.data}`;
           const qrData = code.data;
-          if (scanType === "visit" && qrData.startsWith("visit:")) {
-            const visitKey = qrData.split(":")[1];
+          if (scanType === 'visit' && qrData.startsWith('visit:')) {
+            const visitKey = qrData.split(':')[1];
             addVisitFromQR(visitKey);
-          } else if (scanType === "payment" && qrData.startsWith("payment:")) {
-            const paymentKey = qrData.split(":")[1];
+          } else if (scanType === 'payment' && qrData.startsWith('payment:')) {
+            const paymentKey = qrData.split(':')[1];
             confirmPaymentQR(paymentKey);
           } else {
             debugInfo.innerText = "Неверный формат QR-кода для выбранного типа.";
-            logError(`Неверный формат QR-кода: ${qrData}`);
           }
           stopQRScanner();
         } else {
-          debugInfo.innerText = `QR-код не найден, продолжение сканирования ${
-            type === "visit" ? "посещения" : "оплаты"
-          }...`;
+          debugInfo.innerText = `QR-код не найден, продолжение сканирования ${type === 'visit' ? 'посещения' : 'оплаты'}...`;
           requestAnimationFrame(scanQRCode);
         }
       }
     }
-
+    
     function stopQRScanner() {
       if (video && video.srcObject) {
-        video.srcObject.getTracks().forEach((track) => track.stop());
+        video.srcObject.getTracks().forEach(track => track.stop());
         video.srcObject = null;
         video = null;
       }
-      document.getElementById("qrScanner").style.display = "none";
-      document.getElementById("debugInfo").innerText = "";
+      document.getElementById('qrScanner').style.display = 'none';
+      document.getElementById('debugInfo').innerText = "";
     }
-
-    /*******************************************************
-     * 8) ДОБАВЛЕНИЕ ПОСЕЩЕНИЯ (ЧЕРЕЗ QR)
-     *******************************************************/
-    async function addVisitFromQR(visitKey) {
-      let snap = await db.collection("visitors").where("visitKey", "==", visitKey).get();
-      if (snap.empty) {
-        logError(`Неверный QR-код посещения: ${visitKey}`);
-        alert("Неверный QR-код посещения!");
-        return;
+    
+    function addVisitFromQR(visitKey) {
+      for (let childName in visitors) {
+        if (visitors[childName].visitKey === visitKey && visitors[childName].registered && visitors[childName].paid) {
+          if (Date.now() > visitors[childName].visitKeyExpiration) {
+            alert("QR-код посещения устарел! Попросите посетителя обновить его.");
+            return;
+          }
+          visitors[childName].visits++;
+          lastScannedChild = childName;
+          setDoc(doc(db, "visitors", childName), visitors[childName]);
+          if(document.getElementById('adminVisits')){
+            document.getElementById('adminVisits').innerText = visitors[childName].visits;
+          }
+          if(document.getElementById('removeVisitBtn')){
+            document.getElementById('removeVisitBtn').disabled = false;
+          }
+          alert(`Посещение добавлено для ${childName}!`);
+          generateVisitQR(childName);
+          return;
+        }
       }
-      let doc = snap.docs[0];
-      let childName = doc.id;
-      let user = doc.data();
-
-      if (!user.paid) {
-        alert("Карта не оплачена!");
-        return;
-      }
-      if (Date.now() > user.visitKeyExpiration) {
-        logError(`QR-код посещения устарел для ${childName}`);
-        alert("QR-код посещения устарел! Попросите посетителя обновить его.");
-        return;
-      }
-
-      let newVisits = (user.visits || 0) + 1;
-      await db.collection("visitors").doc(childName).update({ visits: newVisits });
-      lastScannedChild = childName;
-      document.getElementById("adminVisits").innerText = newVisits;
-      document.getElementById("removeVisitBtn").disabled = false;
-      alert(`Посещение добавлено для ${childName}!`);
-
-      await generateVisitQR(childName);
+      alert("Неверный QR-код посещения или карта не оплачена!");
     }
-
-    /*******************************************************
-     * 9) ДОБАВЛЕНИЕ ПОСЕЩЕНИЯ ВРУЧНУЮ
-     *******************************************************/
-    async function addVisitFromManual() {
-      let visitKey = document.getElementById("manualVisitKey").value.trim();
-      if (!visitKey) {
-        alert("Введите код посещения!");
-        return;
-      }
-
-      let snap = await db.collection("visitors").where("visitKey", "==", visitKey).get();
-      if (snap.empty) {
-        logError(`Неверный код посещения: ${visitKey}`);
-        alert("Неверный код посещения!");
-        return;
-      }
-      let doc = snap.docs[0];
-      let childName = doc.id;
-      let user = doc.data();
-
-      if (!user.paid) {
-        alert("Карта не оплачена!");
-        return;
-      }
-      if (Date.now() > user.visitKeyExpiration) {
-        logError(`Код посещения устарел для ${childName}`);
-        alert("Код посещения устарел! Попросите посетителя обновить его.");
-        return;
-      }
-
-      let newVisits = (user.visits || 0) + 1;
-      await db.collection("visitors").doc(childName).update({ visits: newVisits });
-      lastScannedChild = childName;
-      document.getElementById("adminVisits").innerText = newVisits;
-      document.getElementById("removeVisitBtn").disabled = false;
-      alert(`Посещение добавлено для ${childName}!`);
-      document.getElementById("manualVisitKey").value = "";
-
-      await generateVisitQR(childName);
-    }
-
-    /*******************************************************
-     * 10) ПОДТВЕРЖДЕНИЕ ОПЛАТЫ (QR)
-     *******************************************************/
-    async function confirmPaymentQR(paymentKey) {
-      let snap = await db.collection("visitors").where("paymentKey", "==", paymentKey).get();
-      if (snap.empty) {
-        logError(`Неверный QR-код оплаты: ${paymentKey}`);
-        alert("Неверный QR-код оплаты!");
-        return;
-      }
-      let doc = snap.docs[0];
-      let childName = doc.id;
-
-      await db.collection("visitors").doc(childName).update({ paid: true });
-      alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
-      sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
-    }
-
-    /*******************************************************
-     * 11) ПОДТВЕРЖДЕНИЕ ОПЛАТЫ ВРУЧНУЮ
-     *******************************************************/
-    async function confirmPaymentManual() {
-      let paymentKey = document.getElementById("manualPaymentKey").value.trim();
-      if (!paymentKey) {
-        alert("Введите ключ оплаты!");
-        return;
-      }
-
-      let snap = await db.collection("visitors").where("paymentKey", "==", paymentKey).get();
-      if (snap.empty) {
-        logError(`Неверный ключ оплаты: ${paymentKey}`);
-        alert("Неверный ключ оплаты!");
-        return;
-      }
-      let doc = snap.docs[0];
-      let childName = doc.id;
-
-      await db.collection("visitors").doc(childName).update({ paid: true });
-      alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
-      sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
-      document.getElementById("manualPaymentKey").value = "";
-    }
-
-    /*******************************************************
-     * 12) PUSH-УВЕДОМЛЕНИЯ (ДЕМО)
-     *******************************************************/
-    function sendPushToUser(childName, message) {
-      let subObj = subscriptions.find((s) => s.childName === childName);
-      if (subObj && "serviceWorker" in navigator) {
-        navigator.serviceWorker.ready
-          .then((registration) => {
-            registration.showNotification("Песочные Острова", {
-              body: message,
-              icon: "Ресурс 1@10x.png",
-            });
-            console.log(`Push отправлен для ${childName}: ${message}`);
-          })
-          .catch((err) => {
-            console.error("Ошибка отправки Push:", err);
-            alert("Push-уведомления не работают. Требуется HTTPS.");
-          });
+    
+    function addVisitFromManual() {
+      let visitKey = document.getElementById('manualVisitKey')?.value;
+      if (visitKey) {
+        for (let childName in visitors) {
+          if (visitors[childName].visitKey === visitKey && visitors[childName].registered && visitors[childName].paid) {
+            if (Date.now() > visitors[childName].visitKeyExpiration) {
+              alert("Код посещения устарел! Попросите посетителя обновить его.");
+              return;
+            }
+            visitors[childName].visits++;
+            lastScannedChild = childName;
+            setDoc(doc(db, "visitors", childName), visitors[childName]);
+            if(document.getElementById('adminVisits')){
+              document.getElementById('adminVisits').innerText = visitors[childName].visits;
+            }
+            if(document.getElementById('removeVisitBtn')){
+              document.getElementById('removeVisitBtn').disabled = false;
+            }
+            alert(`Посещение добавлено для ${childName}!`);
+            document.getElementById('manualVisitKey').value = '';
+            generateVisitQR(childName);
+            return;
+          }
+        }
+        alert("Неверный код посещения или карта не оплачена!");
       } else {
-        console.log(`Push для ${childName}: ${message} (тест без HTTPS)`);
+        alert("Введите код посещения!");
+      }
+    }
+    
+    function confirmPaymentQR(paymentKey) {
+      for (let childName in visitors) {
+        if (visitors[childName].paymentKey === paymentKey) {
+          visitors[childName].paid = true;
+          setDoc(doc(db, "visitors", childName), visitors[childName]);
+          alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
+          sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
+          return;
+        }
+      }
+      alert("Неверный QR-код оплаты!");
+    }
+    
+    function confirmPaymentManual() {
+      let paymentKey = document.getElementById('manualPaymentKey')?.value.trim();
+      if (paymentKey) {
+        for (let childName in visitors) {
+          if (visitors[childName].paymentKey === paymentKey) {
+            visitors[childName].paid = true;
+            setDoc(doc(db, "visitors", childName), visitors[childName]);
+            alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
+            sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
+            document.getElementById('manualPaymentKey').value = '';
+            return;
+          }
+        }
+        alert("Неверный ключ оплаты!");
+      } else {
+        alert("Введите ключ оплаты!");
+      }
+    }
+    
+    function sendPushToUser(childName, message) {
+      const sub = subscriptions.find(s => s.childName === childName);
+      if (sub && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification('Песочные Острова', {
+            body: message,
+            icon: 'Ресурс 1@10x.png'
+          });
+        }).catch(err => {
+          alert('Ошибка отправки Push: ' + err.message);
+        });
+      } else {
         alert(`Push для ${childName}: ${message} (тест без HTTPS)`);
       }
     }
-
-    /*******************************************************
-     * 13) УДАЛИТЬ ПОСЛЕДНЕЕ ПОСЕЩЕНИЕ
-     *******************************************************/
-    async function removeVisit() {
-      if (!lastScannedChild) {
-        alert("Сначала отсканируйте QR-код посещения или добавьте вручную!");
-        return;
-      }
-
-      let docRef = db.collection("visitors").doc(lastScannedChild);
-      let docSnap = await docRef.get();
-      if (!docSnap.exists) {
-        alert("Не найден посетитель!");
-        return;
-      }
-      let user = docSnap.data();
-      if ((user.visits || 0) > 0) {
-        let newVisits = user.visits - 1;
-        await docRef.update({ visits: newVisits });
-        document.getElementById("adminVisits").innerText = newVisits;
-        alert(`Последнее посещение для ${lastScannedChild} удалено!`);
-        if (newVisits === 0) {
-          document.getElementById("removeVisitBtn").disabled = true;
-        }
-        showAllUsers();
-      } else {
-        alert("У этого ребёнка нет посещений!");
-        document.getElementById("removeVisitBtn").disabled = true;
-      }
-    }
-
-    /*******************************************************
-     * 14) ПОКАЗАТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ
-     *******************************************************/
-    async function showAllUsers() {
-      let snap = await db.collection("visitors").get();
-      let table = `<table class='table table-striped'><tr>
-        <th>ФИО ребёнка</th>
-        <th>ФИО родителя</th>
-        <th>Дата рождения</th>
-        <th>Телефон</th>
-        <th>Оплачено</th>
-        <th>Ключ оплаты</th>
-        <th>Код посещения</th>
-        <th>Посещений</th>
-        <th>Дата регистрации</th>
-        <th>Админ-ключ</th>
-        <th>Логин</th>
-        <th>Пароль (хэш)</th>
-      </tr>`;
-      snap.forEach((doc) => {
-        let user = doc.data();
-        table += `<tr>
-          <td>${doc.id}</td>
-          <td>${user.parentName || ""}</td>
-          <td>${user.birthDate || ""}</td>
-          <td>${user.phone || ""}</td>
-          <td>${user.paid ? "Да" : "Нет"}</td>
-          <td>${user.paymentKey || ""}</td>
-          <td>${user.visitKey || ""}</td>
-          <td>${user.visits || 0}</td>
-          <td>${user.registrationDate || ""}</td>
-          <td>${user.adminKey || ""}</td>
-          <td>${user.login || ""}</td>
-          <td>${user.password || ""}</td>
-        </tr>`;
-      });
-      table += "</table>";
-      document.getElementById("usersTable").innerHTML = table;
-    }
-
-    /*******************************************************
-     * 15) ПОДПИСКА НА PUSH
-     *******************************************************/
-    function subscribeToPush(childName) {
-      if ("Notification" in window && "serviceWorker" in navigator) {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            navigator.serviceWorker.register("sw.js").then(async (registration) => {
-              try {
-                let sub = await registration.pushManager.subscribe({
-                  userVisibleOnly: true,
-                });
-                let subData = {
-                  childName,
-                  subscription: sub.toJSON(),
-                };
-                // Сохраняем в Firestore
-                await db.collection("subscriptions").doc(childName).set(subData);
-                subscriptions.push(subData);
-              } catch (err) {
-                console.error("Ошибка подписки на Push:", err);
-              }
-            });
+    
+    function removeVisit() {
+      if (lastScannedChild && visitors[lastScannedChild]) {
+        if (visitors[lastScannedChild].visits > 0) {
+          visitors[lastScannedChild].visits--;
+          setDoc(doc(db, "visitors", lastScannedChild), visitors[lastScannedChild]);
+          if(document.getElementById('adminVisits')){
+            document.getElementById('adminVisits').innerText = visitors[lastScannedChild].visits;
           }
-        });
+          alert(`Последнее посещение для ${lastScannedChild} удалено!`);
+          if (visitors[lastScannedChild].visits === 0 && document.getElementById('removeVisitBtn')) {
+            document.getElementById('removeVisitBtn').disabled = true;
+          }
+          showAllUsers();
+        } else {
+          alert("У этого ребёнка нет посещений!");
+          if(document.getElementById('removeVisitBtn')){
+            document.getElementById('removeVisitBtn').disabled = true;
+          }
+        }
+      } else {
+        alert("Сначала отсканируйте QR-код посещения!");
       }
     }
-
-    function sendPushNotification() {
-      let message = document.getElementById("pushMessage").value;
-      if (!message) {
-        alert("Введите текст уведомления!");
-        return;
+    
+    function showAllUsers() {
+      let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr>";
+      for (let childName in visitors) {
+        let user = visitors[childName];
+        table += `<tr>
+                    <td>${childName}</td>
+                    <td>${user.parentName}</td>
+                    <td>${user.birthDate}</td>
+                    <td>${user.phone}</td>
+                    <td>${user.paid ? 'Да' : 'Нет'}</td>
+                    <td>${user.paymentKey}</td>
+                    <td>${user.visitKey}</td>
+                    <td>${user.visits}</td>
+                    <td>${user.registrationDate}</td>
+                    <td>${user.adminKey}</td>
+                    <td>${user.login}</td>
+                    <td>${user.password}</td>
+                  </tr>`;
       }
-      // Тут просто имитация рассылки — без реального сервера
-      subscriptions.forEach((subObj) => {
-        let childName = subObj.childName;
-        navigator.serviceWorker.ready
-          .then((registration) => {
-            registration.showNotification("Песочные Острова", {
-              body: message,
-              icon: "Ресурс 1@10x.png",
-            });
-            console.log(`Push отправлен для ${childName}: ${message}`);
-          })
-          .catch((err) => {
-            console.error("Ошибка отправки Push:", err);
-            alert("Push-уведомления не работают. Требуется HTTPS.");
-          });
-      });
-      document.getElementById("pushMessage").value = "";
-      alert("Уведомление отправлено всем подписчикам (тест без HTTPS)");
+      table += "</table>";
+      document.getElementById('usersTable').innerHTML = table;
     }
-
-    /*******************************************************
-     * 16) УДАЛИТЬ АККАУНТ
-     *******************************************************/
-    async function deleteAccount() {
-      let childName = document.getElementById("cardChildName").innerText;
-      if (!childName) return;
-      if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
-        await db.collection("visitors").doc(childName).delete();
-        alert("Аккаунт удалён!");
-        showSection("visitorLoginSection");
-      }
-    }
-
-    /*******************************************************
-     * 17) ЭКСПОРТ В EXCEL
-     *******************************************************/
-    async function exportToExcel() {
-      let snap = await db.collection("visitors").get();
-      let data = [];
-      let totalVisits = 0;
-      snap.forEach((doc) => {
-        let user = doc.data();
-        totalVisits += user.visits || 0;
-        data.push([
-          doc.id,
-          user.parentName || "",
-          user.birthDate || "",
-          user.phone || "",
-          user.paid ? "Да" : "Нет",
-          user.paymentKey || "",
-          user.visitKey || "",
-          user.visits || 0,
-          user.registrationDate || "",
-          user.adminKey || "",
-          user.login || "",
-          user.password || ""
-        ]);
-      });
-      data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, "", "", ""]);
-
-      let ws = XLSX.utils.aoa_to_sheet([
-        [
-          "ФИО ребёнка",
-          "ФИО родителя",
-          "Дата рождения",
-          "Телефон",
-          "Оплачено",
-          "Ключ оплаты",
-          "Код посещения",
-          "Посещений",
-          "Дата регистрации",
-          "Админ-ключ",
-          "Логин",
-          "Пароль (хэш)"
-        ],
-        ...data
-      ]);
-      let wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Посетители");
-      XLSX.writeFile(wb, "Visitors_Pесочные_Острова.xlsx", {
-        bookSST: true,
-        type: "binary",
-      });
-    }
-
-    /*******************************************************
-     * 18) ЛОГ ОШИБОК
-     *******************************************************/
-    async function logError(message) {
-      let errorEntry = {
-        date: new Date().toISOString(),
-        message
-      };
-      errorLog.push(errorEntry);
-      // Пишем в Firestore
-      await db.collection("errorLog").doc(Date.now().toString()).set(errorEntry);
-    }
-
-    function showErrorLog() {
-      let logDiv = document.createElement("div");
-      logDiv.innerHTML =
-        '<h4 class="black-label">Лог ошибок</h4>' +
-        errorLog
-          .map((e) => `<p>${e.date}: ${e.message}</p>`)
-          .join("");
-      document.getElementById("adminPanelSection").appendChild(logDiv);
-    }
-
-    /*******************************************************
-     * 19) КАТАЛОГ ТОВАРОВ (СТОРА И ВЫВОД)
-     *******************************************************/
+    
+    // Работа с товарами
     function displayCatalog() {
-      let list = "";
-      let adminInput = document.getElementById("adminPassword");
-      let isAdmin = adminInput && ADMIN_PASSWORDS.includes(adminInput.value);
-
-      products.forEach((product) => {
+      let list = '';
+      let isAdmin = ADMIN_PASSWORDS.includes(document.getElementById('adminPassword')?.value || '');
+      products.forEach((product, index) => {
         list += `<div class="catalog-item mt-3">
-          <img src="${product.image}" alt="${product.name}">
-          <p><strong>${product.name}</strong></p>
-          <p>Цена (без карты): ${product.priceRegular} руб.</p>
-          <p>Цена (с картой): ${product.priceCard} руб.</p>
-          <button class="btn btn-success" onclick="alert('Свяжитесь с администратором для покупки!')">Купить</button>`;
+                   <img src="${product.image}" alt="${product.name}">
+                   <p><strong>${product.name}</strong></p>
+                   <p>Цена (без карты): ${product.priceRegular} руб.</p>
+                   <p>Цена (с картой): ${product.priceCard} руб.</p>
+                   <button class="btn btn-success" onclick="alert('Свяжитесь с администратором для покупки!')">Купить</button>`;
         if (isAdmin) {
-          list += `<button class="btn btn-danger mt-1" onclick="deleteProduct('${product.name}')">Удалить</button>`;
+          list += `<button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>`;
         }
         list += `</div>`;
       });
-      document.getElementById("catalogList").innerHTML = list;
+      document.getElementById('catalogList').innerHTML = list;
     }
-
-    async function addProduct() {
-      let file = document.getElementById("productImage").files[0];
-      let name = document.getElementById("productName").value;
-      let description = document.getElementById("productDescription").value;
-      let priceRegular = document.getElementById("productPriceRegular").value;
-      let priceCard = document.getElementById("productPriceCard").value;
+    
+    function addProduct() {
+      let file = document.getElementById('productImage')?.files[0];
+      let name = document.getElementById('productName')?.value;
+      let description = document.getElementById('productDescription')?.value;
+      let priceRegular = document.getElementById('productPriceRegular')?.value;
+      let priceCard = document.getElementById('productPriceCard')?.value;
       if (file && name && description && priceRegular && priceCard) {
         let reader = new FileReader();
-        reader.onload = async function (e) {
-          let productData = {
-            image: e.target.result,
-            name,
-            description,
-            priceRegular,
-            priceCard
-          };
-          // Пишем в Firestore
-          await db.collection("products").doc(name).set(productData);
-          products.push(productData);
-          displayCatalog();
-
-          // Очистим форму
-          document.getElementById("productImage").value = "";
-          document.getElementById("productName").value = "";
-          document.getElementById("productDescription").value = "";
-          document.getElementById("productPriceRegular").value = "";
-          document.getElementById("productPriceCard").value = "";
+        reader.onload = async function(e) {
+          try {
+            const docRef = await addDoc(collection(db, "products"), {
+              image: e.target.result,
+              name,
+              description,
+              priceRegular,
+              priceCard
+            });
+            products.push({ id: docRef.id, image: e.target.result, name, description, priceRegular, priceCard });
+            displayCatalog();
+            document.getElementById('productImage').value = '';
+            document.getElementById('productName').value = '';
+            document.getElementById('productDescription').value = '';
+            document.getElementById('productPriceRegular').value = '';
+            document.getElementById('productPriceCard').value = '';
+          } catch (err) {
+            console.error("Ошибка добавления товара: ", err);
+          }
         };
         reader.readAsDataURL(file);
       } else {
         alert("Заполните все поля!");
       }
     }
-
-    async function deleteProduct(productName) {
-      if (confirm(`Удалить "${productName}" из каталога?`)) {
-        await db.collection("products").doc(productName).delete();
-        products = products.filter((p) => p.name !== productName);
-        displayCatalog();
+    
+    async function deleteProduct(index) {
+      if (confirm(`Удалить "${products[index].name}" из каталога?`)) {
+        try {
+          await deleteDoc(doc(db, "products", products[index].id));
+          products.splice(index, 1);
+          displayCatalog();
+        } catch (err) {
+          console.error("Ошибка удаления товара: ", err);
+        }
       }
     }
-
-    /*******************************************************
-     * 20) ФОКУС ПОЛЕЙ (МОБИЛЬНОЕ УСТРОЙСТВО)
-     *******************************************************/
-    document.querySelectorAll("input, textarea").forEach((input) => {
-      input.addEventListener("focus", () => {
+    
+    // Подписка на Push-уведомления
+    function subscribeToPush(childName) {
+      if ('Notification' in window && 'serviceWorker' in navigator) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            navigator.serviceWorker.register('sw.js').then(registration => {
+              registration.pushManager.subscribe({ userVisibleOnly: true }).then(async subscription => {
+                subscriptions.push({ childName, subscription: subscription.toJSON() });
+                await addDoc(collection(db, "subscriptions"), { childName, subscription: subscription.toJSON() });
+              }).catch(err => console.error('Ошибка подписки на Push:', err));
+            });
+          }
+        });
+      }
+    }
+    
+    function sendPushNotification() {
+      let message = document.getElementById('pushMessage')?.value;
+      if (message) {
+        subscriptions.forEach(sub => {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification('Песочные Острова', {
+              body: message,
+              icon: 'Ресурс 1@10x.png'
+            });
+          }).catch(err => {
+            alert('Ошибка отправки Push: ' + err.message);
+          });
+        });
+        document.getElementById('pushMessage').value = '';
+        alert("Уведомление отправлено всем подписчикам (тест без HTTPS)");
+      } else {
+        alert("Введите текст уведомления!");
+      }
+    }
+    
+    function deleteAccount() {
+      let childName = document.getElementById('cardChildName')?.innerText;
+      if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
+        delete visitors[childName];
+        deleteDoc(doc(db, "visitors", childName));
+        alert("Аккаунт удалён!");
+        showSection('visitorLoginSection');
+      }
+    }
+    
+    function exportToExcel() {
+      let data = [];
+      let totalVisits = 0;
+      for (let childName in visitors) {
+        let user = visitors[childName];
+        totalVisits += user.visits;
+        data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.visits, user.registrationDate, user.adminKey, user.login, user.password]);
+      }
+      data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, "", "", ""]);
+      let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Дата регистрации", "Админ-ключ", "Логин", "Пароль (хэш)"], ...data]);
+      let wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Посетители");
+      XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx", { bookSST: true, type: 'binary' });
+    }
+    
+    function logError(message) {
+      const errObj = { date: new Date().toISOString(), message };
+      errorLog.push(errObj);
+      addDoc(collection(db, "errorLog"), errObj);
+    }
+    
+    function showErrorLog() {
+      let logDiv = document.createElement('div');
+      logDiv.innerHTML = '<h4 class="black-label">Лог ошибок</h4>' + errorLog.map(e => `<p>${e.date}: ${e.message}</p>`).join('');
+      document.getElementById('adminPanelSection').appendChild(logDiv);
+    }
+    
+    // Прокрутка к полю при фокусе
+    document.querySelectorAll('input, textarea').forEach(input => {
+      input.addEventListener('focus', () => {
         setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          input.scrollIntoView({ behavior: "smooth", block: "center" });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
       });
     });
-
-    /*******************************************************
-     * 21) SERVICE WORKER (PUSH) - ПРИ ЖЕЛАНИИ
-     *******************************************************/
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("sw.js")
-        .catch((err) => console.error("Service Worker регистрация не удалась:", err));
+    
+    showSection('welcomeSection');
+    displayCatalog();
+    
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(err => console.error('Service Worker регистрация не удалась:', err));
     }
   </script>
 </body>

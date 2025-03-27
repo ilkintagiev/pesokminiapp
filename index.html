@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Песочные Острова</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+    <!-- Зависимости -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -250,12 +254,41 @@
     </nav>
 
     <script>
+        // Инициализация Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
+            authDomain: "pesochnyeostrova.firebaseapp.com",
+            projectId: "pesochnyeostrova",
+            storageBucket: "pesochnyeostrova.firebasestorage.app",
+            messagingSenderId: "632919679127",
+            appId: "1:632919679127:web:564b427bca7f0052a289d2"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
-        let visitors = JSON.parse(localStorage.getItem('visitors')) || {};
-        let subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
-        let products = JSON.parse(localStorage.getItem('products')) || [];
-        let errorLog = JSON.parse(localStorage.getItem('errorLog')) || [];
+        let subscriptions = [];
+        let products = [];
+        let errorLog = [];
         let lastScannedChild = null;
+
+        // Загрузка данных из Firestore при старте
+        async function loadData() {
+            const visitorsSnapshot = await db.collection('visitors').get();
+            const productsSnapshot = await db.collection('products').get();
+            const subscriptionsSnapshot = await db.collection('subscriptions').get();
+            const errorsSnapshot = await db.collection('errorLog').get();
+
+            visitorsSnapshot.forEach(doc => visitors[doc.id] = doc.data());
+            products = productsSnapshot.docs.map(doc => doc.data());
+            subscriptions = subscriptionsSnapshot.docs.map(doc => doc.data());
+            errorLog = errorsSnapshot.docs.map(doc => doc.data());
+
+            displayCatalog();
+        }
+
+        let visitors = {};
+        loadData();
 
         function showSection(sectionId) {
             document.querySelectorAll('.content-section').forEach(section => {
@@ -279,7 +312,6 @@
         }
 
         function generateKey(prefix, childName) {
-            // Создаём уникальный ключ на основе имени ребёнка и времени
             const time = Date.now().toString(36);
             return `${prefix}-${childName.replace(/\s+/g, '').slice(0, 5)}-${time}`.toUpperCase();
         }
@@ -296,20 +328,17 @@
             }
             let parentInitial = parentFullName.trim()[0];
             let birthYear = new Date(birthDate).getFullYear();
-            let baseKey = `${initials}${parentInitial}${birthYear}`;
-            let uniqueKey = baseKey;
-            let counter = 1;
-            while (Object.values(visitors).some(v => v.adminKey === uniqueKey)) {
-                uniqueKey = `${baseKey}${counter}`;
-                counter++;
-            }
-            return uniqueKey;
+            return `${initials}${parentInitial}${birthYear}`;
         }
 
-        function generateVisitQR(childName) {
+        async function generateVisitQR(childName) {
             let visitKey = generateKey('VISIT', childName);
             visitors[childName].visitKey = visitKey;
             visitors[childName].visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000;
+            await db.collection('visitors').doc(childName).update({
+                visitKey: visitKey,
+                visitKeyExpiration: visitors[childName].visitKeyExpiration
+            });
             let qrCodeData = `visit:${visitKey}`;
             QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, function (error, canvas) {
                 if (error) console.error(error);
@@ -317,13 +346,13 @@
                 document.getElementById('visitQRCode').appendChild(canvas);
             });
             document.getElementById('visitKeyDisplay').innerText = visitKey;
-            localStorage.setItem('visitors', JSON.stringify(visitors));
             return visitKey;
         }
 
-        function generatePaymentQR(childName) {
+        async function generatePaymentQR(childName) {
             let paymentKey = generateKey('PAY', childName);
             visitors[childName].paymentKey = paymentKey;
+            await db.collection('visitors').doc(childName).update({ paymentKey });
             let qrCodeData = `payment:${paymentKey}`;
             QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, function (error, canvas) {
                 if (error) console.error(error);
@@ -331,11 +360,10 @@
                 document.getElementById('paymentQRCode').appendChild(canvas);
             });
             document.getElementById('paymentKeyDisplay').innerText = paymentKey;
-            localStorage.setItem('visitors', JSON.stringify(visitors));
             return paymentKey;
         }
 
-        function registerCard() {
+        async function registerCard() {
             let childName = document.getElementById('childFullName').value.trim();
             let parentName = document.getElementById('parentFullName').value.trim();
             let birthDate = document.getElementById('childBirthDate').value;
@@ -355,11 +383,13 @@
                 alert("Введите корректный номер телефона (10-12 цифр)!");
                 return;
             }
-            if (!visitors[childName]) {
+
+            let visitorSnapshot = await db.collection('visitors').doc(childName).get();
+            if (!visitorSnapshot.exists) {
                 let hashedPassword = CryptoJS.SHA256(password).toString();
                 let adminKey = generateAdminKey(childName, parentName, birthDate);
                 let registrationDate = new Date().toISOString().split('T')[0];
-                visitors[childName] = {
+                let visitorData = {
                     login,
                     password: hashedPassword,
                     parentName,
@@ -374,8 +404,10 @@
                     paymentKey: '',
                     visitKeyExpiration: 0
                 };
-                let visitKey = generateVisitQR(childName);
-                let paymentKey = generatePaymentQR(childName);
+                await db.collection('visitors').doc(childName).set(visitorData);
+                visitors[childName] = visitorData;
+                let visitKey = await generateVisitQR(childName);
+                let paymentKey = await generatePaymentQR(childName);
                 subscribeToPush(childName);
                 alert(`Карта зарегистрирована!\nПокажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).\nПосле оплаты используйте QR-код посещения (код: ${visitKey}).\nАдмин-ключ: ${adminKey} (для внутреннего использования).`);
             } else {
@@ -383,14 +415,18 @@
             }
         }
 
-        function visitorLogin() {
+        async function visitorLogin() {
             let login = document.getElementById('visitorLoginInput').value;
             let password = document.getElementById('visitorPasswordInput').value;
             let rememberMe = document.getElementById('rememberMe').checked;
             let hashedPassword = CryptoJS.SHA256(password).toString();
-            for (let childName in visitors) {
-                if (visitors[childName].login === login && visitors[childName].password === hashedPassword && visitors[childName].registered) {
-                    if (visitors[childName].paid) {
+
+            let snapshot = await db.collection('visitors').where('login', '==', login).where('password', '==', hashedPassword).get();
+            if (!snapshot.empty) {
+                let childName = snapshot.docs[0].id;
+                let user = snapshot.docs[0].data();
+                if (user.registered) {
+                    if (user.paid) {
                         if (rememberMe) {
                             localStorage.setItem('savedLogin', login);
                             localStorage.setItem('savedPassword', password);
@@ -400,27 +436,25 @@
                         }
                         showSection('clubCardSection');
                         document.getElementById('cardChildName').innerText = childName;
-                        // Пересоздаём QR-код, если он отсутствует или устарел
-                        if (!visitors[childName].visitKey || Date.now() > visitors[childName].visitKeyExpiration) {
-                            generateVisitQR(childName);
+                        if (!user.visitKey || Date.now() > user.visitKeyExpiration) {
+                            await generateVisitQR(childName);
                         } else {
-                            // Отображаем существующий QR-код
-                            let qrCodeData = `visit:${visitors[childName].visitKey}`;
+                            let qrCodeData = `visit:${user.visitKey}`;
                             QRCode.toCanvas(document.createElement('canvas'), qrCodeData, { width: 150 }, function (error, canvas) {
                                 if (error) console.error(error);
                                 document.getElementById('visitQRCode').innerHTML = '';
                                 document.getElementById('visitQRCode').appendChild(canvas);
                             });
-                            document.getElementById('visitKeyDisplay').innerText = visitors[childName].visitKey;
+                            document.getElementById('visitKeyDisplay').innerText = user.visitKey;
                         }
-                        updateCard(childName);
+                        updateCard(childName, user.visits);
                     } else {
                         alert("Карта не оплачена. Покажите QR-код оплаты администратору.");
                     }
-                    return;
                 }
+            } else {
+                alert("Неверный логин или пароль!");
             }
-            alert("Неверный логин или пароль!");
         }
 
         window.onload = function() {
@@ -433,16 +467,14 @@
             }
         };
 
-        function updateCard(childName) {
-            let visits = visitors[childName].visits;
+        function updateCard(childName, visits) {
             let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
             document.getElementById('visits').innerText = visits;
             document.getElementById('status').innerText = statusText;
             if (visits >= 6) {
-                visitors[childName].visits = 0;
-                localStorage.setItem('visitors', JSON.stringify(visitors));
+                db.collection('visitors').doc(childName).update({ visits: 0 });
                 alert("Счётчик сброшен! Начинаем заново.");
-                updateCard(childName);
+                updateCard(childName, 0);
             }
         }
 
@@ -533,85 +565,97 @@
             document.getElementById('debugInfo').innerText = "";
         }
 
-        function addVisitFromQR(visitKey) {
-            for (let childName in visitors) {
-                if (visitors[childName].visitKey === visitKey && visitors[childName].registered && visitors[childName].paid) {
-                    if (Date.now() > visitors[childName].visitKeyExpiration) {
+        async function addVisitFromQR(visitKey) {
+            let snapshot = await db.collection('visitors').where('visitKey', '==', visitKey).get();
+            if (!snapshot.empty) {
+                let childName = snapshot.docs[0].id;
+                let user = snapshot.docs[0].data();
+                if (user.registered && user.paid) {
+                    if (Date.now() > user.visitKeyExpiration) {
                         logError(`QR-код посещения устарел для ${childName}`);
                         alert("QR-код посещения устарел! Попросите посетителя обновить его.");
                         return;
                     }
-                    visitors[childName].visits++;
+                    let newVisits = user.visits + 1;
+                    await db.collection('visitors').doc(childName).update({ visits: newVisits });
+                    visitors[childName].visits = newVisits;
                     lastScannedChild = childName;
-                    localStorage.setItem('visitors', JSON.stringify(visitors));
-                    document.getElementById('adminVisits').innerText = visitors[childName].visits;
+                    document.getElementById('adminVisits').innerText = newVisits;
                     document.getElementById('removeVisitBtn').disabled = false;
                     alert(`Посещение добавлено для ${childName}!`);
-                    generateVisitQR(childName);
-                    return;
+                    await generateVisitQR(childName);
+                } else {
+                    alert("Карта не оплачена!");
                 }
+            } else {
+                logError(`Неверный QR-код посещения: ${visitKey}`);
+                alert("Неверный QR-код посещения!");
             }
-            logError(`Неверный QR-код посещения: ${visitKey}`);
-            alert("Неверный QR-код посещения или карта не оплачена!");
         }
 
-        function addVisitFromManual() {
+        async function addVisitFromManual() {
             let visitKey = document.getElementById('manualVisitKey').value;
             if (visitKey) {
-                for (let childName in visitors) {
-                    if (visitors[childName].visitKey === visitKey && visitors[childName].registered && visitors[childName].paid) {
-                        if (Date.now() > visitors[childName].visitKeyExpiration) {
+                let snapshot = await db.collection('visitors').where('visitKey', '==', visitKey).get();
+                if (!snapshot.empty) {
+                    let childName = snapshot.docs[0].id;
+                    let user = snapshot.docs[0].data();
+                    if (user.registered && user.paid) {
+                        if (Date.now() > user.visitKeyExpiration) {
                             logError(`Код посещения устарел для ${childName}`);
                             alert("Код посещения устарел! Попросите посетителя обновить его.");
                             return;
                         }
-                        visitors[childName].visits++;
+                        let newVisits = user.visits + 1;
+                        await db.collection('visitors').doc(childName).update({ visits: newVisits });
+                        visitors[childName].visits = newVisits;
                         lastScannedChild = childName;
-                        localStorage.setItem('visitors', JSON.stringify(visitors));
-                        document.getElementById('adminVisits').innerText = visitors[childName].visits;
+                        document.getElementById('adminVisits').innerText = newVisits;
                         document.getElementById('removeVisitBtn').disabled = false;
                         alert(`Посещение добавлено для ${childName}!`);
                         document.getElementById('manualVisitKey').value = '';
-                        generateVisitQR(childName);
-                        return;
+                        await generateVisitQR(childName);
+                    } else {
+                        alert("Карта не оплачена!");
                     }
+                } else {
+                    logError(`Неверный код посещения: ${visitKey}`);
+                    alert("Неверный код посещения!");
                 }
-                logError(`Неверный код посещения: ${visitKey}`);
-                alert("Неверный код посещения или карта не оплачена!");
             } else {
                 alert("Введите код посещения!");
             }
         }
 
-        function confirmPaymentQR(paymentKey) {
-            for (let childName in visitors) {
-                if (visitors[childName].paymentKey === paymentKey) {
-                    visitors[childName].paid = true;
-                    localStorage.setItem('visitors', JSON.stringify(visitors));
-                    alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
-                    sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
-                    return;
-                }
+        async function confirmPaymentQR(paymentKey) {
+            let snapshot = await db.collection('visitors').where('paymentKey', '==', paymentKey).get();
+            if (!snapshot.empty) {
+                let childName = snapshot.docs[0].id;
+                await db.collection('visitors').doc(childName).update({ paid: true });
+                visitors[childName].paid = true;
+                alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
+                sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
+            } else {
+                logError(`Неверный QR-код оплаты: ${paymentKey}`);
+                alert("Неверный QR-код оплаты!");
             }
-            logError(`Неверный QR-код оплаты: ${paymentKey}`);
-            alert("Неверный QR-код оплаты!");
         }
 
-        function confirmPaymentManual() {
+        async function confirmPaymentManual() {
             let paymentKey = document.getElementById('manualPaymentKey').value.trim();
             if (paymentKey) {
-                for (let childName in visitors) {
-                    if (visitors[childName].paymentKey === paymentKey) {
-                        visitors[childName].paid = true;
-                        localStorage.setItem('visitors', JSON.stringify(visitors));
-                        alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
-                        sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
-                        document.getElementById('manualPaymentKey').value = '';
-                        return;
-                    }
+                let snapshot = await db.collection('visitors').where('paymentKey', '==', paymentKey).get();
+                if (!snapshot.empty) {
+                    let childName = snapshot.docs[0].id;
+                    await db.collection('visitors').doc(childName).update({ paid: true });
+                    visitors[childName].paid = true;
+                    alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
+                    sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
+                    document.getElementById('manualPaymentKey').value = '';
+                } else {
+                    logError(`Неверный ключ оплаты: ${paymentKey}`);
+                    alert("Неверный ключ оплаты!");
                 }
-                logError(`Неверный ключ оплаты: ${paymentKey}`);
-                alert("Неверный ключ оплаты!");
             } else {
                 alert("Введите ключ оплаты!");
             }
@@ -636,14 +680,15 @@
             }
         }
 
-        function removeVisit() {
+        async function removeVisit() {
             if (lastScannedChild && visitors[lastScannedChild]) {
                 if (visitors[lastScannedChild].visits > 0) {
-                    visitors[lastScannedChild].visits--;
-                    localStorage.setItem('visitors', JSON.stringify(visitors));
-                    document.getElementById('adminVisits').innerText = visitors[lastScannedChild].visits;
+                    let newVisits = visitors[lastScannedChild].visits - 1;
+                    await db.collection('visitors').doc(lastScannedChild).update({ visits: newVisits });
+                    visitors[lastScannedChild].visits = newVisits;
+                    document.getElementById('adminVisits').innerText = newVisits;
                     alert(`Последнее посещение для ${lastScannedChild} удалено!`);
-                    if (visitors[lastScannedChild].visits === 0) {
+                    if (newVisits === 0) {
                         document.getElementById('removeVisitBtn').disabled = true;
                     }
                     showAllUsers();
@@ -656,12 +701,13 @@
             }
         }
 
-        function showAllUsers() {
+        async function showAllUsers() {
+            let snapshot = await db.collection('visitors').get();
             let table = "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr>";
-            for (let childName in visitors) {
-                let user = visitors[childName];
-                table += `<tr><td>${childName}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.visits}</td><td>${user.registrationDate}</td><td>${user.adminKey}</td><td>${user.login}</td><td>${user.password}</td></tr>`;
-            }
+            snapshot.forEach(doc => {
+                let user = doc.data();
+                table += `<tr><td>${doc.id}</td><td>${user.parentName}</td><td>${user.birthDate}</td><td>${user.phone}</td><td>${user.paid ? 'Да' : 'Нет'}</td><td>${user.paymentKey}</td><td>${user.visitKey}</td><td>${user.visits}</td><td>${user.registrationDate}</td><td>${user.adminKey}</td><td>${user.login}</td><td>${user.password}</td></tr>`;
+            });
             table += "</table>";
             document.getElementById('usersTable').innerHTML = table;
         }
@@ -672,8 +718,9 @@
                     if (permission === 'granted') {
                         navigator.serviceWorker.register('sw.js').then(registration => {
                             registration.pushManager.subscribe({ userVisibleOnly: true }).then(subscription => {
-                                subscriptions.push({ childName, subscription: subscription.toJSON() });
-                                localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+                                let subData = { childName, subscription: subscription.toJSON() };
+                                subscriptions.push(subData);
+                                db.collection('subscriptions').doc(childName).set(subData);
                             }).catch(err => {
                                 console.error('Ошибка подписки на Push:', err);
                             });
@@ -705,24 +752,25 @@
             }
         }
 
-        function deleteAccount() {
+        async function deleteAccount() {
             let childName = document.getElementById('cardChildName').innerText;
             if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
+                await db.collection('visitors').doc(childName).delete();
                 delete visitors[childName];
-                localStorage.setItem('visitors', JSON.stringify(visitors));
                 alert("Аккаунт удалён!");
                 showSection('visitorLoginSection');
             }
         }
 
-        function exportToExcel() {
+        async function exportToExcel() {
+            let snapshot = await db.collection('visitors').get();
             let data = [];
             let totalVisits = 0;
-            for (let childName in visitors) {
-                let user = visitors[childName];
+            snapshot.forEach(doc => {
+                let user = doc.data();
                 totalVisits += user.visits;
-                data.push([childName, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.visits, user.registrationDate, user.adminKey, user.login, user.password]);
-            }
+                data.push([doc.id, user.parentName, user.birthDate, user.phone, user.paid ? 'Да' : 'Нет', user.paymentKey, user.visitKey, user.visits, user.registrationDate, user.adminKey, user.login, user.password]);
+            });
             data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, "", "", ""]);
             let ws = XLSX.utils.aoa_to_sheet([["ФИО ребёнка", "ФИО родителя", "Дата рождения", "Телефон", "Оплачено", "Ключ оплаты", "Код посещения", "Посещений", "Дата регистрации", "Админ-ключ", "Логин", "Пароль (хэш)"], ...data]);
             let wb = XLSX.utils.book_new();
@@ -730,9 +778,10 @@
             XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx", { bookSST: true, type: 'binary' });
         }
 
-        function logError(message) {
-            errorLog.push({ date: new Date().toISOString(), message });
-            localStorage.setItem('errorLog', JSON.stringify(errorLog));
+        async function logError(message) {
+            let errorData = { date: new Date().toISOString(), message };
+            errorLog.push(errorData);
+            await db.collection('errorLog').doc(Date.now().toString()).set(errorData);
         }
 
         function showErrorLog() {
@@ -752,14 +801,14 @@
                     <p>Цена (с картой): ${product.priceCard} руб.</p>
                     <button class="btn btn-success" onclick="alert('Свяжитесь с администратором для покупки!')">Купить</button>`;
                 if (isAdmin) {
-                    list += `<button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>`;
+                    list += `<button class="btn btn-danger mt-1" onclick="deleteProduct('${product.name}')">Удалить</button>`;
                 }
                 list += `</div>`;
             });
             document.getElementById('catalogList').innerHTML = list;
         }
 
-        function addProduct() {
+        async function addProduct() {
             let file = document.getElementById('productImage').files[0];
             let name = document.getElementById('productName').value;
             let description = document.getElementById('productDescription').value;
@@ -767,15 +816,16 @@
             let priceCard = document.getElementById('productPriceCard').value;
             if (file && name && description && priceRegular && priceCard) {
                 let reader = new FileReader();
-                reader.onload = function(e) {
-                    products.push({
+                reader.onload = async function(e) {
+                    let productData = {
                         image: e.target.result,
                         name,
                         description,
                         priceRegular,
                         priceCard
-                    });
-                    localStorage.setItem('products', JSON.stringify(products));
+                    };
+                    products.push(productData);
+                    await db.collection('products').doc(name).set(productData);
                     displayCatalog();
                     document.getElementById('productImage').value = '';
                     document.getElementById('productName').value = '';
@@ -789,10 +839,10 @@
             }
         }
 
-        function deleteProduct(index) {
-            if (confirm(`Удалить "${products[index].name}" из каталога?`)) {
-                products.splice(index, 1);
-                localStorage.setItem('products', JSON.stringify(products));
+        async function deleteProduct(name) {
+            if (confirm(`Удалить "${name}" из каталога?`)) {
+                products = products.filter(p => p.name !== name);
+                await db.collection('products').doc(name).delete();
                 displayCatalog();
             }
         }
@@ -807,7 +857,6 @@
         });
 
         showSection('welcomeSection');
-        displayCatalog();
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.error('Service Worker регистрация не удалась:', err));
         }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Песочные Острова</title>
 
-  <!-- Firebase SDK (старый способ, без модулей) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
 
@@ -35,7 +35,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80")
+      background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80')
         no-repeat center fixed;
       background-size: cover;
       margin: 0;
@@ -449,9 +449,11 @@
   </nav>
 
   <script>
-    /***************************************
+    /*******************************************************
      * 1) ИНИЦИАЛИЗАЦИЯ FIREBASE
-     ***************************************/
+     *******************************************************/
+
+    // Ваши данные firebaseConfig из консоли (вставляю, как вы прислали)
     const firebaseConfig = {
       apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
       authDomain: "pesochnyeostrova.firebaseapp.com",
@@ -460,53 +462,51 @@
       messagingSenderId: "632919679127",
       appId: "1:632919679127:web:564b427bca7f0052a289d2"
     };
+
+    // Инициализируем Firebase
     firebase.initializeApp(firebaseConfig);
+    // Получаем Firestore
     const db = firebase.firestore();
 
-    // Пароли для входа в админ-панель
+    // Пароли админа
     const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
-    // Глобальные объекты (кэш из Firestore)
-    let visitors = {};      // ключ = childName, значение = объект с данными
-    let products = [];      // массив объектов
-    let subscriptions = []; // массив объектов
-    let errorLog = [];      // массив объектов
-    let lastScannedChild = null; // для удаления последнего посещения
+    // Для хранения временных данных (например, последнее отсканированное имя)
+    let lastScannedChild = null;
+    // Локальный кэш подписок (мы будем хранить их и в Firestore)
+    let subscriptions = [];
+    // Локальный кэш товаров
+    let products = [];
+    // Локальный кэш лога ошибок
+    let errorLog = [];
 
     /*******************************************************
-     * 2) ЗАГРУЗКА ВСЕХ ДАННЫХ ИЗ FIRESTORE ПРИ СТАРТЕ
+     * 2) ПОДГРУЗКА НАЧАЛЬНЫХ ДАННЫХ
      *******************************************************/
+    // При запуске страницы, подгружаем товары, подписки, ошибки. Посетителей обычно подгружаем по запросам (регистрация, логин, ...)
     async function loadData() {
       try {
-        // Загружаем посетителей
-        const visitorsSnapshot = await db.collection("visitors").get();
-        visitorsSnapshot.forEach((doc) => {
-          visitors[doc.id] = doc.data();
-        });
+        // Подгрузим товары
+        const productsSnap = await db.collection("products").get();
+        products = productsSnap.docs.map((doc) => doc.data());
 
-        // Загружаем товары
-        const productsSnapshot = await db.collection("products").get();
-        products = productsSnapshot.docs.map((doc) => doc.data());
+        // Подгрузим subscriptions
+        const subsSnap = await db.collection("subscriptions").get();
+        subscriptions = subsSnap.docs.map((doc) => doc.data());
 
-        // Загружаем подписки на пуш
-        const subscriptionsSnapshot = await db.collection("subscriptions").get();
-        subscriptions = subscriptionsSnapshot.docs.map((doc) => doc.data());
-
-        // Загружаем лог ошибок
-        const errorsSnapshot = await db.collection("errorLog").get();
-        errorLog = errorsSnapshot.docs.map((doc) => doc.data());
+        // Подгрузим ошибки
+        const errorsSnap = await db.collection("errorLog").get();
+        errorLog = errorsSnap.docs.map((doc) => doc.data());
 
         displayCatalog();
       } catch (err) {
-        console.error("Ошибка при загрузке данных из Firestore:", err);
+        console.error("Ошибка при загрузке Firestore:", err);
       }
     }
-
-    // Вызываем при загрузке страницы
     loadData();
 
     /*******************************************************
-     * 3) ПЕРЕКЛЮЧЕНИЕ СЕКЦИЙ ( welcomeSection / admin / ...)
+     * 3) ПЕРЕКЛЮЧЕНИЕ СЕКЦИЙ
      *******************************************************/
     function showSection(sectionId) {
       document.querySelectorAll(".content-section").forEach((section) => {
@@ -516,25 +516,11 @@
       window.scrollTo(0, 0);
     }
 
-    // При запуске показываем "Добро пожаловать"
-    // (Можно раскомментировать, если хотите именно эту секцию активной сразу)
-    // showSection('welcomeSection');
+    // При старте показываем welcome
+    // (у нас уже есть `active` на welcomeSection)
 
     /*******************************************************
-     * 4) АВТОЗАПОЛНЕНИЕ ДАННЫХ ЛОГИНА, ЕСЛИ НУЖНО
-     *******************************************************/
-    window.onload = function () {
-      let savedLogin = localStorage.getItem("savedLogin");
-      let savedPassword = localStorage.getItem("savedPassword");
-      if (savedLogin && savedPassword) {
-        document.getElementById("visitorLoginInput").value = savedLogin;
-        document.getElementById("visitorPasswordInput").value = savedPassword;
-        document.getElementById("rememberMe").checked = true;
-      }
-    };
-
-    /*******************************************************
-     * 5) ЛОГИКА ВХОДА В АДМИН-ПАНЕЛЬ
+     * 4) АДМИН-ВХОД
      *******************************************************/
     function adminLogin() {
       let password = document.getElementById("adminPassword").value;
@@ -546,7 +532,7 @@
     }
 
     /*******************************************************
-     * 6) РЕГИСТРАЦИЯ ПОСЕТИТЕЛЯ (КАРТЫ)
+     * 5) РЕГИСТРАЦИЯ КАРТЫ
      *******************************************************/
     function generateKey(prefix, childName) {
       const time = Date.now().toString(36);
@@ -570,50 +556,36 @@
 
     async function generateVisitQR(childName) {
       let visitKey = generateKey("VISIT", childName);
-      let visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000; // 24 часа
-      // Обновляем Firestore
+      let visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000;
+      // Запись в Firestore
       await db.collection("visitors").doc(childName).update({
-        visitKey: visitKey,
-        visitKeyExpiration: visitKeyExpiration,
+        visitKey,
+        visitKeyExpiration
       });
-      // Обновляем локальную копию
-      visitors[childName].visitKey = visitKey;
-      visitors[childName].visitKeyExpiration = visitKeyExpiration;
 
       let qrCodeData = `visit:${visitKey}`;
-      QRCode.toCanvas(
-        document.createElement("canvas"),
-        qrCodeData,
-        { width: 150 },
-        function (error, canvas) {
-          if (error) console.error(error);
-          document.getElementById("visitQRCode").innerHTML = "";
-          document.getElementById("visitQRCode").appendChild(canvas);
-        }
-      );
+      QRCode.toCanvas(document.createElement("canvas"), qrCodeData, { width: 150 }, function (error, canvas) {
+        if (error) console.error(error);
+        document.getElementById("visitQRCode").innerHTML = "";
+        document.getElementById("visitQRCode").appendChild(canvas);
+      });
       document.getElementById("visitKeyDisplay").innerText = visitKey;
       return visitKey;
     }
 
     async function generatePaymentQR(childName) {
       let paymentKey = generateKey("PAY", childName);
-      // Записываем в Firestore
+      // Запись в Firestore
       await db.collection("visitors").doc(childName).update({
-        paymentKey: paymentKey,
+        paymentKey
       });
-      visitors[childName].paymentKey = paymentKey;
 
       let qrCodeData = `payment:${paymentKey}`;
-      QRCode.toCanvas(
-        document.createElement("canvas"),
-        qrCodeData,
-        { width: 150 },
-        function (error, canvas) {
-          if (error) console.error(error);
-          document.getElementById("paymentQRCode").innerHTML = "";
-          document.getElementById("paymentQRCode").appendChild(canvas);
-        }
-      );
+      QRCode.toCanvas(document.createElement("canvas"), qrCodeData, { width: 150 }, function (error, canvas) {
+        if (error) console.error(error);
+        document.getElementById("paymentQRCode").innerHTML = "";
+        document.getElementById("paymentQRCode").appendChild(canvas);
+      });
       document.getElementById("paymentKeyDisplay").innerText = paymentKey;
       return paymentKey;
     }
@@ -639,7 +611,7 @@
         return;
       }
 
-      // Проверяем в Firestore, нет ли уже такого ребёнка
+      // Проверим, не зарегистрирован ли уже
       let docRef = db.collection("visitors").doc(childName);
       let docSnap = await docRef.get();
       if (docSnap.exists) {
@@ -652,27 +624,25 @@
       let registrationDate = new Date().toISOString().split("T")[0];
 
       let newVisitor = {
-        login: login,
+        login,
         password: hashedPassword,
-        parentName: parentName,
-        birthDate: birthDate,
-        phone: phone,
+        parentName,
+        birthDate,
+        phone,
         visits: 0,
         registered: true,
         paid: false,
-        adminKey: adminKey,
-        registrationDate: registrationDate,
+        adminKey,
+        registrationDate,
         visitKey: "",
         paymentKey: "",
-        visitKeyExpiration: 0,
+        visitKeyExpiration: 0
       };
 
-      // Создаём документ в Firestore
+      // Создаём в Firestore
       await docRef.set(newVisitor);
-      // Обновляем локальную копию
-      visitors[childName] = newVisitor;
 
-      // Генерим QR-коды
+      // Генерим QR
       let visitKey = await generateVisitQR(childName);
       let paymentKey = await generatePaymentQR(childName);
 
@@ -683,7 +653,7 @@
     }
 
     /*******************************************************
-     * 7) ВХОД ПОСЕТИТЕЛЯ
+     * 6) ВХОД ПОСЕТИТЕЛЯ
      *******************************************************/
     async function visitorLogin() {
       let login = document.getElementById("visitorLoginInput").value;
@@ -691,83 +661,103 @@
       let rememberMe = document.getElementById("rememberMe").checked;
       let hashedPassword = CryptoJS.SHA256(password).toString();
 
-      // Ищем посетителя по login & password
-      let snapshot = await db
+      let snap = await db
         .collection("visitors")
         .where("login", "==", login)
         .where("password", "==", hashedPassword)
         .get();
 
-      if (!snapshot.empty) {
-        let doc = snapshot.docs[0];
-        let childName = doc.id;
-        let user = doc.data();
-
-        if (user.registered) {
-          if (user.paid) {
-            // Сохранить логин/пароль, если нужно
-            if (rememberMe) {
-              localStorage.setItem("savedLogin", login);
-              localStorage.setItem("savedPassword", password);
-            } else {
-              localStorage.removeItem("savedLogin");
-              localStorage.removeItem("savedPassword");
-            }
-            showSection("clubCardSection");
-            document.getElementById("cardChildName").innerText = childName;
-
-            // Если visitKey нет или просрочен — генерим заново
-            if (!user.visitKey || Date.now() > user.visitKeyExpiration) {
-              await generateVisitQR(childName);
-            } else {
-              // Иначе показываем старый QR
-              let qrCodeData = `visit:${user.visitKey}`;
-              QRCode.toCanvas(
-                document.createElement("canvas"),
-                qrCodeData,
-                { width: 150 },
-                function (error, canvas) {
-                  if (error) console.error(error);
-                  document.getElementById("visitQRCode").innerHTML = "";
-                  document.getElementById("visitQRCode").appendChild(canvas);
-                }
-              );
-              document.getElementById("visitKeyDisplay").innerText = user.visitKey;
-            }
-            updateCard(childName, user.visits);
-          } else {
-            alert("Карта не оплачена. Покажите QR-код оплаты администратору.");
-          }
-        }
-      } else {
+      if (snap.empty) {
         alert("Неверный логин или пароль!");
+        return;
+      }
+      // Берём первую подходящую запись
+      let doc = snap.docs[0];
+      let childName = doc.id;
+      let user = doc.data();
+
+      if (!user.registered) {
+        alert("Профиль не завершён!");
+        return;
+      }
+
+      if (!user.paid) {
+        alert("Карта не оплачена. Покажите QR-код оплаты администратору.");
+        return;
+      }
+
+      if (rememberMe) {
+        localStorage.setItem("savedLogin", login);
+        localStorage.setItem("savedPassword", password);
+      } else {
+        localStorage.removeItem("savedLogin");
+        localStorage.removeItem("savedPassword");
+      }
+
+      showSection("clubCardSection");
+      document.getElementById("cardChildName").innerText = childName;
+
+      // Если visitKey просрочен или отсутствует
+      if (!user.visitKey || Date.now() > user.visitKeyExpiration) {
+        await generateVisitQR(childName);
+        user = (await doc.ref.get()).data(); // обновим локальный user
+      } else {
+        // Показать существующий
+        let qrCodeData = `visit:${user.visitKey}`;
+        QRCode.toCanvas(document.createElement("canvas"), qrCodeData, { width: 150 }, function (error, canvas) {
+          if (error) console.error(error);
+          document.getElementById("visitQRCode").innerHTML = "";
+          document.getElementById("visitQRCode").appendChild(canvas);
+        });
+        document.getElementById("visitKeyDisplay").innerText = user.visitKey;
+      }
+      updateCard(childName, user.visits);
+    }
+
+    window.onload = function () {
+      let savedLogin = localStorage.getItem("savedLogin");
+      let savedPassword = localStorage.getItem("savedPassword");
+      if (savedLogin && savedPassword) {
+        document.getElementById("visitorLoginInput").value = savedLogin;
+        document.getElementById("visitorPasswordInput").value = savedPassword;
+        document.getElementById("rememberMe").checked = true;
+      }
+    };
+
+    function updateCard(childName, visitsCount) {
+      // При повторном вызове, если visitsCount не передан — надо спросить Firestore
+      if (typeof visitsCount === "undefined") {
+        db.collection("visitors")
+          .doc(childName)
+          .get()
+          .then((docSnap) => {
+            if (!docSnap.exists) return;
+            let user = docSnap.data();
+            setCardUI(childName, user.visits);
+          });
+      } else {
+        setCardUI(childName, visitsCount);
       }
     }
 
-    function updateCard(childName, visitsCount) {
-      // Если не передали visitsCount, берём из visitors[childName]
-      if (typeof visitsCount === "undefined") {
-        visitsCount = visitors[childName].visits;
-      }
-      let statusText =
-        visitsCount < 5 ? `${visitsCount}/5 до бонуса` : "Бесплатное посещение (30 мин)";
-      document.getElementById("visits").innerText = visitsCount;
+    function setCardUI(childName, visits) {
+      let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
+      document.getElementById("visits").innerText = visits;
       document.getElementById("status").innerText = statusText;
-
-      // Если счетчик >= 6 — сбрасываем
-      if (visitsCount >= 6) {
+      if (visits >= 6) {
+        // Сброс в Firestore
         db.collection("visitors").doc(childName).update({ visits: 0 });
-        visitors[childName].visits = 0;
         alert("Счётчик сброшен! Начинаем заново.");
-        updateCard(childName, 0);
+        setCardUI(childName, 0);
       }
     }
 
     /*******************************************************
-     * 8) СКАНИРОВАНИЕ QR-КОДА (JSQR)
+     * 7) СКАНЕР QR
      *******************************************************/
     let video = null;
     let scanType = "visit";
+
     function startQRScanner(type) {
       scanType = type;
       const qrScanner = document.getElementById("qrScanner");
@@ -804,9 +794,7 @@
               .catch((err) => {
                 debugInfo.innerText = `Ошибка камеры: ${err.message}`;
                 logError(`Ошибка камеры: ${err.message}`);
-                alert(
-                  `Не удалось открыть камеру: ${err.message}. Проверьте разрешения и попробуйте снова.`
-                );
+                alert(`Не удалось открыть камеру: ${err.message}. Проверьте разрешения и попробуйте снова.`);
                 qrScanner.style.display = "none";
               });
           }
@@ -827,12 +815,7 @@
         qrCanvas.width = video.videoWidth || 300;
         qrCanvas.height = video.videoHeight || 300;
         canvasContext.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
-        const imageData = canvasContext.getImageData(
-          0,
-          0,
-          qrCanvas.width,
-          qrCanvas.height
-        );
+        const imageData = canvasContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
         const code = jsQR(imageData.data, imageData.width, imageData.height);
 
         if (code) {
@@ -869,55 +852,41 @@
     }
 
     /*******************************************************
-     * 9) ДОБАВИТЬ ПОСЕЩЕНИЕ (QR)
+     * 8) ДОБАВЛЕНИЕ ПОСЕЩЕНИЯ (ЧЕРЕЗ QR)
      *******************************************************/
     async function addVisitFromQR(visitKey) {
-      // Ищем в БД посетителя с таким visitKey
-      let snap = await db
-        .collection("visitors")
-        .where("visitKey", "==", visitKey)
-        .get();
+      let snap = await db.collection("visitors").where("visitKey", "==", visitKey).get();
       if (snap.empty) {
         logError(`Неверный QR-код посещения: ${visitKey}`);
         alert("Неверный QR-код посещения!");
         return;
       }
-
       let doc = snap.docs[0];
       let childName = doc.id;
-      let userData = doc.data();
+      let user = doc.data();
 
-      // Проверяем, оплачен ли
-      if (!userData.paid) {
+      if (!user.paid) {
         alert("Карта не оплачена!");
         return;
       }
-      // Проверяем, не просрочен ли visitKey
-      if (Date.now() > userData.visitKeyExpiration) {
+      if (Date.now() > user.visitKeyExpiration) {
         logError(`QR-код посещения устарел для ${childName}`);
         alert("QR-код посещения устарел! Попросите посетителя обновить его.");
         return;
       }
 
-      let newVisits = userData.visits + 1;
-      await db.collection("visitors").doc(childName).update({
-        visits: newVisits,
-      });
-
-      // Обновляем локальный кэш
-      visitors[childName].visits = newVisits;
+      let newVisits = (user.visits || 0) + 1;
+      await db.collection("visitors").doc(childName).update({ visits: newVisits });
       lastScannedChild = childName;
-
       document.getElementById("adminVisits").innerText = newVisits;
       document.getElementById("removeVisitBtn").disabled = false;
       alert(`Посещение добавлено для ${childName}!`);
 
-      // Генерируем новый visitKey (на будущее)
       await generateVisitQR(childName);
     }
 
     /*******************************************************
-     * 10) ДОБАВИТЬ ПОСЕЩЕНИЕ ВРУЧНУЮ
+     * 9) ДОБАВЛЕНИЕ ПОСЕЩЕНИЯ ВРУЧНУЮ
      *******************************************************/
     async function addVisitFromManual() {
       let visitKey = document.getElementById("manualVisitKey").value.trim();
@@ -926,11 +895,7 @@
         return;
       }
 
-      // Поиск в БД
-      let snap = await db
-        .collection("visitors")
-        .where("visitKey", "==", visitKey)
-        .get();
+      let snap = await db.collection("visitors").where("visitKey", "==", visitKey).get();
       if (snap.empty) {
         logError(`Неверный код посещения: ${visitKey}`);
         alert("Неверный код посещения!");
@@ -938,42 +903,34 @@
       }
       let doc = snap.docs[0];
       let childName = doc.id;
-      let userData = doc.data();
+      let user = doc.data();
 
-      if (!userData.paid) {
+      if (!user.paid) {
         alert("Карта не оплачена!");
         return;
       }
-      if (Date.now() > userData.visitKeyExpiration) {
+      if (Date.now() > user.visitKeyExpiration) {
         logError(`Код посещения устарел для ${childName}`);
         alert("Код посещения устарел! Попросите посетителя обновить его.");
         return;
       }
 
-      let newVisits = userData.visits + 1;
-      await db.collection("visitors").doc(childName).update({
-        visits: newVisits,
-      });
-      visitors[childName].visits = newVisits;
+      let newVisits = (user.visits || 0) + 1;
+      await db.collection("visitors").doc(childName).update({ visits: newVisits });
       lastScannedChild = childName;
-
       document.getElementById("adminVisits").innerText = newVisits;
       document.getElementById("removeVisitBtn").disabled = false;
       alert(`Посещение добавлено для ${childName}!`);
       document.getElementById("manualVisitKey").value = "";
 
-      // Генерируем новый visitKey
       await generateVisitQR(childName);
     }
 
     /*******************************************************
-     * 11) ПОДТВЕРДИТЬ ОПЛАТУ (QR)
+     * 10) ПОДТВЕРЖДЕНИЕ ОПЛАТЫ (QR)
      *******************************************************/
     async function confirmPaymentQR(paymentKey) {
-      let snap = await db
-        .collection("visitors")
-        .where("paymentKey", "==", paymentKey)
-        .get();
+      let snap = await db.collection("visitors").where("paymentKey", "==", paymentKey).get();
       if (snap.empty) {
         logError(`Неверный QR-код оплаты: ${paymentKey}`);
         alert("Неверный QR-код оплаты!");
@@ -982,16 +939,13 @@
       let doc = snap.docs[0];
       let childName = doc.id;
 
-      // Обновляем paid в Firestore
       await db.collection("visitors").doc(childName).update({ paid: true });
-      visitors[childName].paid = true;
-
       alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
       sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
     }
 
     /*******************************************************
-     * 12) ПОДТВЕРДИТЬ ОПЛАТУ ВРУЧНУЮ
+     * 11) ПОДТВЕРЖДЕНИЕ ОПЛАТЫ ВРУЧНУЮ
      *******************************************************/
     async function confirmPaymentManual() {
       let paymentKey = document.getElementById("manualPaymentKey").value.trim();
@@ -1000,10 +954,7 @@
         return;
       }
 
-      let snap = await db
-        .collection("visitors")
-        .where("paymentKey", "==", paymentKey)
-        .get();
+      let snap = await db.collection("visitors").where("paymentKey", "==", paymentKey).get();
       if (snap.empty) {
         logError(`Неверный ключ оплаты: ${paymentKey}`);
         alert("Неверный ключ оплаты!");
@@ -1013,15 +964,13 @@
       let childName = doc.id;
 
       await db.collection("visitors").doc(childName).update({ paid: true });
-      visitors[childName].paid = true;
-
       alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
       sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
       document.getElementById("manualPaymentKey").value = "";
     }
 
     /*******************************************************
-     * 13) ОТПРАВКА PUSH ОДНОМУ ПОЛЬЗОВАТЕЛЮ
+     * 12) PUSH-УВЕДОМЛЕНИЯ (ДЕМО)
      *******************************************************/
     function sendPushToUser(childName, message) {
       let subObj = subscriptions.find((s) => s.childName === childName);
@@ -1045,27 +994,26 @@
     }
 
     /*******************************************************
-     * 14) УДАЛИТЬ ПОСЛЕДНЕЕ ПОСЕЩЕНИЕ
+     * 13) УДАЛИТЬ ПОСЛЕДНЕЕ ПОСЕЩЕНИЕ
      *******************************************************/
     async function removeVisit() {
-      if (!lastScannedChild || !visitors[lastScannedChild]) {
+      if (!lastScannedChild) {
         alert("Сначала отсканируйте QR-код посещения или добавьте вручную!");
         return;
       }
 
-      let currentVisits = visitors[lastScannedChild].visits || 0;
-      if (currentVisits > 0) {
-        let newVisits = currentVisits - 1;
-        // Обновляем Firestore
-        await db
-          .collection("visitors")
-          .doc(lastScannedChild)
-          .update({ visits: newVisits });
-
-        visitors[lastScannedChild].visits = newVisits;
+      let docRef = db.collection("visitors").doc(lastScannedChild);
+      let docSnap = await docRef.get();
+      if (!docSnap.exists) {
+        alert("Не найден посетитель!");
+        return;
+      }
+      let user = docSnap.data();
+      if ((user.visits || 0) > 0) {
+        let newVisits = user.visits - 1;
+        await docRef.update({ visits: newVisits });
         document.getElementById("adminVisits").innerText = newVisits;
         alert(`Последнее посещение для ${lastScannedChild} удалено!`);
-
         if (newVisits === 0) {
           document.getElementById("removeVisitBtn").disabled = true;
         }
@@ -1077,11 +1025,10 @@
     }
 
     /*******************************************************
-     * 15) ПОКАЗАТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ (ТАБЛИЦА)
+     * 14) ПОКАЗАТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ
      *******************************************************/
     async function showAllUsers() {
-      // Снова загрузим из Firestore, чтобы показать актуальные данные
-      let snapshot = await db.collection("visitors").get();
+      let snap = await db.collection("visitors").get();
       let table = `<table class='table table-striped'><tr>
         <th>ФИО ребёнка</th>
         <th>ФИО родителя</th>
@@ -1096,7 +1043,7 @@
         <th>Логин</th>
         <th>Пароль (хэш)</th>
       </tr>`;
-      snapshot.forEach((doc) => {
+      snap.forEach((doc) => {
         let user = doc.data();
         table += `<tr>
           <td>${doc.id}</td>
@@ -1118,7 +1065,7 @@
     }
 
     /*******************************************************
-     * 16) ПОДПИСКА НА PUSH
+     * 15) ПОДПИСКА НА PUSH
      *******************************************************/
     function subscribeToPush(childName) {
       if ("Notification" in window && "serviceWorker" in navigator) {
@@ -1130,7 +1077,7 @@
                   userVisibleOnly: true,
                 });
                 let subData = {
-                  childName: childName,
+                  childName,
                   subscription: sub.toJSON(),
                 };
                 // Сохраняем в Firestore
@@ -1145,16 +1092,13 @@
       }
     }
 
-    /*******************************************************
-     * 17) ОТПРАВИТЬ PUSH ВСЕМ ПОДПИСЧИКАМ
-     *******************************************************/
     function sendPushNotification() {
       let message = document.getElementById("pushMessage").value;
       if (!message) {
         alert("Введите текст уведомления!");
         return;
       }
-      // Нет настоящего сервера push – просто имитируем
+      // Тут просто имитация рассылки — без реального сервера
       subscriptions.forEach((subObj) => {
         let childName = subObj.childName;
         navigator.serviceWorker.ready
@@ -1175,27 +1119,26 @@
     }
 
     /*******************************************************
-     * 18) УДАЛЕНИЕ АККАУНТА ПОСЕТИТЕЛЕМ
+     * 16) УДАЛИТЬ АККАУНТ
      *******************************************************/
     async function deleteAccount() {
       let childName = document.getElementById("cardChildName").innerText;
       if (!childName) return;
       if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
         await db.collection("visitors").doc(childName).delete();
-        delete visitors[childName];
         alert("Аккаунт удалён!");
         showSection("visitorLoginSection");
       }
     }
 
     /*******************************************************
-     * 19) ЭКСПОРТ В EXCEL
+     * 17) ЭКСПОРТ В EXCEL
      *******************************************************/
     async function exportToExcel() {
-      let snapshot = await db.collection("visitors").get();
+      let snap = await db.collection("visitors").get();
       let data = [];
       let totalVisits = 0;
-      snapshot.forEach((doc) => {
+      snap.forEach((doc) => {
         let user = doc.data();
         totalVisits += user.visits || 0;
         data.push([
@@ -1210,23 +1153,11 @@
           user.registrationDate || "",
           user.adminKey || "",
           user.login || "",
-          user.password || "",
+          user.password || ""
         ]);
       });
-      data.push([
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "Итого посещений:",
-        totalVisits,
-        "",
-        "",
-        "",
-      ]);
+      data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, "", "", ""]);
+
       let ws = XLSX.utils.aoa_to_sheet([
         [
           "ФИО ребёнка",
@@ -1240,9 +1171,9 @@
           "Дата регистрации",
           "Админ-ключ",
           "Логин",
-          "Пароль (хэш)",
+          "Пароль (хэш)"
         ],
-        ...data,
+        ...data
       ]);
       let wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Посетители");
@@ -1253,15 +1184,15 @@
     }
 
     /*******************************************************
-     * 20) ЛОГ ОШИБОК
+     * 18) ЛОГ ОШИБОК
      *******************************************************/
     async function logError(message) {
       let errorEntry = {
         date: new Date().toISOString(),
-        message: message,
+        message
       };
       errorLog.push(errorEntry);
-      // Записываем в Firestore
+      // Пишем в Firestore
       await db.collection("errorLog").doc(Date.now().toString()).set(errorEntry);
     }
 
@@ -1276,16 +1207,14 @@
     }
 
     /*******************************************************
-     * 21) КАТАЛОГ ТОВАРОВ
+     * 19) КАТАЛОГ ТОВАРОВ (СТОРА И ВЫВОД)
      *******************************************************/
     function displayCatalog() {
       let list = "";
-      // Проверяем, ввёл ли пользователь правильный админ-пароль,
-      // чтобы показывать кнопку "Удалить"
       let adminInput = document.getElementById("adminPassword");
       let isAdmin = adminInput && ADMIN_PASSWORDS.includes(adminInput.value);
 
-      products.forEach((product, index) => {
+      products.forEach((product) => {
         list += `<div class="catalog-item mt-3">
           <img src="${product.image}" alt="${product.name}">
           <p><strong>${product.name}</strong></p>
@@ -1306,25 +1235,22 @@
       let description = document.getElementById("productDescription").value;
       let priceRegular = document.getElementById("productPriceRegular").value;
       let priceCard = document.getElementById("productPriceCard").value;
-
       if (file && name && description && priceRegular && priceCard) {
         let reader = new FileReader();
         reader.onload = async function (e) {
           let productData = {
             image: e.target.result,
-            name: name,
-            description: description,
-            priceRegular: priceRegular,
-            priceCard: priceCard,
+            name,
+            description,
+            priceRegular,
+            priceCard
           };
-          // Сохраняем в Firestore
+          // Пишем в Firestore
           await db.collection("products").doc(name).set(productData);
-          // В памяти обновляем
           products.push(productData);
-
           displayCatalog();
 
-          // Сброс полей
+          // Очистим форму
           document.getElementById("productImage").value = "";
           document.getElementById("productName").value = "";
           document.getElementById("productDescription").value = "";
@@ -1339,16 +1265,14 @@
 
     async function deleteProduct(productName) {
       if (confirm(`Удалить "${productName}" из каталога?`)) {
-        // Удаляем из Firestore
         await db.collection("products").doc(productName).delete();
-        // Удаляем из массива
         products = products.filter((p) => p.name !== productName);
         displayCatalog();
       }
     }
 
     /*******************************************************
-     * 22) ПРОКРУТКА СТРАНИЦЫ ПРИ ФОКУСЕ НА INPUT (МОБ. УСТРОЙСТВА)
+     * 20) ФОКУС ПОЛЕЙ (МОБИЛЬНОЕ УСТРОЙСТВО)
      *******************************************************/
     document.querySelectorAll("input, textarea").forEach((input) => {
       input.addEventListener("focus", () => {
@@ -1360,14 +1284,12 @@
     });
 
     /*******************************************************
-     * 23) REG SERVICE WORKER (ДЛЯ PUSH)
+     * 21) SERVICE WORKER (PUSH) - ПРИ ЖЕЛАНИИ
      *******************************************************/
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("sw.js")
-        .catch((err) =>
-          console.error("Service Worker регистрация не удалась:", err)
-        );
+        .catch((err) => console.error("Service Worker регистрация не удалась:", err));
     }
   </script>
 </body>

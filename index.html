@@ -7,15 +7,9 @@
 
     <!-- Подключение сторонних библиотек -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -24,8 +18,7 @@
       /* Основные стили */
       body {
         font-family: Arial, sans-serif;
-        background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80')
-          no-repeat center fixed;
+        background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80') no-repeat center fixed;
         background-size: cover;
         margin: 0;
         padding-bottom: 70px;
@@ -119,9 +112,58 @@
       #qrVideo { width: 100%; max-width: 300px; border-radius: 5px; }
       #debugInfo { font-size: 12px; color: #666; margin-top: 10px; }
       .form-control:focus { position: relative; z-index: 10; }
+
+      /* Анимация для бонусного счета */
+      .bonus-animation {
+        animation: bonusGlow 1s ease-in-out;
+      }
+      @keyframes bonusGlow {
+        0% { color: #000; }
+        50% { color: #ff0000; }
+        100% { color: #000; }
+      }
+
+      /* Стили для туториала */
+      #tutorialModal {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      #tutorialContent {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 400px;
+        text-align: center;
+      }
+      #tutorialContent h3 {
+        margin-bottom: 15px;
+      }
+      #tutorialContent p {
+        margin-bottom: 10px;
+      }
+      #tutorialContent button {
+        margin-top: 15px;
+      }
     </style>
   </head>
   <body>
+    <!-- Туториал (показывается один раз при первом заходе) -->
+    <div id="tutorialModal" style="display:none;">
+      <div id="tutorialContent">
+        <h3>Добро пожаловать в Песочные Острова!</h3>
+        <p>Здесь вы можете зарегистрировать клубную карту для ребенка, отслеживать посещения и управлять товарами.</p>
+        <p>Пользуйтесь навигацией внизу для быстрого доступа ко всем разделам.</p>
+        <p>При заполнении форм страница автоматически прокрутится так, чтобы все кнопки были видны.</p>
+        <button class="btn btn-primary" onclick="closeTutorial()">Начать</button>
+      </div>
+    </div>
+
     <div class="main-container">
       <!-- Логотип -->
       <img src="Ресурс 1@10x.png" alt="Лейбл Песочные Острова" class="logo" />
@@ -138,7 +180,7 @@
       <!-- Секция входа для администратора -->
       <div id="adminLoginSection" class="content-section">
         <h3 class="black-label">Вход для администратора</h3>
-        <input type="password" class="form-control" id="adminPassword" placeholder="Пароль" />
+        <input type="password" class="form-control last-input" id="adminPassword" placeholder="Пароль" />
         <div class="form-check mt-2">
           <input type="checkbox" class="form-check-input" id="rememberAdmin" />
           <label class="form-check-label" for="rememberAdmin">Запомнить пароль</label>
@@ -181,8 +223,8 @@
       <!-- Секция входа для посетителя -->
       <div id="visitorLoginSection" class="content-section">
         <h3 class="black-label">Вход для посетителя</h3>
-        <input type="text" class="form-control" id="visitorLoginInput" placeholder="Логин" />
-        <input type="password" class="form-control mt-2" id="visitorPasswordInput" placeholder="Пароль" />
+        <input type="text" class="form-control last-input" id="visitorLoginInput" placeholder="Логин" />
+        <input type="password" class="form-control last-input mt-2" id="visitorPasswordInput" placeholder="Пароль" />
         <div class="form-check mt-2">
           <input type="checkbox" class="form-check-input" id="rememberMe" />
           <label class="form-check-label" for="rememberMe">Запомнить меня</label>
@@ -198,9 +240,9 @@
         <input type="text" class="form-control mt-2" id="parentFullName" placeholder="ФИО родителя" />
         <input type="date" class="form-control mt-2" id="childBirthDate" />
         <!-- Предзаполненное значение для номера телефона -->
-        <input type="tel" class="form-control mt-2" id="parentPhone" placeholder="Номер телефона" value="+7" />
-        <input type="text" class="form-control mt-2" id="newLogin" placeholder="Придумайте логин" />
-        <input type="password" class="form-control mt-2" id="newPassword" placeholder="Придумайте пароль" />
+        <input type="tel" class="form-control" id="parentPhone" placeholder="Номер телефона" value="+7" />
+        <input type="text" class="form-control last-input mt-2" id="newLogin" placeholder="Придумайте логин" />
+        <input type="password" class="form-control last-input mt-2" id="newPassword" placeholder="Придумайте пароль" />
         <button class="btn btn-primary w-100 mt-2" onclick="registerCard()">Зарегистрировать</button>
         <p class="mt-2"><strong>QR-код оплаты:</strong></p>
         <div id="paymentQRCode" class="qr-container"></div>
@@ -281,6 +323,7 @@
       let errorLog = [];
       let subscriptions = [];
       let lastScannedChild = null;
+      let adminLoggedIn = false; // Новый флаг для состояния администратора
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
       // onSnapshot для синхронизации в реальном времени
@@ -319,23 +362,21 @@
         console.log("Subscriptions обновлены:", subscriptions);
       });
 
-      // Функция переключения секций с прокруткой вверх с отступом 50px
+      // Функция переключения секций с прокруткой вверх (отступ 50px)
       function showSection(sectionId) {
         document.querySelectorAll(".content-section").forEach((section) => {
           section.classList.remove("active");
         });
         const section = document.getElementById(sectionId);
         section.classList.add("active");
-        // Скроллим к элементу и затем поднимаем окно ещё на 50px
         section.scrollIntoView({ behavior: "smooth", block: "start" });
-        setTimeout(() => {
-          window.scrollBy(0, -50);
-        }, 500);
+        setTimeout(() => window.scrollBy(0, -50), 500);
       }
 
       function adminLogin() {
         let password = document.getElementById("adminPassword")?.value;
         if (ADMIN_PASSWORDS.includes(password)) {
+          adminLoggedIn = true;
           if (document.getElementById("rememberAdmin")?.checked) {
             localStorage.setItem("savedAdminPassword", password);
           } else {
@@ -350,8 +391,6 @@
       function showRegister() {
         showSection("registerSection");
       }
-
-      // Удалена кнопка скрытия клавиатуры (функция hideKeyboard больше не используется)
 
       function generateKey(prefix, childName) {
         const time = Date.now().toString(36);
@@ -538,13 +577,26 @@
           document.getElementById("adminPassword").value = savedAdmin;
           document.getElementById("rememberAdmin").checked = true;
         }
+        // Показать туториал при первом заходе
+        if (!localStorage.getItem("tutorialShown")) {
+          document.getElementById("tutorialModal").style.display = "flex";
+        }
       };
+
+      function closeTutorial() {
+        document.getElementById("tutorialModal").style.display = "none";
+        localStorage.setItem("tutorialShown", "true");
+      }
 
       function updateCard(childName) {
         let visits = visitors[childName].visits;
         let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
         if (document.getElementById("visits")) {
           document.getElementById("visits").innerText = visits;
+          if (visits === 5) {
+            document.getElementById("visits").classList.add("bonus-animation");
+            setTimeout(() => document.getElementById("visits").classList.remove("bonus-animation"), 1000);
+          }
         }
         if (document.getElementById("status")) {
           document.getElementById("status").innerText = statusText;
@@ -795,7 +847,8 @@
 
       function displayCatalog() {
         let list = "";
-        let isAdmin = ADMIN_PASSWORDS.includes(document.getElementById("adminPassword")?.value || "");
+        // Если админ залогинен, используем флаг adminLoggedIn
+        let isAdmin = adminLoggedIn;
         products.forEach((product, index) => {
           list += `<div class="catalog-item mt-3">
                      <img src="${product.image}" alt="${product.name}">
@@ -972,13 +1025,10 @@
         document.getElementById("adminPanelSection").appendChild(logDiv);
       }
 
-      document.querySelectorAll("input, textarea").forEach((input) => {
-        input.addEventListener("focus", () => {
-          setTimeout(() => {
-            // Скролл до начала элемента, затем отступ на 50px вверх
-            input.scrollIntoView({ behavior: "smooth", block: "start" });
-            setTimeout(() => window.scrollBy(0, -50), 500);
-          }, 100);
+      // Автоскроллинг для последних полей ввода (элементы с классом last-input)
+      document.querySelectorAll(".last-input").forEach((input) => {
+        input.addEventListener("blur", () => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
         });
       });
 
@@ -991,7 +1041,7 @@
         );
       }
 
-      // Глобальные функции
+      // Делаем функции доступными глобально
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;
@@ -1010,6 +1060,7 @@
       window.showRegister = showRegister;
       window.logError = logError;
       window.showErrorLog = showErrorLog;
+      window.closeTutorial = closeTutorial;
     </script>
   </body>
 </html>

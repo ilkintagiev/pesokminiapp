@@ -38,7 +38,6 @@
         padding: 20px;
         border-radius: 15px;
         box-shadow: 0 0 15px rgba(0,0,0,0.2);
-        max-width: 500px;
         margin: 20px auto;
         text-align: center;
         opacity: 0;
@@ -47,6 +46,13 @@
       .content-section.active {
         display: block;
         opacity: 1;
+      }
+      /* По умолчанию максимальная ширина секций 500px, но для регистрации уменьшим до 400px */
+      .content-section.reg-form {
+        max-width: 400px;
+      }
+      .content-section:not(.reg-form) {
+        max-width: 500px;
       }
       .navbar-bottom {
         position: fixed;
@@ -175,9 +181,9 @@
     <div id="tutorialModal" style="display:none;">
       <div id="tutorialContent">
         <h3>Добро пожаловать в Песочные Острова!</h3>
-        <p>Здесь вы можете зарегистрировать клубную карту для ребенка, отслеживать посещения, управлять товарами и получить помощь от виртуального консультанта для родителей.</p>
+        <p>Здесь вы можете зарегистрировать клубную карту для ребенка, отслеживать посещения, управлять товарами и получать помощь от виртуального консультанта для родителей.</p>
         <p>Используйте навигацию внизу для быстрого доступа ко всем разделам.</p>
-        <p>При заполнении форм страница прокручивается так, чтобы все кнопки были видны.</p>
+        <p>При заполнении форм страница прокручивается так, чтобы кнопки всегда были видны.</p>
         <button class="btn btn-primary" onclick="closeTutorial()">Начать</button>
       </div>
     </div>
@@ -260,7 +266,7 @@
       </div>
 
       <!-- Секция регистрации клубной карты -->
-      <div id="registerSection" class="content-section">
+      <div id="registerSection" class="content-section reg-form">
         <h3 class="black-label">Регистрация клубной карты</h3>
         <input type="text" class="form-control" id="childFullName" placeholder="ФИО ребёнка" />
         <input type="text" class="form-control mt-2" id="parentFullName" placeholder="ФИО родителя" />
@@ -306,7 +312,7 @@
       <div id="chatAssistantSection" class="content-section">
         <h3 class="black-label">Помощник для родителей</h3>
         <p>Задайте ваш вопрос, и наш виртуальный консультант ответит вам!</p>
-        <!-- Если помощник ещё не оплачен, показываем кнопку оплаты -->
+        <!-- Если помощник ещё не оплачен, показываем область оплаты -->
         <div id="assistantPaymentArea">
           <p>Для доступа к помощнику необходимо оплатить услугу.</p>
           <button class="btn btn-primary w-100 mt-2" onclick="generateAssistantPaymentQR()">Оплатить помощь</button>
@@ -371,7 +377,6 @@
       let subscriptions = [];
       let lastScannedChild = null;
       let adminLoggedIn = false;
-      // Флаг оплаты для помощника (можно хранить в Firestore или localStorage)
       let assistantPaid = localStorage.getItem("assistantPaid") === "true";
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
@@ -392,7 +397,6 @@
           products.push(product);
         });
         displayCatalog();
-        // Если активна секция управления товарами, обновляем её
         if (document.getElementById("productManagementSection")?.classList.contains("active")) {
           displayProductManagement();
         }
@@ -424,6 +428,13 @@
         section.classList.add("active");
         section.scrollIntoView({ behavior: "smooth", block: "start" });
         setTimeout(() => window.scrollBy(0, -100), 500);
+
+        // Если открыта регистрация, скрываем логотип; иначе показываем
+        if (sectionId === "registerSection") {
+          document.querySelector(".logo").style.display = "none";
+        } else {
+          document.querySelector(".logo").style.display = "block";
+        }
       }
 
       function adminLogin() {
@@ -445,7 +456,6 @@
         showSection("registerSection");
       }
 
-      // Генерация уникальных ключей
       function generateKey(prefix, childName) {
         const time = Date.now().toString(36);
         return `${prefix}-${childName.replace(/\s+/g, "").slice(0, 5)}-${time}`.toUpperCase();
@@ -917,7 +927,7 @@
         document.getElementById("catalogList").innerHTML = list;
       }
 
-      // Панель управления товарами для админа
+      // Панель управления товарами
       function displayProductManagement() {
         let list = "";
         products.forEach((product, index) => {
@@ -1115,31 +1125,24 @@
 
       // Чат-помощник для родителей
       function showChatAssistant() {
-        // Если помощник оплачен, показываем чат
         if (assistantPaid) {
           document.getElementById("assistantPaymentArea").style.display = "none";
           document.getElementById("chatArea").style.display = "block";
         } else {
-          // Иначе просим оплатить
           document.getElementById("assistantPaymentArea").style.display = "block";
           document.getElementById("chatArea").style.display = "none";
         }
         showSection("chatAssistantSection");
       }
 
-      // Генерация платежного QR-кода для помощника (пример)
       function generateAssistantPaymentQR() {
-        // Генерируем ключ оплаты для помощника (можно сохранить отдельно, здесь просто пример)
         const assistantPaymentKey = generateKey("CHAT", "assistant");
-        // Отобразим QR-код (например, с данными вида "chat:KEY")
         const qrData = `chat:${assistantPaymentKey}`;
         QRCode.toCanvas(document.createElement("canvas"), qrData, { width: 150 }, (error, canvas) => {
           if (error) console.error(error);
           document.getElementById("assistantPaymentQRCode").innerHTML = "";
           document.getElementById("assistantPaymentQRCode").appendChild(canvas);
         });
-        // Здесь нужно реализовать проверку оплаты (например, через Webhook или ручное подтверждение)
-        // Для примера сразу установим флаг оплаты:
         if (confirm("Проверьте оплату для помощника. Нажмите OK, если оплата произведена.")) {
           assistantPaid = true;
           localStorage.setItem("assistantPaid", "true");
@@ -1147,18 +1150,14 @@
         }
       }
 
-      // Отправка сообщения в чат-помощник (пример вызова ChatGPT API)
       async function sendChatMessage() {
         const inputElem = document.getElementById("chatInput");
         const chatLog = document.getElementById("chatLog");
         let message = inputElem.value.trim();
         if (!message) return;
-        // Добавляем сообщение пользователя в чат
         chatLog.innerHTML += `<div><strong>Вы:</strong> ${message}</div>`;
         inputElem.value = "";
-        // Прокручиваем чат вниз
         chatLog.scrollTop = chatLog.scrollHeight;
-        // Здесь реализуйте вызов вашего ChatGPT API. Пример:
         try {
           const response = await fetch("https://api.your-chatgpt-endpoint.com/v1/chat", {
             method: "POST",
@@ -1168,7 +1167,6 @@
             },
             body: JSON.stringify({
               prompt: message,
-              // Дополнительные параметры
             }),
           });
           const data = await response.json();
@@ -1182,7 +1180,6 @@
         }
       }
 
-      // Навигация для чат-помощника
       function showAssistant() {
         showChatAssistant();
       }

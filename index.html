@@ -21,6 +21,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
     <style>
+      /* Основные стили */
       body {
         font-family: Arial, sans-serif;
         background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80')
@@ -47,9 +48,12 @@
         max-width: 500px;
         margin: 20px auto;
         text-align: center;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
       }
       .content-section.active {
         display: block;
+        opacity: 1;
       }
       .navbar-bottom {
         position: fixed;
@@ -140,7 +144,6 @@
           <label class="form-check-label" for="rememberAdmin">Запомнить пароль</label>
         </div>
         <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">Войти</button>
-        <button class="btn btn-secondary w-100 mt-2" onclick="hideKeyboard()">Скрыть клавиатуру</button>
       </div>
 
       <!-- Секция панели администратора -->
@@ -186,7 +189,6 @@
         </div>
         <button class="btn btn-primary w-100 mt-2" onclick="visitorLogin()">Войти</button>
         <button class="btn btn-secondary w-100 mt-2" onclick="showRegister()">Купить клубную карту</button>
-        <button class="btn btn-secondary w-100 mt-2" onclick="hideKeyboard()">Скрыть клавиатуру</button>
       </div>
 
       <!-- Секция регистрации клубной карты -->
@@ -203,7 +205,6 @@
         <p class="mt-2"><strong>QR-код оплаты:</strong></p>
         <div id="paymentQRCode" class="qr-container"></div>
         <p><small>Ключ оплаты: <span id="paymentKeyDisplay"></span></small></p>
-        <button class="btn btn-secondary w-100 mt-2" onclick="hideKeyboard()">Скрыть клавиатуру</button>
       </div>
 
       <!-- Секция клубной карты -->
@@ -216,7 +217,6 @@
         <div id="visitQRCode" class="qr-container"></div>
         <p><small>Код посещения: <span id="visitKeyDisplay"></span></small></p>
         <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">Удалить аккаунт</button>
-        <button class="btn btn-secondary w-100 mt-2" onclick="hideKeyboard()">Скрыть клавиатуру</button>
       </div>
 
       <!-- Секция каталога товаров -->
@@ -283,7 +283,7 @@
       let lastScannedChild = null;
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
-      // Слушатели Firestore для синхронизации в реальном времени
+      // onSnapshot для синхронизации в реальном времени
       onSnapshot(collection(db, "visitors"), (snapshot) => {
         visitors = {};
         snapshot.forEach((docSnap) => {
@@ -319,12 +319,18 @@
         console.log("Subscriptions обновлены:", subscriptions);
       });
 
+      // Функция переключения секций с прокруткой вверх с отступом 50px
       function showSection(sectionId) {
         document.querySelectorAll(".content-section").forEach((section) => {
           section.classList.remove("active");
         });
-        document.getElementById(sectionId).classList.add("active");
-        window.scrollTo(0, 0);
+        const section = document.getElementById(sectionId);
+        section.classList.add("active");
+        // Скроллим к элементу и затем поднимаем окно ещё на 50px
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+        setTimeout(() => {
+          window.scrollBy(0, -50);
+        }, 500);
       }
 
       function adminLogin() {
@@ -345,12 +351,7 @@
         showSection("registerSection");
       }
 
-      function hideKeyboard() {
-        if (document.activeElement) {
-          document.activeElement.blur();
-          window.scrollTo(0, 0);
-        }
-      }
+      // Удалена кнопка скрытия клавиатуры (функция hideKeyboard больше не используется)
 
       function generateKey(prefix, childName) {
         const time = Date.now().toString(36);
@@ -532,7 +533,6 @@
           document.getElementById("visitorPasswordInput").value = savedPassword;
           document.getElementById("rememberMe").checked = true;
         }
-        // Если admin пароль сохранён, подставляем его
         let savedAdmin = localStorage.getItem("savedAdminPassword");
         if (savedAdmin) {
           document.getElementById("adminPassword").value = savedAdmin;
@@ -975,8 +975,9 @@
       document.querySelectorAll("input, textarea").forEach((input) => {
         input.addEventListener("focus", () => {
           setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-            input.scrollIntoView({ behavior: "smooth", block: "center" });
+            // Скролл до начала элемента, затем отступ на 50px вверх
+            input.scrollIntoView({ behavior: "smooth", block: "start" });
+            setTimeout(() => window.scrollBy(0, -50), 500);
           }, 100);
         });
       });
@@ -990,7 +991,7 @@
         );
       }
 
-      // Делаем функции доступными глобально
+      // Глобальные функции
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;
@@ -1009,7 +1010,6 @@
       window.showRegister = showRegister;
       window.logError = logError;
       window.showErrorLog = showErrorLog;
-      window.hideKeyboard = hideKeyboard;
     </script>
   </body>
 </html>

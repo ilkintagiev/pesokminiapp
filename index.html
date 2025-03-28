@@ -21,7 +21,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
     <style>
-      /* Стили, как в вашем примере */
       body {
         font-family: Arial, sans-serif;
         background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80')
@@ -136,7 +135,12 @@
       <div id="adminLoginSection" class="content-section">
         <h3 class="black-label">Вход для администратора</h3>
         <input type="password" class="form-control" id="adminPassword" placeholder="Пароль" />
+        <div class="form-check mt-2">
+          <input type="checkbox" class="form-check-input" id="rememberAdmin" />
+          <label class="form-check-label" for="rememberAdmin">Запомнить пароль</label>
+        </div>
         <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">Войти</button>
+        <button class="btn btn-secondary w-100 mt-2" onclick="hideKeyboard()">Скрыть клавиатуру</button>
       </div>
 
       <!-- Секция панели администратора -->
@@ -182,6 +186,7 @@
         </div>
         <button class="btn btn-primary w-100 mt-2" onclick="visitorLogin()">Войти</button>
         <button class="btn btn-secondary w-100 mt-2" onclick="showRegister()">Купить клубную карту</button>
+        <button class="btn btn-secondary w-100 mt-2" onclick="hideKeyboard()">Скрыть клавиатуру</button>
       </div>
 
       <!-- Секция регистрации клубной карты -->
@@ -190,13 +195,15 @@
         <input type="text" class="form-control" id="childFullName" placeholder="ФИО ребёнка" />
         <input type="text" class="form-control mt-2" id="parentFullName" placeholder="ФИО родителя" />
         <input type="date" class="form-control mt-2" id="childBirthDate" />
-        <input type="tel" class="form-control mt-2" id="parentPhone" placeholder="Номер телефона" />
+        <!-- Предзаполненное значение для номера телефона -->
+        <input type="tel" class="form-control mt-2" id="parentPhone" placeholder="Номер телефона" value="+7" />
         <input type="text" class="form-control mt-2" id="newLogin" placeholder="Придумайте логин" />
         <input type="password" class="form-control mt-2" id="newPassword" placeholder="Придумайте пароль" />
         <button class="btn btn-primary w-100 mt-2" onclick="registerCard()">Зарегистрировать</button>
         <p class="mt-2"><strong>QR-код оплаты:</strong></p>
         <div id="paymentQRCode" class="qr-container"></div>
         <p><small>Ключ оплаты: <span id="paymentKeyDisplay"></span></small></p>
+        <button class="btn btn-secondary w-100 mt-2" onclick="hideKeyboard()">Скрыть клавиатуру</button>
       </div>
 
       <!-- Секция клубной карты -->
@@ -209,6 +216,7 @@
         <div id="visitQRCode" class="qr-container"></div>
         <p><small>Код посещения: <span id="visitKeyDisplay"></span></small></p>
         <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">Удалить аккаунт</button>
+        <button class="btn btn-secondary w-100 mt-2" onclick="hideKeyboard()">Скрыть клавиатуру</button>
       </div>
 
       <!-- Секция каталога товаров -->
@@ -256,7 +264,6 @@
         deleteDoc,
       } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
-      // Конфигурация Firebase (ваши данные)
       const firebaseConfig = {
         apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
         authDomain: "pesochnyeostrova.firebaseapp.com",
@@ -266,11 +273,9 @@
         appId: "1:632919679127:web:564b427bca7f0052a289d2",
       };
 
-      // Инициализация Firebase и Firestore
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      // Глобальные переменные
       let visitors = {};
       let products = [];
       let errorLog = [];
@@ -278,7 +283,7 @@
       let lastScannedChild = null;
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
-      // onSnapshot для коллекций – синхронизация в реальном времени
+      // Слушатели Firestore для синхронизации в реальном времени
       onSnapshot(collection(db, "visitors"), (snapshot) => {
         visitors = {};
         snapshot.forEach((docSnap) => {
@@ -314,7 +319,6 @@
         console.log("Subscriptions обновлены:", subscriptions);
       });
 
-      // Функция переключения секций
       function showSection(sectionId) {
         document.querySelectorAll(".content-section").forEach((section) => {
           section.classList.remove("active");
@@ -323,10 +327,14 @@
         window.scrollTo(0, 0);
       }
 
-      // Администраторский вход
       function adminLogin() {
         let password = document.getElementById("adminPassword")?.value;
         if (ADMIN_PASSWORDS.includes(password)) {
+          if (document.getElementById("rememberAdmin")?.checked) {
+            localStorage.setItem("savedAdminPassword", password);
+          } else {
+            localStorage.removeItem("savedAdminPassword");
+          }
           showSection("adminPanelSection");
         } else {
           alert("Неверный пароль!");
@@ -337,7 +345,13 @@
         showSection("registerSection");
       }
 
-      // Генерация уникальных ключей
+      function hideKeyboard() {
+        if (document.activeElement) {
+          document.activeElement.blur();
+          window.scrollTo(0, 0);
+        }
+      }
+
       function generateKey(prefix, childName) {
         const time = Date.now().toString(36);
         return `${prefix}-${childName.replace(/\s+/g, "").slice(0, 5)}-${time}`.toUpperCase();
@@ -365,7 +379,6 @@
         return uniqueKey;
       }
 
-      // Генерация QR-кода для посещения
       function generateVisitQR(childName) {
         let visitKey = generateKey("VISIT", childName);
         visitors[childName].visitKey = visitKey;
@@ -387,7 +400,6 @@
         return visitKey;
       }
 
-      // Генерация QR-кода для оплаты
       function generatePaymentQR(childName) {
         let paymentKey = generateKey("PAY", childName);
         visitors[childName].paymentKey = paymentKey;
@@ -408,7 +420,6 @@
         return paymentKey;
       }
 
-      // Регистрация карты посетителя
       async function registerCard() {
         let childName = document.getElementById("childFullName")?.value.trim();
         let parentName = document.getElementById("parentFullName")?.value.trim();
@@ -462,7 +473,6 @@
         }
       }
 
-      // Вход посетителя
       function visitorLogin() {
         let login = document.getElementById("visitorLoginInput")?.value;
         let password = document.getElementById("visitorPasswordInput")?.value;
@@ -522,6 +532,12 @@
           document.getElementById("visitorPasswordInput").value = savedPassword;
           document.getElementById("rememberMe").checked = true;
         }
+        // Если admin пароль сохранён, подставляем его
+        let savedAdmin = localStorage.getItem("savedAdminPassword");
+        if (savedAdmin) {
+          document.getElementById("adminPassword").value = savedAdmin;
+          document.getElementById("rememberAdmin").checked = true;
+        }
       };
 
       function updateCard(childName) {
@@ -541,7 +557,6 @@
         }
       }
 
-      // Работа с QR-сканером
       let video = null;
       let scanType = "visit";
 
@@ -778,7 +793,6 @@
         document.getElementById("usersTable").innerHTML = table;
       }
 
-      // Работа с товарами
       function displayCatalog() {
         let list = "";
         let isAdmin = ADMIN_PASSWORDS.includes(document.getElementById("adminPassword")?.value || "");
@@ -850,7 +864,6 @@
         }
       }
 
-      // Подписка на Push-уведомления
       function subscribeToPush(childName) {
         if ("Notification" in window && "serviceWorker" in navigator) {
           Notification.requestPermission().then((permission) => {
@@ -959,7 +972,6 @@
         document.getElementById("adminPanelSection").appendChild(logDiv);
       }
 
-      // Прокрутка к полю при фокусе
       document.querySelectorAll("input, textarea").forEach((input) => {
         input.addEventListener("focus", () => {
           setTimeout(() => {
@@ -997,6 +1009,7 @@
       window.showRegister = showRegister;
       window.logError = logError;
       window.showErrorLog = showErrorLog;
+      window.hideKeyboard = hideKeyboard;
     </script>
   </body>
 </html>

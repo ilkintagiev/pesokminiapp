@@ -2,7 +2,10 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
     <title>Песочные Острова</title>
 
     <!-- Подключение сторонних библиотек -->
@@ -63,13 +66,11 @@
         opacity: 1;
       }
 
-      /* Для регистрации уменьшаем ширину */
       .content-section.reg-form {
-        max-width: 400px;
+        max-width: 400px; /* Для регистрации */
       }
-
       .content-section:not(.reg-form) {
-        max-width: 500px;
+        max-width: 600px; /* Немного увеличили для админ-панели */
       }
 
       /* Нижняя панель навигации */
@@ -144,7 +145,6 @@
         border: 1px solid #ddd;
         text-align: left;
         word-wrap: break-word;
-        max-width: 100px;
       }
       th {
         background-color: rgba(255, 245, 200, 0.9);
@@ -238,113 +238,191 @@
           >
         </div>
         <button class="btn btn-primary w-100 mt-2" onclick="adminLogin()">
-          Войти
+          <i class="fas fa-sign-in-alt"></i> Войти
         </button>
       </div>
 
-      <!-- Секция панели администратора -->
+      <!-- Секция панели администратора (улучшенный дизайн) -->
       <div id="adminPanelSection" class="content-section">
-        <h3 class="black-label">Панель администратора</h3>
-        <button
-          class="btn btn-primary w-100 mt-2"
-          onclick="startQRScanner('visit')"
-        >
-          Сканировать QR-код посещения
-        </button>
-        <button
-          class="btn btn-success w-100 mt-2"
-          onclick="startQRScanner('payment')"
-        >
-          Сканировать QR-код оплаты
-        </button>
-        <div id="qrScanner" class="qr-container" style="display: none;">
-          <video id="qrVideo"></video>
-          <canvas id="qrCanvas"></canvas>
-          <button class="btn btn-danger w-100 mt-2" onclick="stopQRScanner()">
-            Остановить сканирование
-          </button>
-          <div id="debugInfo"></div>
+        <h3 class="black-label mb-3">Панель администратора</h3>
+        <!-- Разделяем всё на карточки -->
+        <div class="row g-3">
+          <!-- Карточка сканирования QR -->
+          <div class="col-md-6">
+            <div class="card shadow">
+              <div class="card-body">
+                <h5 class="card-title">QR-сканирование</h5>
+                <p class="card-text">Быстрое добавление посещений и подтверждение оплат</p>
+                <button
+                  class="btn btn-primary w-100 mt-2"
+                  onclick="startQRScanner('visit')"
+                >
+                  <i class="fas fa-qrcode"></i> Сканировать QR-код посещения
+                </button>
+                <button
+                  class="btn btn-success w-100 mt-2"
+                  onclick="startQRScanner('payment')"
+                >
+                  <i class="fas fa-money-bill-wave"></i> Сканировать QR-код оплаты
+                </button>
+                <!-- Блок для сканирования -->
+                <div id="qrScanner" class="qr-container" style="display: none;">
+                  <video id="qrVideo"></video>
+                  <canvas id="qrCanvas"></canvas>
+                  <button class="btn btn-danger w-100 mt-2" onclick="stopQRScanner()">
+                    <i class="fas fa-stop"></i> Остановить сканирование
+                  </button>
+                  <div id="debugInfo"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Карточка ручного ввода -->
+          <div class="col-md-6">
+            <div class="card shadow">
+              <div class="card-body">
+                <h5 class="card-title">Ручной ввод</h5>
+                <p class="card-text">Если нет возможности сканировать QR-код</p>
+                <input
+                  type="text"
+                  class="form-control mt-2"
+                  id="manualVisitKey"
+                  placeholder="Код посещения"
+                />
+                <button class="btn btn-primary w-100 mt-2" onclick="addVisitFromManual()">
+                  <i class="fas fa-user-plus"></i> Добавить посещение
+                </button>
+                <input
+                  type="text"
+                  class="form-control mt-3"
+                  id="manualPaymentKey"
+                  placeholder="Ключ оплаты"
+                />
+                <button
+                  class="btn btn-success w-100 mt-2"
+                  onclick="confirmPaymentManual()"
+                >
+                  <i class="fas fa-check-circle"></i> Подтвердить оплату
+                </button>
+                <p class="mt-3">
+                  <strong>Текущий счёт:</strong>
+                  <span id="adminVisits">0</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Кнопки управления/экспорта/лога/товаров -->
+          <div class="col-12">
+            <div class="card shadow mt-3">
+              <div class="card-body">
+                <h5 class="card-title">Управление данными</h5>
+                <p class="card-text">
+                  Посмотреть всех пользователей, экспортировать, удалять визиты и т.д.
+                </p>
+                <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">
+                  <i class="fas fa-users"></i> Показать всех пользователей
+                </button>
+                <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">
+                  <i class="fas fa-file-export"></i> Экспорт в Excel
+                </button>
+                <button
+                  class="btn btn-danger w-100 mt-2"
+                  id="removeVisitBtn"
+                  onclick="removeVisit()"
+                  disabled
+                >
+                  <i class="fas fa-trash-alt"></i> Удалить последнее посещение
+                </button>
+                <button class="btn btn-info w-100 mt-2" onclick="showErrorLog()">
+                  <i class="fas fa-exclamation-triangle"></i> Показать лог ошибок
+                </button>
+                <button
+                  class="btn btn-info w-100 mt-2"
+                  onclick="showSection('productManagementSection')"
+                >
+                  <i class="fas fa-boxes"></i> Управление товарами
+                </button>
+                <!-- Добавили новую кнопку для статистики -->
+                <button class="btn btn-warning w-100 mt-2" onclick="showStats()">
+                  <i class="fas fa-chart-bar"></i> Статистика
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Карточка добавления товара -->
+          <div class="col-12">
+            <div class="card shadow mt-3">
+              <div class="card-body">
+                <h5 class="card-title">Добавить товар</h5>
+                <p class="card-text">Заполните поля и добавьте новый товар</p>
+                <input
+                  type="file"
+                  class="form-control mt-2"
+                  id="productImage"
+                  accept="image/*"
+                />
+                <input
+                  type="text"
+                  class="form-control mt-2"
+                  id="productName"
+                  placeholder="Название товара"
+                />
+                <textarea
+                  class="form-control mt-2"
+                  id="productDescription"
+                  placeholder="Описание товара"
+                ></textarea>
+                <div class="row mt-2">
+                  <div class="col">
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="productPriceRegular"
+                      placeholder="Цена (без карты)"
+                    />
+                  </div>
+                  <div class="col">
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="productPriceCard"
+                      placeholder="Цена (с картой)"
+                    />
+                  </div>
+                </div>
+                <button class="btn btn-primary w-100 mt-3" onclick="addProduct()">
+                  <i class="fas fa-plus"></i> Добавить товар
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Поле для поиска пользователей -->
+          <div class="col-12">
+            <div class="card shadow mt-3">
+              <div class="card-body">
+                <h5 class="card-title">Поиск по пользователям</h5>
+                <p class="card-text">
+                  Введите часть ФИО ребёнка/родителя или телефон, чтобы отфильтровать
+                  таблицу
+                </p>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="searchInput"
+                  placeholder="Поиск..."
+                  oninput="searchUsers()"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-        <input
-          type="text"
-          class="form-control mt-2"
-          id="manualVisitKey"
-          placeholder="Или введите код посещения вручную"
-        />
-        <button class="btn btn-primary w-100 mt-2" onclick="addVisitFromManual()">
-          Добавить посещение вручную
-        </button>
-        <input
-          type="text"
-          class="form-control mt-2"
-          id="manualPaymentKey"
-          placeholder="Или введите ключ оплаты вручную"
-        />
-        <button
-          class="btn btn-success w-100 mt-2"
-          onclick="confirmPaymentManual()"
-        >
-          Подтвердить оплату вручную
-        </button>
-        <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
-        <!-- Кнопка отправки уведомлений удалена -->
-        <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">
-          Показать всех пользователей
-        </button>
-        <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">
-          Экспорт в Excel
-        </button>
-        <button
-          class="btn btn-danger w-100 mt-2"
-          id="removeVisitBtn"
-          onclick="removeVisit()"
-          disabled
-        >
-          Удалить последнее посещение
-        </button>
-        <button class="btn btn-info w-100 mt-2" onclick="showErrorLog()">
-          Показать лог ошибок
-        </button>
-        <button
-          class="btn btn-info w-100 mt-2"
-          onclick="showSection('productManagementSection')"
-        >
-          Управление товарами
-        </button>
-        <div id="usersTable" class="mt-3" style="overflow-x: auto;"></div>
-        <h4 class="black-label mt-3">Добавить товар</h4>
-        <input
-          type="file"
-          class="form-control mt-2"
-          id="productImage"
-          accept="image/*"
-        />
-        <input
-          type="text"
-          class="form-control mt-2"
-          id="productName"
-          placeholder="Название товара"
-        />
-        <textarea
-          class="form-control mt-2"
-          id="productDescription"
-          placeholder="Описание товара"
-        ></textarea>
-        <input
-          type="number"
-          class="form-control mt-2"
-          id="productPriceRegular"
-          placeholder="Цена (без карты)"
-        />
-        <input
-          type="number"
-          class="form-control mt-2"
-          id="productPriceCard"
-          placeholder="Цена (с картой)"
-        />
-        <button class="btn btn-primary w-100 mt-2" onclick="addProduct()">
-          Добавить товар
-        </button>
+
+        <!-- Таблица пользователей -->
+        <div id="usersTable" class="mt-4" style="overflow-x: auto;"></div>
       </div>
 
       <!-- Секция управления товарами (для админа) -->
@@ -355,7 +433,7 @@
           class="btn btn-secondary w-100 mt-2"
           onclick="showSection('adminPanelSection')"
         >
-          Вернуться в панель
+          <i class="fas fa-arrow-left"></i> Вернуться в панель
         </button>
       </div>
 
@@ -379,10 +457,10 @@
           <label class="form-check-label" for="rememberMe">Запомнить меня</label>
         </div>
         <button class="btn btn-primary w-100 mt-2" onclick="visitorLogin()">
-          Войти
+          <i class="fas fa-sign-in-alt"></i> Войти
         </button>
         <button class="btn btn-secondary w-100 mt-2" onclick="showRegister()">
-          Купить клубную карту
+          <i class="fas fa-address-card"></i> Купить клубную карту
         </button>
       </div>
 
@@ -422,7 +500,7 @@
           placeholder="Придумайте пароль"
         />
         <button class="btn btn-primary w-100 mt-2" onclick="registerCard()">
-          Зарегистрировать
+          <i class="fas fa-user-plus"></i> Зарегистрировать
         </button>
         <p class="mt-2"><strong>QR-код оплаты:</strong></p>
         <div id="paymentQRCode" class="qr-container"></div>
@@ -434,7 +512,7 @@
         </p>
       </div>
 
-      <!-- Секция клубной карты (ОБНОВЛЁННЫЙ ДИЗАЙН) -->
+      <!-- Секция клубной карты (улучшенный дизайн) -->
       <div id="clubCardSection" class="content-section">
         <div
           class="card mx-auto"
@@ -493,7 +571,7 @@
 
             <!-- Удалить аккаунт -->
             <button class="btn btn-danger w-100 mt-3" onclick="deleteAccount()">
-              Удалить аккаунт
+              <i class="fas fa-user-times"></i> Удалить аккаунт
             </button>
           </div>
         </div>
@@ -548,6 +626,32 @@
         <i class="fas fa-user-tie"></i>
       </button>
     </nav>
+
+    <!-- Модальное окно для статистики (по кнопке "Статистика") -->
+    <div
+      class="modal fade"
+      id="statsModal"
+      tabindex="-1"
+      aria-labelledby="statsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="statsModalLabel">Статистика</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body" id="statsModalBody">
+            <!-- Сюда будем подставлять текст со статистикой -->
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Основной скрипт с интеграцией Firebase и onSnapshot -->
     <script type="module">
@@ -742,16 +846,21 @@
       }
 
       async function registerCard() {
-        let childName =
-          document.getElementById("childFullName")?.value.trim();
-        let parentName =
-          document.getElementById("parentFullName")?.value.trim();
+        let childName = document.getElementById("childFullName")?.value.trim();
+        let parentName = document.getElementById("parentFullName")?.value.trim();
         let birthDate = document.getElementById("childBirthDate")?.value;
         let phone = document.getElementById("parentPhone")?.value.trim();
         let login = document.getElementById("newLogin")?.value.trim();
         let password = document.getElementById("newPassword")?.value.trim();
 
-        if (!childName || !parentName || !birthDate || !phone || !login || !password) {
+        if (
+          !childName ||
+          !parentName ||
+          !birthDate ||
+          !phone ||
+          !login ||
+          !password
+        ) {
           alert("Заполните все поля!");
           return;
         }
@@ -822,7 +931,6 @@
                 localStorage.removeItem("savedLogin");
                 localStorage.removeItem("savedPassword");
               }
-
               showSection("clubCardSection");
               if (document.getElementById("cardChildName")) {
                 document.getElementById("cardChildName").innerText = childName;
@@ -842,7 +950,9 @@
                     if (error) console.error(error);
                     if (document.getElementById("visitQRCode")) {
                       document.getElementById("visitQRCode").innerHTML = "";
-                      document.getElementById("visitQRCode").appendChild(canvas);
+                      document
+                        .getElementById("visitQRCode")
+                        .appendChild(canvas);
                     }
                   }
                 );
@@ -876,16 +986,13 @@
         }
       };
 
-      /*
-       * ОБНОВЛЁННАЯ ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ КАРТЫ
-       * Добавлен код для обновления прогресс-бара.
-       */
+      /* ОБНОВЛЁННАЯ ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ КАРТЫ + прогресс-бар */
       function updateCard(childName) {
         let visits = visitors[childName].visits;
         let progressBar = document.getElementById("visitsProgressBar");
         // Рассчитываем процент заполнения (из 5 визитов)
         let progressPercentage = (visits / 5) * 100;
-        if (progressPercentage > 100) progressPercentage = 100; // На всякий случай
+        if (progressPercentage > 100) progressPercentage = 100; // на всякий случай
 
         // Обновляем прогресс-бар
         progressBar.style.width = `${progressPercentage}%`;
@@ -896,7 +1003,7 @@
         let statusText =
           visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
 
-        // Старый блок "Посещений" (цифра) и "Статус"
+        // Старые поля
         if (document.getElementById("visits")) {
           document.getElementById("visits").innerText = visits;
           if (visits === 5) {
@@ -914,7 +1021,6 @@
           document.getElementById("status").innerText = statusText;
         }
 
-        // Логика сброса посещений > 5
         if (visits >= 6) {
           visitors[childName].visits = 0;
           setDoc(doc(db, "visitors", childName), visitors[childName]);
@@ -1065,7 +1171,9 @@
               visitors[childName].paid
             ) {
               if (Date.now() > visitors[childName].visitKeyExpiration) {
-                alert("Код посещения устарел! Попросите посетителя обновить его.");
+                alert(
+                  "Код посещения устарел! Попросите посетителя обновить его."
+                );
                 return;
               }
               visitors[childName].visits++;
@@ -1107,7 +1215,9 @@
       }
 
       function confirmPaymentManual() {
-        let paymentKey = document.getElementById("manualPaymentKey")?.value.trim();
+        let paymentKey = document
+          .getElementById("manualPaymentKey")
+          ?.value.trim();
         if (paymentKey) {
           for (let childName in visitors) {
             if (visitors[childName].paymentKey === paymentKey) {
@@ -1150,7 +1260,10 @@
         if (lastScannedChild && visitors[lastScannedChild]) {
           if (visitors[lastScannedChild].visits > 0) {
             visitors[lastScannedChild].visits--;
-            setDoc(doc(db, "visitors", lastScannedChild), visitors[lastScannedChild]);
+            setDoc(
+              doc(db, "visitors", lastScannedChild),
+              visitors[lastScannedChild]
+            );
             if (document.getElementById("adminVisits")) {
               document.getElementById("adminVisits").innerText =
                 visitors[lastScannedChild].visits;
@@ -1174,12 +1287,18 @@
         }
       }
 
+      /* Функция показа всех пользователей. Добавили data-атрибуты, чтобы упростить поиск */
       function showAllUsers() {
         let table =
-          "<table class='table table-striped'><tr><th>ФИО ребёнка</th><th>ФИО родителя</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr>";
+          "<table class='table table-striped' id='allUsersTable'><thead><tr><th>Ребёнок</th><th>Родитель</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr></thead><tbody>";
+
         for (let childName in visitors) {
           let user = visitors[childName];
-          table += `<tr>
+          table += `<tr
+                      data-child="${childName.toLowerCase()}"
+                      data-parent="${(user.parentName || '').toLowerCase()}"
+                      data-phone="${(user.phone || '').toLowerCase()}"
+                    >
                       <td>${childName}</td>
                       <td>${user.parentName}</td>
                       <td>${user.birthDate}</td>
@@ -1194,8 +1313,56 @@
                       <td>${user.password}</td>
                     </tr>`;
         }
-        table += "</table>";
+        table += "</tbody></table>";
         document.getElementById("usersTable").innerHTML = table;
+      }
+
+      /* Простая функция для фильтрации пользователей по ФИО ребёнка/родителя/телефону */
+      function searchUsers() {
+        const input = document.getElementById("searchInput");
+        if (!input) return;
+        const filterValue = input.value.trim().toLowerCase();
+        const table = document.getElementById("allUsersTable");
+        if (!table) return; // Таблица появляется только после showAllUsers()
+
+        const rows = table.querySelectorAll("tbody tr");
+        rows.forEach((row) => {
+          const childData = row.getAttribute("data-child") || "";
+          const parentData = row.getAttribute("data-parent") || "";
+          const phoneData = row.getAttribute("data-phone") || "";
+          const match =
+            childData.includes(filterValue) ||
+            parentData.includes(filterValue) ||
+            phoneData.includes(filterValue);
+          row.style.display = match ? "" : "none";
+        });
+      }
+
+      /* Пример новой функции — показать статистику */
+      function showStats() {
+        let totalUsers = 0;
+        let paidCount = 0;
+        let totalVisits = 0;
+        for (let childName in visitors) {
+          totalUsers++;
+          if (visitors[childName].paid) {
+            paidCount++;
+          }
+          totalVisits += visitors[childName].visits || 0;
+        }
+        const statsText = `
+          <p>Всего зарегистрированных пользователей: <strong>${totalUsers}</strong></p>
+          <p>Оплаченных карт: <strong>${paidCount}</strong></p>
+          <p>Суммарное количество посещений: <strong>${totalVisits}</strong></p>
+        `;
+        document.getElementById("statsModalBody").innerHTML = statsText;
+
+        // Показываем Bootstrap-модалку
+        const statsModal = new bootstrap.Modal(
+          document.getElementById("statsModal"),
+          {}
+        );
+        statsModal.show();
       }
 
       function displayCatalog() {
@@ -1454,7 +1621,9 @@
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
           .register("sw.js")
-          .catch((err) => console.error("Service Worker регистрация не удалась:", err));
+          .catch((err) =>
+            console.error("Service Worker регистрация не удалась:", err)
+          );
       }
 
       // Делаем функции доступными глобально
@@ -1476,6 +1645,8 @@
       window.showRegister = showRegister;
       window.logError = logError;
       window.showErrorLog = showErrorLog;
+      window.searchUsers = searchUsers;
+      window.showStats = showStats;
     </script>
   </body>
 </html>

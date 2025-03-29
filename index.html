@@ -7,15 +7,9 @@
 
     <!-- Подключение сторонних библиотек -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -134,48 +128,9 @@
         50% { color: #ff0000; }
         100% { color: #000; }
       }
-
-      /* Стили для туториала */
-      #tutorialModal {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-      #tutorialContent {
-        background: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        max-width: 400px;
-        text-align: center;
-      }
-      #tutorialContent h3 {
-        margin-bottom: 15px;
-      }
-      #tutorialContent p {
-        margin-bottom: 10px;
-      }
-      #tutorialContent button {
-        margin-top: 15px;
-      }
     </style>
   </head>
   <body>
-    <!-- Туториал (показывается один раз при первом заходе) -->
-    <div id="tutorialModal" style="display:none;">
-      <div id="tutorialContent">
-        <h3>Добро пожаловать в Песочные Острова!</h3>
-        <p>Здесь вы можете зарегистрировать клубную карту для ребенка, отслеживать посещения и управлять товарами.</p>
-        <p>Используйте навигацию внизу для быстрого доступа ко всем разделам.</p>
-        <p>При заполнении форм страница прокручивается так, чтобы все кнопки были видны.</p>
-        <button class="btn btn-primary" onclick="closeTutorial()">Начать</button>
-      </div>
-    </div>
-
     <div class="main-container">
       <!-- Логотип -->
       <img src="Ресурс 1@10x.png" alt="Лейбл Песочные Острова" class="logo" />
@@ -216,8 +171,7 @@
         <input type="text" class="form-control mt-2" id="manualPaymentKey" placeholder="Или введите ключ оплаты вручную" />
         <button class="btn btn-success w-100 mt-2" onclick="confirmPaymentManual()">Подтвердить оплату вручную</button>
         <p><strong>Текущий счёт:</strong> <span id="adminVisits">0</span></p>
-        <input type="text" class="form-control mt-2" id="pushMessage" placeholder="Текст уведомления" />
-        <button class="btn btn-warning w-100 mt-2" onclick="sendPushNotification()">Отправить уведомление всем</button>
+        <!-- Кнопка отправки уведомлений удалена -->
         <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">Показать всех пользователей</button>
         <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">Экспорт в Excel</button>
         <button class="btn btn-danger w-100 mt-2" id="removeVisitBtn" onclick="removeVisit()" disabled>Удалить последнее посещение</button>
@@ -297,7 +251,7 @@
       </div>
     </div>
 
-    <!-- Нижняя панель навигации (удалена кнопка помощника) -->
+    <!-- Нижняя панель навигации (без кнопки уведомлений) -->
     <nav class="navbar-bottom">
       <button class="btn" onclick="showSection('visitorLoginSection')" title="Семья">
         <i class="fas fa-users"></i>
@@ -394,7 +348,6 @@
         section.classList.add("active");
         section.scrollIntoView({ behavior: "smooth", block: "start" });
         setTimeout(() => window.scrollBy(0, -100), 500);
-        // Если открыта регистрация, скрываем логотип
         if (sectionId === "registerSection") {
           document.querySelector(".logo").style.display = "none";
         } else {
@@ -606,16 +559,7 @@
           document.getElementById("adminPassword").value = savedAdmin;
           document.getElementById("rememberAdmin").checked = true;
         }
-        // Показать туториал при первом заходе
-        if (!localStorage.getItem("tutorialShown")) {
-          document.getElementById("tutorialModal").style.display = "flex";
-        }
       };
-
-      function closeTutorial() {
-        document.getElementById("tutorialModal").style.display = "none";
-        localStorage.setItem("tutorialShown", "true");
-      }
 
       function updateCard(childName) {
         let visits = visitors[childName].visits;
@@ -1116,10 +1060,6 @@
       window.showRegister = showRegister;
       window.logError = logError;
       window.showErrorLog = showErrorLog;
-      window.closeTutorial = closeTutorial;
-      window.displayProductManagement = displayProductManagement;
-      window.updateProductManagementView = updateProductManagementView;
     </script>
   </body>
 </html>
-

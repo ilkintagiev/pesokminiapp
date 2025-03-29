@@ -434,29 +434,69 @@
         </p>
       </div>
 
-      <!-- Секция клубной карты -->
+      <!-- Секция клубной карты (ОБНОВЛЁННЫЙ ДИЗАЙН) -->
       <div id="clubCardSection" class="content-section">
-        <h3 class="black-label">Клубная карта</h3>
-        <p>
-          <strong>Ребёнок:</strong>
-          <span id="cardChildName"></span>
-        </p>
-        <p>
-          <strong>Посещений:</strong>
-          <span id="visits">0</span>
-        </p>
-        <p>
-          <strong>Статус:</strong>
-          <span id="status">0/5 до бонуса</span>
-        </p>
-        <p><strong>QR-код для посещения:</strong></p>
-        <div id="visitQRCode" class="qr-container"></div>
-        <p>
-          <small>Код посещения: <span id="visitKeyDisplay"></span></small>
-        </p>
-        <button class="btn btn-danger w-100 mt-2" onclick="deleteAccount()">
-          Удалить аккаунт
-        </button>
+        <div
+          class="card mx-auto"
+          style="max-width: 500px; border: none; box-shadow: 0 0 15px rgba(0,0,0,0.2);"
+        >
+          <div
+            class="card-body bg-light"
+            style="border-radius: 15px;"
+          >
+            <h3 class="card-title text-center">Клубная карта</h3>
+            <h5 class="text-muted text-center mb-4">«Песочные Острова»</h5>
+
+            <!-- Имя ребёнка -->
+            <p>
+              <strong>Ребёнок:</strong>
+              <span id="cardChildName"></span>
+            </p>
+
+            <!-- Небольшой блок с посещениями и статусом -->
+            <div class="d-flex justify-content-between">
+              <p>
+                <strong>Посещений:</strong>
+                <span id="visits">0</span>
+              </p>
+              <p>
+                <strong>Статус:</strong>
+                <span id="status">0/5 до бонуса</span>
+              </p>
+            </div>
+
+            <!-- Прогресс-бар для наглядности -->
+            <div class="progress mt-2">
+              <div
+                id="visitsProgressBar"
+                class="progress-bar progress-bar-striped progress-bar-animated bg-warning"
+                role="progressbar"
+                style="width: 0%"
+                aria-valuenow="0"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                0/5
+              </div>
+            </div>
+            <hr />
+
+            <!-- QR-код для посещения -->
+            <p><strong>QR-код для посещения:</strong></p>
+            <div id="visitQRCode" class="qr-container"></div>
+            <p class="mt-2">
+              <small
+                >Код посещения:
+                <span id="visitKeyDisplay"></span></small
+              >
+            </p>
+
+            <!-- Удалить аккаунт -->
+            <button class="btn btn-danger w-100 mt-3" onclick="deleteAccount()">
+              Удалить аккаунт
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Секция каталога товаров -->
@@ -481,7 +521,7 @@
       </div>
     </div>
 
-    <!-- Нижняя панель навигации (обновлённый дизайн) -->
+    <!-- Нижняя панель навигации -->
     <nav class="navbar-bottom">
       <button
         class="btn"
@@ -836,23 +876,45 @@
         }
       };
 
+      /*
+       * ОБНОВЛЁННАЯ ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ КАРТЫ
+       * Добавлен код для обновления прогресс-бара.
+       */
       function updateCard(childName) {
         let visits = visitors[childName].visits;
+        let progressBar = document.getElementById("visitsProgressBar");
+        // Рассчитываем процент заполнения (из 5 визитов)
+        let progressPercentage = (visits / 5) * 100;
+        if (progressPercentage > 100) progressPercentage = 100; // На всякий случай
+
+        // Обновляем прогресс-бар
+        progressBar.style.width = `${progressPercentage}%`;
+        progressBar.setAttribute("aria-valuenow", visits);
+        progressBar.innerText = `${visits}/5`;
+
+        // Текстовое отображение
         let statusText =
           visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
+
+        // Старый блок "Посещений" (цифра) и "Статус"
         if (document.getElementById("visits")) {
           document.getElementById("visits").innerText = visits;
           if (visits === 5) {
-            document.getElementById("visits").classList.add("bonus-animation");
-            setTimeout(
-              () => document.getElementById("visits").classList.remove("bonus-animation"),
-              1000
-            );
+            document
+              .getElementById("visits")
+              .classList.add("bonus-animation");
+            setTimeout(() => {
+              document
+                .getElementById("visits")
+                .classList.remove("bonus-animation");
+            }, 1000);
           }
         }
         if (document.getElementById("status")) {
           document.getElementById("status").innerText = statusText;
         }
+
+        // Логика сброса посещений > 5
         if (visits >= 6) {
           visitors[childName].visits = 0;
           setDoc(doc(db, "visitors", childName), visitors[childName]);
@@ -1347,7 +1409,7 @@
         ]);
         let wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Посетители");
-        XLSX.writeFile(wb, "Visitors_Pesочные_Острова.xlsx", {
+        XLSX.writeFile(wb, "Visitors_Pесочные_Острова.xlsx", {
           bookSST: true,
           type: "binary",
         });
@@ -1385,6 +1447,7 @@
         }
       }
 
+      // Изначально показываем приветствие и каталог
       showSection("welcomeSection");
       displayCatalog();
 

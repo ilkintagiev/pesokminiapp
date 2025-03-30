@@ -2,10 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Песочные Острова</title>
 
     <!-- Подключение сторонних библиотек -->
@@ -35,9 +32,14 @@
         margin: 0;
         padding-bottom: 70px; /* отступ под нижнюю навигацию */
         color: #333;
-        height: 100vh;
+        min-height: 100vh;
         display: flex;
         flex-direction: column;
+      }
+
+      /* Шапка сайта (navbar сверху) */
+      .navbar-top {
+        z-index: 10000;
       }
 
       .main-container {
@@ -46,12 +48,23 @@
         overflow-y: auto;
       }
 
+      /* Анимация появления секций */
+      @keyframes fadeInUp {
+        0% {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
       .content-section {
         display: none;
         background: linear-gradient(
           135deg,
           rgba(255, 235, 200, 0.9),
-          rgba(255, 255, 255, 0.8)
+          rgba(255, 255, 255, 0.85)
         );
         padding: 20px;
         border-radius: 15px;
@@ -59,18 +72,23 @@
         margin: 20px auto;
         text-align: center;
         opacity: 0;
-        transition: opacity 0.5s ease-in-out;
+        /* Чтобы анимация сработала при добавлении класса active */
+        animation-duration: 0.5s;
+        animation-fill-mode: forwards;
       }
       .content-section.active {
         display: block;
-        opacity: 1;
+        animation-name: fadeInUp;
       }
 
+      /* Для регистрации уменьшаем ширину */
       .content-section.reg-form {
-        max-width: 400px; /* Для регистрации */
+        max-width: 400px;
       }
+
+      /* Остальные секции можно растянуть чуть сильнее */
       .content-section:not(.reg-form) {
-        max-width: 600px; /* Немного увеличили для админ-панели */
+        max-width: 600px;
       }
 
       /* Нижняя панель навигации */
@@ -198,6 +216,55 @@
     </style>
   </head>
   <body>
+    <!-- Шапка (navbar) -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top navbar-top">
+      <div class="container">
+        <a class="navbar-brand" href="#" onclick="showSection('welcomeSection')">
+          Песочные Острова
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#topNav"
+          aria-controls="topNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="topNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                onclick="showSection('visitorLoginSection')"
+                >Для посетителей</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                onclick="showSection('adminLoginSection')"
+                >Администратор</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                onclick="showSection('broadcastSection')"
+                >Трансляция</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
     <div class="main-container">
       <!-- Логотип -->
       <img
@@ -242,14 +309,13 @@
         </button>
       </div>
 
-      <!-- Секция панели администратора (улучшенный дизайн) -->
+      <!-- Секция панели администратора -->
       <div id="adminPanelSection" class="content-section">
         <h3 class="black-label mb-3">Панель администратора</h3>
-        <!-- Разделяем всё на карточки -->
         <div class="row g-3">
           <!-- Карточка сканирования QR -->
           <div class="col-md-6">
-            <div class="card shadow">
+            <div class="card border-primary bg-light">
               <div class="card-body">
                 <h5 class="card-title">QR-сканирование</h5>
                 <p class="card-text">Быстрое добавление посещений и подтверждение оплат</p>
@@ -265,7 +331,6 @@
                 >
                   <i class="fas fa-money-bill-wave"></i> Сканировать QR-код оплаты
                 </button>
-                <!-- Блок для сканирования -->
                 <div id="qrScanner" class="qr-container" style="display: none;">
                   <video id="qrVideo"></video>
                   <canvas id="qrCanvas"></canvas>
@@ -280,7 +345,7 @@
 
           <!-- Карточка ручного ввода -->
           <div class="col-md-6">
-            <div class="card shadow">
+            <div class="card border-success bg-light">
               <div class="card-body">
                 <h5 class="card-title">Ручной ввод</h5>
                 <p class="card-text">Если нет возможности сканировать QR-код</p>
@@ -313,13 +378,13 @@
             </div>
           </div>
 
-          <!-- Кнопки управления/экспорта/лога/товаров -->
+          <!-- Управление данными, экспорт, лог, товары -->
           <div class="col-12">
-            <div class="card shadow mt-3">
+            <div class="card border-info bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Управление данными</h5>
                 <p class="card-text">
-                  Посмотреть всех пользователей, экспортировать, удалять визиты и т.д.
+                  Посмотреть всех пользователей, экспорт, удалять визиты и т.д.
                 </p>
                 <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">
                   <i class="fas fa-users"></i> Показать всех пользователей
@@ -344,7 +409,6 @@
                 >
                   <i class="fas fa-boxes"></i> Управление товарами
                 </button>
-                <!-- Добавили новую кнопку для статистики -->
                 <button class="btn btn-warning w-100 mt-2" onclick="showStats()">
                   <i class="fas fa-chart-bar"></i> Статистика
                 </button>
@@ -354,7 +418,7 @@
 
           <!-- Карточка добавления товара -->
           <div class="col-12">
-            <div class="card shadow mt-3">
+            <div class="card border-warning bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Добавить товар</h5>
                 <p class="card-text">Заполните поля и добавьте новый товар</p>
@@ -400,22 +464,29 @@
             </div>
           </div>
 
-          <!-- Поле для поиска пользователей -->
+          <!-- Поиск по пользователям -->
           <div class="col-12">
-            <div class="card shadow mt-3">
+            <div class="card border-secondary bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Поиск по пользователям</h5>
                 <p class="card-text">
-                  Введите часть ФИО ребёнка/родителя или телефон, чтобы отфильтровать
-                  таблицу
+                  Введите часть ФИО ребёнка/родителя или телефон, нажмите «Найти»
                 </p>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="searchInput"
-                  placeholder="Поиск..."
-                  oninput="searchUsers()"
-                />
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="searchInput"
+                    placeholder="Поиск..."
+                  />
+                  <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    onclick="searchUsers()"
+                  >
+                    Найти
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -425,7 +496,7 @@
         <div id="usersTable" class="mt-4" style="overflow-x: auto;"></div>
       </div>
 
-      <!-- Секция управления товарами (для админа) -->
+      <!-- Секция управления товарами -->
       <div id="productManagementSection" class="content-section">
         <h3 class="black-label">Управление товарами</h3>
         <div id="productManagementList"></div>
@@ -437,7 +508,7 @@
         </button>
       </div>
 
-      <!-- Секция входа для посетителя -->
+      <!-- Вход для посетителя -->
       <div id="visitorLoginSection" class="content-section">
         <h3 class="black-label">Вход для посетителя</h3>
         <input
@@ -464,7 +535,7 @@
         </button>
       </div>
 
-      <!-- Секция регистрации клубной карты -->
+      <!-- Регистрация клубной карты -->
       <div id="registerSection" class="content-section reg-form">
         <h3 class="black-label">Регистрация клубной карты</h3>
         <input
@@ -512,7 +583,7 @@
         </p>
       </div>
 
-      <!-- Секция клубной карты (улучшенный дизайн) -->
+      <!-- Клубная карта (прогресс-бар) -->
       <div id="clubCardSection" class="content-section">
         <div
           class="card mx-auto"
@@ -525,13 +596,11 @@
             <h3 class="card-title text-center">Клубная карта</h3>
             <h5 class="text-muted text-center mb-4">«Песочные Острова»</h5>
 
-            <!-- Имя ребёнка -->
             <p>
               <strong>Ребёнок:</strong>
               <span id="cardChildName"></span>
             </p>
 
-            <!-- Небольшой блок с посещениями и статусом -->
             <div class="d-flex justify-content-between">
               <p>
                 <strong>Посещений:</strong>
@@ -543,7 +612,6 @@
               </p>
             </div>
 
-            <!-- Прогресс-бар для наглядности -->
             <div class="progress mt-2">
               <div
                 id="visitsProgressBar"
@@ -559,7 +627,6 @@
             </div>
             <hr />
 
-            <!-- QR-код для посещения -->
             <p><strong>QR-код для посещения:</strong></p>
             <div id="visitQRCode" class="qr-container"></div>
             <p class="mt-2">
@@ -569,7 +636,6 @@
               >
             </p>
 
-            <!-- Удалить аккаунт -->
             <button class="btn btn-danger w-100 mt-3" onclick="deleteAccount()">
               <i class="fas fa-user-times"></i> Удалить аккаунт
             </button>
@@ -577,13 +643,13 @@
         </div>
       </div>
 
-      <!-- Секция каталога товаров -->
+      <!-- Каталог товаров -->
       <div id="catalogSection" class="content-section">
         <h3 class="black-label">Каталог товаров</h3>
         <div id="catalogList"></div>
       </div>
 
-      <!-- Секция видеотрансляции -->
+      <!-- Видеотрансляция -->
       <div id="broadcastSection" class="content-section">
         <h3 class="black-label">Видеотрансляция</h3>
         <p>
@@ -627,7 +693,7 @@
       </button>
     </nav>
 
-    <!-- Модальное окно для статистики (по кнопке "Статистика") -->
+    <!-- Модальное окно для статистики -->
     <div
       class="modal fade"
       id="statsModal"
@@ -646,9 +712,7 @@
               aria-label="Close"
             ></button>
           </div>
-          <div class="modal-body" id="statsModalBody">
-            <!-- Сюда будем подставлять текст со статистикой -->
-          </div>
+          <div class="modal-body" id="statsModalBody"></div>
         </div>
       </div>
     </div>
@@ -729,7 +793,6 @@
         console.log("Subscriptions обновлены:", subscriptions);
       });
 
-      // Функция переключения секций с прокруткой вверх (отступ 100px)
       function showSection(sectionId) {
         document.querySelectorAll(".content-section").forEach((section) => {
           section.classList.remove("active");
@@ -986,24 +1049,17 @@
         }
       };
 
-      /* ОБНОВЛЁННАЯ ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ КАРТЫ + прогресс-бар */
       function updateCard(childName) {
         let visits = visitors[childName].visits;
         let progressBar = document.getElementById("visitsProgressBar");
-        // Рассчитываем процент заполнения (из 5 визитов)
         let progressPercentage = (visits / 5) * 100;
-        if (progressPercentage > 100) progressPercentage = 100; // на всякий случай
-
-        // Обновляем прогресс-бар
+        if (progressPercentage > 100) progressPercentage = 100;
         progressBar.style.width = `${progressPercentage}%`;
         progressBar.setAttribute("aria-valuenow", visits);
         progressBar.innerText = `${visits}/5`;
 
-        // Текстовое отображение
         let statusText =
           visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
-
-        // Старые поля
         if (document.getElementById("visits")) {
           document.getElementById("visits").innerText = visits;
           if (visits === 5) {
@@ -1020,7 +1076,6 @@
         if (document.getElementById("status")) {
           document.getElementById("status").innerText = statusText;
         }
-
         if (visits >= 6) {
           visitors[childName].visits = 0;
           setDoc(doc(db, "visitors", childName), visitors[childName]);
@@ -1171,9 +1226,7 @@
               visitors[childName].paid
             ) {
               if (Date.now() > visitors[childName].visitKeyExpiration) {
-                alert(
-                  "Код посещения устарел! Попросите посетителя обновить его."
-                );
+                alert("Код посещения устарел! Попросите посетителя обновить его.");
                 return;
               }
               visitors[childName].visits++;
@@ -1287,14 +1340,19 @@
         }
       }
 
-      /* Функция показа всех пользователей. Добавили data-атрибуты, чтобы упростить поиск */
       function showAllUsers() {
         let table =
-          "<table class='table table-striped' id='allUsersTable'><thead><tr><th>Ребёнок</th><th>Родитель</th><th>Дата рождения</th><th>Телефон</th><th>Оплачено</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr></thead><tbody>";
+          "<table class='table table-striped' id='allUsersTable'><thead><tr><th>Ребёнок</th><th>Родитель</th><th>Дата рождения</th><th>Телефон</th><th>Статус</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr></thead><tbody>";
 
         for (let childName in visitors) {
           let user = visitors[childName];
+          let rowClass = user.paid ? "table-success" : "table-warning";
+          let statusBadge = user.paid
+            ? "<span class='badge bg-success'>Paid</span>"
+            : "<span class='badge bg-danger'>Not Paid</span>";
+
           table += `<tr
+                      class="${rowClass}"
                       data-child="${childName.toLowerCase()}"
                       data-parent="${(user.parentName || '').toLowerCase()}"
                       data-phone="${(user.phone || '').toLowerCase()}"
@@ -1303,7 +1361,7 @@
                       <td>${user.parentName}</td>
                       <td>${user.birthDate}</td>
                       <td>${user.phone}</td>
-                      <td>${user.paid ? "Да" : "Нет"}</td>
+                      <td>${statusBadge}</td>
                       <td>${user.paymentKey}</td>
                       <td>${user.visitKey}</td>
                       <td>${user.visits}</td>
@@ -1317,15 +1375,18 @@
         document.getElementById("usersTable").innerHTML = table;
       }
 
-      /* Простая функция для фильтрации пользователей по ФИО ребёнка/родителя/телефону */
       function searchUsers() {
         const input = document.getElementById("searchInput");
         if (!input) return;
         const filterValue = input.value.trim().toLowerCase();
         const table = document.getElementById("allUsersTable");
-        if (!table) return; // Таблица появляется только после showAllUsers()
+        if (!table) {
+          alert("Сначала нажмите «Показать всех пользователей»");
+          return;
+        }
 
         const rows = table.querySelectorAll("tbody tr");
+        let foundCount = 0;
         rows.forEach((row) => {
           const childData = row.getAttribute("data-child") || "";
           const parentData = row.getAttribute("data-parent") || "";
@@ -1335,10 +1396,11 @@
             parentData.includes(filterValue) ||
             phoneData.includes(filterValue);
           row.style.display = match ? "" : "none";
+          if (match) foundCount++;
         });
+        alert(`Найдено совпадений: ${foundCount}`);
       }
 
-      /* Пример новой функции — показать статистику */
       function showStats() {
         let totalUsers = 0;
         let paidCount = 0;
@@ -1357,7 +1419,6 @@
         `;
         document.getElementById("statsModalBody").innerHTML = statsText;
 
-        // Показываем Bootstrap-модалку
         const statsModal = new bootstrap.Modal(
           document.getElementById("statsModal"),
           {}
@@ -1383,7 +1444,6 @@
         document.getElementById("catalogList").innerHTML = list;
       }
 
-      // Панель управления товарами (для админа)
       function displayProductManagement() {
         let list = "";
         products.forEach((product, index) => {
@@ -1596,14 +1656,12 @@
         document.getElementById("adminPanelSection").appendChild(logDiv);
       }
 
-      // Автоскроллинг для последних полей ввода
       document.querySelectorAll(".last-input").forEach((input) => {
         input.addEventListener("blur", () => {
           setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 300);
         });
       });
 
-      // Обновляем панель управления товарами, если активна
       function updateProductManagementView() {
         if (
           document
@@ -1614,7 +1672,6 @@
         }
       }
 
-      // Изначально показываем приветствие и каталог
       showSection("welcomeSection");
       displayCatalog();
 
@@ -1626,7 +1683,6 @@
           );
       }
 
-      // Делаем функции доступными глобально
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;

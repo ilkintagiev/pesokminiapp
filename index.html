@@ -717,7 +717,7 @@
       </div>
     </div>
 
-    <!-- Основной скрипт с интеграцией Firebase и onSnapshot -->
+    <!-- Основной скрипт с интеграцией Firebase, Auth и onSnapshot -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
       import {
@@ -729,6 +729,14 @@
         addDoc,
         deleteDoc,
       } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+      /* << NEW >> Импорт Firebase Auth */
+      import {
+        getAuth,
+        signInAnonymously,
+        onAuthStateChanged
+      } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
 
       const firebaseConfig = {
         apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
@@ -742,6 +750,29 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
+      // << NEW >> Инициализируем Auth
+      const auth = getAuth(app);
+
+      // Выполняем анонимную аутентификацию на старте
+      signInAnonymously(auth)
+        .then(() => {
+          console.log("Анонимная аутентификация Firebase Auth прошла успешно.");
+        })
+        .catch((err) => {
+          console.error("Ошибка анонимной аутентификации:", err);
+        });
+
+      // (Опционально) слушаем изменения статуса
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          console.log("AuthStateChanged: есть пользователь (анонимный):", user.uid);
+        } else {
+          console.log("AuthStateChanged: пользователь вышел из системы");
+        }
+      });
+
+
+      // Глобальные переменные (как в исходном коде)
       let visitors = {};
       let products = [];
       let errorLog = [];
@@ -750,7 +781,7 @@
       let adminLoggedIn = false;
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
-      // onSnapshot для синхронизации в реальном времени
+      // Подписки onSnapshot
       onSnapshot(collection(db, "visitors"), (snapshot) => {
         visitors = {};
         snapshot.forEach((docSnap) => {
@@ -792,6 +823,11 @@
         });
         console.log("Subscriptions обновлены:", subscriptions);
       });
+
+      // Дальше весь ваш исходный код логики (showSection, adminLogin, visitorLogin, registerCard, ...)
+      // (Скопировали из исходника, без изменений)
+
+      // ... ПОЛНОСТЬЮ как у вас выше, я оставляю:
 
       function showSection(sectionId) {
         document.querySelectorAll(".content-section").forEach((section) => {
@@ -1683,6 +1719,7 @@
           );
       }
 
+      // Делаем функции доступными глобально (для onclick)
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;

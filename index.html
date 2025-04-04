@@ -176,6 +176,7 @@
       .catalog-item img {
         max-width: 100px;
         border-radius: 5px;
+        margin-right: 5px;
       }
       .qr-container {
         margin-top: 10px;
@@ -309,16 +310,17 @@
         </button>
       </div>
 
-      <!-- Секция панели администратора -->
+      <!-- Секция панели администратора (улучшенный дизайн + цветовые рамки) -->
       <div id="adminPanelSection" class="content-section">
         <h3 class="black-label mb-3">Панель администратора</h3>
+        <!-- Разделяем всё на карточки -->
         <div class="row g-3">
           <!-- Карточка сканирования QR -->
           <div class="col-md-6">
             <div class="card border-primary bg-light">
               <div class="card-body">
                 <h5 class="card-title">QR-сканирование</h5>
-                <p class="card-text">Быстрое добавление посещений и подтверждение оплат</p>
+                <p class="card-text">Быстрое добавление посещений и подтверждение оплат.</p>
                 <button
                   class="btn btn-primary w-100 mt-2"
                   onclick="startQRScanner('visit')"
@@ -331,6 +333,7 @@
                 >
                   <i class="fas fa-money-bill-wave"></i> Сканировать QR-код оплаты
                 </button>
+                <!-- Блок для сканирования -->
                 <div id="qrScanner" class="qr-container" style="display: none;">
                   <video id="qrVideo"></video>
                   <canvas id="qrCanvas"></canvas>
@@ -348,7 +351,7 @@
             <div class="card border-success bg-light">
               <div class="card-body">
                 <h5 class="card-title">Ручной ввод</h5>
-                <p class="card-text">Если нет возможности сканировать QR-код</p>
+                <p class="card-text">Если нет возможности сканировать QR-код.</p>
                 <input
                   type="text"
                   class="form-control mt-2"
@@ -378,13 +381,13 @@
             </div>
           </div>
 
-          <!-- Управление данными, экспорт, лог, товары -->
+          <!-- Кнопки управления/экспорта/лога/товаров -->
           <div class="col-12">
             <div class="card border-info bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Управление данными</h5>
                 <p class="card-text">
-                  Посмотреть всех пользователей, экспорт, удалять визиты и т.д.
+                  Посмотреть всех пользователей, экспортировать, удалять визиты, ошибки и т.д.
                 </p>
                 <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">
                   <i class="fas fa-users"></i> Показать всех пользователей
@@ -416,17 +419,22 @@
             </div>
           </div>
 
-          <!-- Карточка добавления товара -->
+          <!-- Карточка добавления товара 
+               ОБНОВЛЕННАЯ: multiple для input + множественные фото -->
           <div class="col-12">
             <div class="card border-warning bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Добавить товар</h5>
-                <p class="card-text">Заполните поля и добавьте новый товар</p>
+                <p class="card-text">Заполните поля и добавьте новый товар.  
+                Можно загрузить сразу несколько фотографий.</p>
+                
+                <!-- Изменено: multiple -->
                 <input
                   type="file"
                   class="form-control mt-2"
-                  id="productImage"
+                  id="productImages"
                   accept="image/*"
+                  multiple
                 />
                 <input
                   type="text"
@@ -464,13 +472,13 @@
             </div>
           </div>
 
-          <!-- Поиск по пользователям -->
+          <!-- Поле для поиска пользователей + кнопка -->
           <div class="col-12">
             <div class="card border-secondary bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Поиск по пользователям</h5>
                 <p class="card-text">
-                  Введите часть ФИО ребёнка/родителя или телефон, нажмите «Найти»
+                  Введите часть ФИО ребёнка/родителя или телефон, затем нажмите «Найти».
                 </p>
                 <div class="input-group">
                   <input
@@ -496,7 +504,7 @@
         <div id="usersTable" class="mt-4" style="overflow-x: auto;"></div>
       </div>
 
-      <!-- Секция управления товарами -->
+      <!-- Секция управления товарами (для админа) -->
       <div id="productManagementSection" class="content-section">
         <h3 class="black-label">Управление товарами</h3>
         <div id="productManagementList"></div>
@@ -508,7 +516,7 @@
         </button>
       </div>
 
-      <!-- Вход для посетителя -->
+      <!-- Секция входа для посетителя -->
       <div id="visitorLoginSection" class="content-section">
         <h3 class="black-label">Вход для посетителя</h3>
         <input
@@ -535,7 +543,7 @@
         </button>
       </div>
 
-      <!-- Регистрация клубной карты -->
+      <!-- Секция регистрации клубной карты -->
       <div id="registerSection" class="content-section reg-form">
         <h3 class="black-label">Регистрация клубной карты</h3>
         <input
@@ -583,7 +591,7 @@
         </p>
       </div>
 
-      <!-- Клубная карта (прогресс-бар) -->
+      <!-- Секция клубной карты (улучшенный дизайн) -->
       <div id="clubCardSection" class="content-section">
         <div
           class="card mx-auto"
@@ -596,11 +604,13 @@
             <h3 class="card-title text-center">Клубная карта</h3>
             <h5 class="text-muted text-center mb-4">«Песочные Острова»</h5>
 
+            <!-- Имя ребёнка -->
             <p>
               <strong>Ребёнок:</strong>
               <span id="cardChildName"></span>
             </p>
 
+            <!-- Небольшой блок с посещениями и статусом -->
             <div class="d-flex justify-content-between">
               <p>
                 <strong>Посещений:</strong>
@@ -612,6 +622,7 @@
               </p>
             </div>
 
+            <!-- Прогресс-бар для наглядности -->
             <div class="progress mt-2">
               <div
                 id="visitsProgressBar"
@@ -627,6 +638,7 @@
             </div>
             <hr />
 
+            <!-- QR-код для посещения -->
             <p><strong>QR-код для посещения:</strong></p>
             <div id="visitQRCode" class="qr-container"></div>
             <p class="mt-2">
@@ -636,6 +648,7 @@
               >
             </p>
 
+            <!-- Удалить аккаунт -->
             <button class="btn btn-danger w-100 mt-3" onclick="deleteAccount()">
               <i class="fas fa-user-times"></i> Удалить аккаунт
             </button>
@@ -643,13 +656,13 @@
         </div>
       </div>
 
-      <!-- Каталог товаров -->
+      <!-- Секция каталога товаров -->
       <div id="catalogSection" class="content-section">
         <h3 class="black-label">Каталог товаров</h3>
         <div id="catalogList"></div>
       </div>
 
-      <!-- Видеотрансляция -->
+      <!-- Секция видеотрансляции -->
       <div id="broadcastSection" class="content-section">
         <h3 class="black-label">Видеотрансляция</h3>
         <p>
@@ -665,7 +678,7 @@
       </div>
     </div>
 
-    <!-- Нижняя панель навигации -->
+    <!-- Нижняя панель навигации (была) -->
     <nav class="navbar-bottom">
       <button
         class="btn"
@@ -712,7 +725,9 @@
               aria-label="Close"
             ></button>
           </div>
-          <div class="modal-body" id="statsModalBody"></div>
+          <div class="modal-body" id="statsModalBody">
+            <!-- Сюда будет подставляться текст со статистикой -->
+          </div>
         </div>
       </div>
     </div>
@@ -767,6 +782,7 @@
           products.push(product);
         });
         displayCatalog();
+        // Если мы находимся в productManagementSection, тоже обновим
         if (
           document
             .getElementById("productManagementSection")
@@ -1226,7 +1242,9 @@
               visitors[childName].paid
             ) {
               if (Date.now() > visitors[childName].visitKeyExpiration) {
-                alert("Код посещения устарел! Попросите посетителя обновить его.");
+                alert(
+                  "Код посещения устарел! Попросите посетителя обновить его."
+                );
                 return;
               }
               visitors[childName].visits++;
@@ -1426,84 +1444,77 @@
         statsModal.show();
       }
 
-      function displayCatalog() {
-        let list = "";
-        let isAdmin = adminLoggedIn;
-        products.forEach((product, index) => {
-          list += `<div class="catalog-item mt-3">
-                     <img src="${product.image}" alt="${product.name}">
-                     <p><strong>${product.name}</strong></p>
-                     <p>Цена (без карты): ${product.priceRegular} руб.</p>
-                     <p>Цена (с картой): ${product.priceCard} руб.</p>
-                     <button class="btn btn-success" onclick="alert('Свяжитесь с администратором для покупки!')">Купить</button>`;
-          if (isAdmin) {
-            list += `<button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>`;
-          }
-          list += `</div>`;
-        });
-        document.getElementById("catalogList").innerHTML = list;
-      }
-
-      function displayProductManagement() {
-        let list = "";
-        products.forEach((product, index) => {
-          list += `<div class="catalog-item mt-3">
-                     <img src="${product.image}" alt="${product.name}">
-                     <p><strong>${product.name}</strong></p>
-                     <p>Цена (без карты): ${product.priceRegular} руб.</p>
-                     <p>Цена (с картой): ${product.priceCard} руб.</p>
-                     <button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>
-                   </div>`;
-        });
-        document.getElementById("productManagementList").innerHTML = list;
-      }
-
+      /* 
+         ВАЖНО: ТУТ МЫ МЕНЯЕМ addProduct(), 
+         чтобы можно было загружать несколько файлов 
+         и сохранять их в массив "images".
+      */
       function addProduct() {
-        let file = document.getElementById("productImage")?.files[0];
-        let name = document.getElementById("productName")?.value;
-        let description = document.getElementById("productDescription")?.value;
-        let priceRegular = document.getElementById("productPriceRegular")?.value;
-        let priceCard = document.getElementById("productPriceCard")?.value;
+        let files = document.getElementById("productImages")?.files;
+        let name = document.getElementById("productName")?.value.trim();
+        let description = document.getElementById("productDescription")?.value.trim();
+        let priceRegular = document.getElementById("productPriceRegular")?.value.trim();
+        let priceCard = document.getElementById("productPriceCard")?.value.trim();
 
-        if (file && name && description && priceRegular && priceCard) {
+        if (!files || files.length === 0 || !name || !description || !priceRegular || !priceCard) {
+          alert("Заполните все поля и выберите хотя бы одну фотографию!");
+          return;
+        }
+
+        // Будем считывать все выбранные файлы как base64
+        let images = [];
+        let loadedCount = 0;
+
+        // Функция, которую вызовем, когда все файлы загрузятся
+        async function finalizeProduct() {
+          try {
+            const docRef = await addDoc(collection(db, "products"), {
+              images,
+              name,
+              description,
+              priceRegular,
+              priceCard,
+            });
+            // Добавляем локально
+            products.push({
+              id: docRef.id,
+              images,
+              name,
+              description,
+              priceRegular,
+              priceCard,
+            });
+            displayCatalog();
+            if (
+              document
+                .getElementById("productManagementSection")
+                ?.classList.contains("active")
+            ) {
+              displayProductManagement();
+            }
+            document.getElementById("productImages").value = "";
+            document.getElementById("productName").value = "";
+            document.getElementById("productDescription").value = "";
+            document.getElementById("productPriceRegular").value = "";
+            document.getElementById("productPriceCard").value = "";
+            alert("Товар добавлен!");
+          } catch (err) {
+            console.error("Ошибка добавления товара: ", err);
+          }
+        }
+
+        // Перебираем все файлы
+        for (let i = 0; i < files.length; i++) {
           let reader = new FileReader();
-          reader.onload = async function (e) {
-            try {
-              const docRef = await addDoc(collection(db, "products"), {
-                image: e.target.result,
-                name,
-                description,
-                priceRegular,
-                priceCard,
-              });
-              products.push({
-                id: docRef.id,
-                image: e.target.result,
-                name,
-                description,
-                priceRegular,
-                priceCard,
-              });
-              displayCatalog();
-              if (
-                document
-                  .getElementById("productManagementSection")
-                  ?.classList.contains("active")
-              ) {
-                displayProductManagement();
-              }
-              document.getElementById("productImage").value = "";
-              document.getElementById("productName").value = "";
-              document.getElementById("productDescription").value = "";
-              document.getElementById("productPriceRegular").value = "";
-              document.getElementById("productPriceCard").value = "";
-            } catch (err) {
-              console.error("Ошибка добавления товара: ", err);
+          reader.onload = function (e) {
+            images.push(e.target.result);
+            loadedCount++;
+            // Если все файлы загружены, вызываем finalizeProduct()
+            if (loadedCount === files.length) {
+              finalizeProduct();
             }
           };
-          reader.readAsDataURL(file);
-        } else {
-          alert("Заполните все поля!");
+          reader.readAsDataURL(files[i]);
         }
       }
 
@@ -1520,10 +1531,63 @@
             ) {
               displayProductManagement();
             }
+            alert("Товар удалён!");
           } catch (err) {
             console.error("Ошибка удаления товара: ", err);
           }
         }
+      }
+
+      /* 
+         В displayCatalog() 
+         теперь у каждого product будет массив product.images 
+         - выводим все картинки по очереди
+      */
+      function displayCatalog() {
+        let list = "";
+        let isAdmin = adminLoggedIn;
+        products.forEach((product, index) => {
+          list += `<div class="catalog-item mt-3">`;
+          // Если есть массив images
+          if (product.images && Array.isArray(product.images)) {
+            product.images.forEach((img) => {
+              list += `<img src="${img}" alt="${product.name}">`;
+            });
+          }
+          list += `
+            <p><strong>${product.name}</strong></p>
+            <p>Цена (без карты): ${product.priceRegular} руб.</p>
+            <p>Цена (с картой): ${product.priceCard} руб.</p>
+            <button class="btn btn-success" onclick="alert('Свяжитесь с администратором для покупки!')">Купить</button>`;
+          if (isAdmin) {
+            list += `<button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>`;
+          }
+          list += `</div>`;
+        });
+        document.getElementById("catalogList").innerHTML = list;
+      }
+
+      /*
+         Аналогично — панель управления товарами
+         Тоже выводим все картинки из массива product.images
+       */
+      function displayProductManagement() {
+        let list = "";
+        products.forEach((product, index) => {
+          list += `<div class="catalog-item mt-3">`;
+          if (product.images && Array.isArray(product.images)) {
+            product.images.forEach((img) => {
+              list += `<img src="${img}" alt="${product.name}">`;
+            });
+          }
+          list += `
+            <p><strong>${product.name}</strong></p>
+            <p>Цена (без карты): ${product.priceRegular} руб.</p>
+            <p>Цена (с картой): ${product.priceCard} руб.</p>
+            <button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>
+          </div>`;
+        });
+        document.getElementById("productManagementList").innerHTML = list;
       }
 
       function subscribeToPush(childName) {
@@ -1656,12 +1720,14 @@
         document.getElementById("adminPanelSection").appendChild(logDiv);
       }
 
+      // Автоскроллинг для последних полей ввода
       document.querySelectorAll(".last-input").forEach((input) => {
         input.addEventListener("blur", () => {
           setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 300);
         });
       });
 
+      // Обновляем панель управления товарами, если активна
       function updateProductManagementView() {
         if (
           document
@@ -1672,6 +1738,7 @@
         }
       }
 
+      // Изначально показываем приветствие + каталог
       showSection("welcomeSection");
       displayCatalog();
 
@@ -1683,6 +1750,7 @@
           );
       }
 
+      // Делаем нужные функции доступными глобально
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;

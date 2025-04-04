@@ -173,10 +173,12 @@
         text-shadow: none;
       }
 
+      /* Множественные картинки - выравниваем */
       .catalog-item img {
         max-width: 100px;
         border-radius: 5px;
         margin-right: 5px;
+        margin-bottom: 5px;
       }
       .qr-container {
         margin-top: 10px;
@@ -310,17 +312,16 @@
         </button>
       </div>
 
-      <!-- Секция панели администратора (улучшенный дизайн + цветовые рамки) -->
+      <!-- Секция панели администратора -->
       <div id="adminPanelSection" class="content-section">
         <h3 class="black-label mb-3">Панель администратора</h3>
-        <!-- Разделяем всё на карточки -->
         <div class="row g-3">
           <!-- Карточка сканирования QR -->
           <div class="col-md-6">
             <div class="card border-primary bg-light">
               <div class="card-body">
                 <h5 class="card-title">QR-сканирование</h5>
-                <p class="card-text">Быстрое добавление посещений и подтверждение оплат.</p>
+                <p class="card-text">Быстрое добавление посещений и подтверждение оплат</p>
                 <button
                   class="btn btn-primary w-100 mt-2"
                   onclick="startQRScanner('visit')"
@@ -333,7 +334,6 @@
                 >
                   <i class="fas fa-money-bill-wave"></i> Сканировать QR-код оплаты
                 </button>
-                <!-- Блок для сканирования -->
                 <div id="qrScanner" class="qr-container" style="display: none;">
                   <video id="qrVideo"></video>
                   <canvas id="qrCanvas"></canvas>
@@ -351,7 +351,7 @@
             <div class="card border-success bg-light">
               <div class="card-body">
                 <h5 class="card-title">Ручной ввод</h5>
-                <p class="card-text">Если нет возможности сканировать QR-код.</p>
+                <p class="card-text">Если нет возможности сканировать QR-код</p>
                 <input
                   type="text"
                   class="form-control mt-2"
@@ -381,13 +381,13 @@
             </div>
           </div>
 
-          <!-- Кнопки управления/экспорта/лога/товаров -->
+          <!-- Управление данными, экспорт, лог, товары -->
           <div class="col-12">
             <div class="card border-info bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Управление данными</h5>
                 <p class="card-text">
-                  Посмотреть всех пользователей, экспортировать, удалять визиты, ошибки и т.д.
+                  Посмотреть всех пользователей, экспорт, удалять визиты и т.д.
                 </p>
                 <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">
                   <i class="fas fa-users"></i> Показать всех пользователей
@@ -419,22 +419,27 @@
             </div>
           </div>
 
-          <!-- Карточка добавления товара 
-               multiple для input + несколько фото -->
+          <!-- Карточка добавления товара -->
           <div class="col-12">
             <div class="card border-warning bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Добавить товар</h5>
                 <p class="card-text">
                   Заполните поля и добавьте новый товар.  
-                  Можно загрузить несколько фотографий (держите Ctrl или Shift при выборе).
+                  При желании можно сразу открыть камеру (зависит от телефона).
                 </p>
                 
+                <!-- 
+                  multiple + capture="camera"
+                  Даёт телефонам возможность открыть камеру сразу 
+                  или выбрать из галереи (зависит от девайса/браузера).
+                -->
                 <input
                   type="file"
                   class="form-control mt-2"
                   id="productImages"
                   accept="image/*"
+                  capture="camera"
                   multiple
                 />
                 <input
@@ -473,7 +478,7 @@
             </div>
           </div>
 
-          <!-- Поле для поиска пользователей + кнопка -->
+          <!-- Поиск пользователей -->
           <div class="col-12">
             <div class="card border-secondary bg-light mt-3">
               <div class="card-body">
@@ -740,13 +745,18 @@
       } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
       const firebaseConfig = {
-        apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
-        authDomain: "pesochnyeostrova.firebaseapp.com",
-        projectId: "pesochnyeostrova",
-        storageBucket: "pesochnyeostrova.firebasestorage.app",
-        messagingSenderId: "632919679127",
-        appId: "1:632919679127:web:564b427bca7f0052a289d2",
+        apiKey: "ВАШ_API_KEY",
+        authDomain: "ВАШ_ПРОЕКТ.firebaseapp.com",
+        projectId: "ВАШ_ПРОЕКТ",
+        storageBucket: "ВАШ_ПРОЕКТ.appspot.com",
+        messagingSenderId: "ВАШ_ID",
+        appId: "ВАШ_appId"
       };
+      /*
+        ВНИМАНИЕ:
+        Замените выше на ваши реальные данные 
+        из Firebase Console → Project settings → Web app configuration
+      */
 
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
@@ -776,7 +786,6 @@
           products.push(product);
         });
         displayCatalog();
-        // Если мы находимся в productManagementSection, тоже обновим
         if (
           document
             .getElementById("productManagementSection")
@@ -1439,13 +1448,12 @@
       }
 
       /*
-         ВАЖНО: addProduct() 
-         multiple фото => мы считываем все выбранные файлы
-         и сохраняем их в массив images.
+         Здесь главная логика добавления товара + множественные фото
+         capture="camera" + multiple
+         Только админ может нажать, так как кнопка в админ-панели
       */
       async function addProduct() {
-        // Делаем alert, чтобы удостовериться, что кнопка точно нажалась
-        alert("Добавление товара...");
+        alert("Добавление товара..."); // для отладки
 
         let files = document.getElementById("productImages")?.files;
         let name = document.getElementById("productName")?.value.trim();
@@ -1464,7 +1472,6 @@
           return;
         }
 
-        // Будем считывать все выбранные файлы как base64
         let images = [];
         let loadedCount = 0;
 
@@ -1493,7 +1500,6 @@
             ) {
               displayProductManagement();
             }
-            // Сбрасываем поля
             document.getElementById("productImages").value = "";
             document.getElementById("productName").value = "";
             document.getElementById("productDescription").value = "";
@@ -1507,13 +1513,11 @@
           }
         }
 
-        // Перебираем все файлы
         for (let i = 0; i < files.length; i++) {
           let reader = new FileReader();
           reader.onload = function (e) {
             images.push(e.target.result);
             loadedCount++;
-            // Если все файлы загружены, вызываем finalizeProduct()
             if (loadedCount === files.length) {
               finalizeProduct();
             }
@@ -1526,34 +1530,13 @@
         }
       }
 
-      async function deleteProduct(index) {
-        if (confirm(`Удалить "${products[index].name}" из каталога?`)) {
-          try {
-            await deleteDoc(doc(db, "products", products[index].id));
-            products.splice(index, 1);
-            displayCatalog();
-            if (
-              document
-                .getElementById("productManagementSection")
-                ?.classList.contains("active")
-            ) {
-              displayProductManagement();
-            }
-            alert("Товар удалён!");
-          } catch (err) {
-            console.error("Ошибка удаления товара: ", err);
-          }
-        }
-      }
-
-      /* 
-         displayCatalog() 
-         теперь у каждого product будет массив product.images
-         Выводим все картинки по очереди
+      /*
+         Кнопка удалить в каталоге только если adminLoggedIn == true
+         (чтобы простой посетитель не мог удалять)
       */
       function displayCatalog() {
         let list = "";
-        let isAdmin = adminLoggedIn;
+        // adminLoggedIn (глобальная переменная), если false – не показываем кнопку
         products.forEach((product, index) => {
           list += `<div class="catalog-item mt-3">`;
           if (product.images && Array.isArray(product.images)) {
@@ -1566,7 +1549,8 @@
             <p>Цена (без карты): ${product.priceRegular} руб.</p>
             <p>Цена (с картой): ${product.priceCard} руб.</p>
             <button class="btn btn-success" onclick="alert('Свяжитесь с администратором для покупки!')">Купить</button>`;
-          if (isAdmin) {
+          if (adminLoggedIn) {
+            // только админ увидит
             list += `<button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>`;
           }
           list += `</div>`;
@@ -1575,8 +1559,8 @@
       }
 
       /*
-         Панель управления товарами
-         То же самое: массив product.images
+         Аналогично в управлении товарами – это чисто админский раздел,
+         и здесь точно показываем кнопку "Удалить"
       */
       function displayProductManagement() {
         let list = "";
@@ -1595,6 +1579,31 @@
           </div>`;
         });
         document.getElementById("productManagementList").innerHTML = list;
+      }
+
+      async function deleteProduct(index) {
+        if (!adminLoggedIn) {
+          alert("Только администратор может удалять товары!");
+          return;
+        }
+        if (confirm(`Удалить "${products[index].name}" из каталога?`)) {
+          try {
+            await deleteDoc(doc(db, "products", products[index].id));
+            products.splice(index, 1);
+            displayCatalog();
+            if (
+              document
+                .getElementById("productManagementSection")
+                ?.classList.contains("active")
+            ) {
+              displayProductManagement();
+            }
+            alert("Товар удалён!");
+          } catch (err) {
+            console.error("Ошибка удаления товара: ", err);
+            alert("Ошибка при удалении: " + err.message);
+          }
+        }
       }
 
       function subscribeToPush(childName) {
@@ -1734,21 +1743,14 @@
         });
       });
 
-      // Обновляем панель управления товарами, если активна
-      function updateProductManagementView() {
-        if (
-          document
-            .getElementById("productManagementSection")
-            ?.classList.contains("active")
-        ) {
-          displayProductManagement();
-        }
-      }
-
       // Изначально показываем приветствие + каталог
       showSection("welcomeSection");
       displayCatalog();
 
+      /*
+        Не забудьте проверить, что ваш sw.js лежит рядом 
+        и FirebaseConfig – ваш реальный проект
+      */
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
           .register("sw.js")
@@ -1757,7 +1759,7 @@
           );
       }
 
-      // Делаем нужные функции доступными глобально
+      // Делаем функции доступными глобально
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;

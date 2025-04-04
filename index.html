@@ -420,15 +420,16 @@
           </div>
 
           <!-- Карточка добавления товара 
-               ОБНОВЛЕННАЯ: multiple для input + множественные фото -->
+               multiple для input + несколько фото -->
           <div class="col-12">
             <div class="card border-warning bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Добавить товар</h5>
-                <p class="card-text">Заполните поля и добавьте новый товар.  
-                Можно загрузить сразу несколько фотографий.</p>
+                <p class="card-text">
+                  Заполните поля и добавьте новый товар.  
+                  Можно загрузить несколько фотографий (держите Ctrl или Shift при выборе).
+                </p>
                 
-                <!-- Изменено: multiple -->
                 <input
                   type="file"
                   class="form-control mt-2"
@@ -604,13 +605,11 @@
             <h3 class="card-title text-center">Клубная карта</h3>
             <h5 class="text-muted text-center mb-4">«Песочные Острова»</h5>
 
-            <!-- Имя ребёнка -->
             <p>
               <strong>Ребёнок:</strong>
               <span id="cardChildName"></span>
             </p>
 
-            <!-- Небольшой блок с посещениями и статусом -->
             <div class="d-flex justify-content-between">
               <p>
                 <strong>Посещений:</strong>
@@ -622,7 +621,6 @@
               </p>
             </div>
 
-            <!-- Прогресс-бар для наглядности -->
             <div class="progress mt-2">
               <div
                 id="visitsProgressBar"
@@ -638,7 +636,6 @@
             </div>
             <hr />
 
-            <!-- QR-код для посещения -->
             <p><strong>QR-код для посещения:</strong></p>
             <div id="visitQRCode" class="qr-container"></div>
             <p class="mt-2">
@@ -648,7 +645,6 @@
               >
             </p>
 
-            <!-- Удалить аккаунт -->
             <button class="btn btn-danger w-100 mt-3" onclick="deleteAccount()">
               <i class="fas fa-user-times"></i> Удалить аккаунт
             </button>
@@ -725,9 +721,7 @@
               aria-label="Close"
             ></button>
           </div>
-          <div class="modal-body" id="statsModalBody">
-            <!-- Сюда будет подставляться текст со статистикой -->
-          </div>
+          <div class="modal-body" id="statsModalBody"></div>
         </div>
       </div>
     </div>
@@ -1444,17 +1438,26 @@
         statsModal.show();
       }
 
-      /* 
-         ВАЖНО: ТУТ МЫ МЕНЯЕМ addProduct(), 
-         чтобы можно было загружать несколько файлов 
-         и сохранять их в массив "images".
+      /*
+         ВАЖНО: addProduct() 
+         multiple фото => мы считываем все выбранные файлы
+         и сохраняем их в массив images.
       */
-      function addProduct() {
+      async function addProduct() {
+        // Делаем alert, чтобы удостовериться, что кнопка точно нажалась
+        alert("Добавление товара...");
+
         let files = document.getElementById("productImages")?.files;
         let name = document.getElementById("productName")?.value.trim();
-        let description = document.getElementById("productDescription")?.value.trim();
-        let priceRegular = document.getElementById("productPriceRegular")?.value.trim();
-        let priceCard = document.getElementById("productPriceCard")?.value.trim();
+        let description = document
+          .getElementById("productDescription")
+          ?.value.trim();
+        let priceRegular = document
+          .getElementById("productPriceRegular")
+          ?.value.trim();
+        let priceCard = document
+          .getElementById("productPriceCard")
+          ?.value.trim();
 
         if (!files || files.length === 0 || !name || !description || !priceRegular || !priceCard) {
           alert("Заполните все поля и выберите хотя бы одну фотографию!");
@@ -1465,7 +1468,6 @@
         let images = [];
         let loadedCount = 0;
 
-        // Функция, которую вызовем, когда все файлы загрузятся
         async function finalizeProduct() {
           try {
             const docRef = await addDoc(collection(db, "products"), {
@@ -1475,7 +1477,6 @@
               priceRegular,
               priceCard,
             });
-            // Добавляем локально
             products.push({
               id: docRef.id,
               images,
@@ -1492,14 +1493,17 @@
             ) {
               displayProductManagement();
             }
+            // Сбрасываем поля
             document.getElementById("productImages").value = "";
             document.getElementById("productName").value = "";
             document.getElementById("productDescription").value = "";
             document.getElementById("productPriceRegular").value = "";
             document.getElementById("productPriceCard").value = "";
+
             alert("Товар добавлен!");
           } catch (err) {
             console.error("Ошибка добавления товара: ", err);
+            alert("Ошибка при сохранении товара в Firebase: " + err.message);
           }
         }
 
@@ -1513,6 +1517,10 @@
             if (loadedCount === files.length) {
               finalizeProduct();
             }
+          };
+          reader.onerror = function (err) {
+            console.error("Ошибка чтения файла:", err);
+            alert("Ошибка чтения файла: " + err.message);
           };
           reader.readAsDataURL(files[i]);
         }
@@ -1539,16 +1547,15 @@
       }
 
       /* 
-         В displayCatalog() 
-         теперь у каждого product будет массив product.images 
-         - выводим все картинки по очереди
+         displayCatalog() 
+         теперь у каждого product будет массив product.images
+         Выводим все картинки по очереди
       */
       function displayCatalog() {
         let list = "";
         let isAdmin = adminLoggedIn;
         products.forEach((product, index) => {
           list += `<div class="catalog-item mt-3">`;
-          // Если есть массив images
           if (product.images && Array.isArray(product.images)) {
             product.images.forEach((img) => {
               list += `<img src="${img}" alt="${product.name}">`;
@@ -1568,9 +1575,9 @@
       }
 
       /*
-         Аналогично — панель управления товарами
-         Тоже выводим все картинки из массива product.images
-       */
+         Панель управления товарами
+         То же самое: массив product.images
+      */
       function displayProductManagement() {
         let list = "";
         products.forEach((product, index) => {

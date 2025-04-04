@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Песочные Острова</title>
 
     <!-- Подключение сторонних библиотек -->
@@ -429,10 +429,10 @@
                   При желании можно сразу открыть камеру (зависит от телефона).
                 </p>
                 
-                <!-- 
-                  multiple + capture="camera"
-                  Даёт телефонам возможность открыть камеру сразу 
-                  или выбрать из галереи (зависит от девайса/браузера).
+                <!--
+                  capture="camera" + multiple
+                  Не везде работает локально (file://). 
+                  Рекомендуется запускать на http://localhost или HTTPS.
                 -->
                 <input
                   type="file"
@@ -679,7 +679,7 @@
       </div>
     </div>
 
-    <!-- Нижняя панель навигации (была) -->
+    <!-- Нижняя панель навигации -->
     <nav class="navbar-bottom">
       <button
         class="btn"
@@ -731,7 +731,7 @@
       </div>
     </div>
 
-    <!-- Основной скрипт с интеграцией Firebase и onSnapshot -->
+    <!-- Скрипт с Firebase и всей логикой -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
       import {
@@ -741,7 +741,7 @@
         doc,
         setDoc,
         addDoc,
-        deleteDoc,
+        deleteDoc
       } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
       const firebaseConfig = {
@@ -754,8 +754,7 @@
       };
       /*
         ВНИМАНИЕ:
-        Замените выше на ваши реальные данные 
-        из Firebase Console → Project settings → Web app configuration
+        Замените выше на ваши реальные данные из Firebase Console → Project Settings → Web
       */
 
       const app = initializeApp(firebaseConfig);
@@ -786,11 +785,8 @@
           products.push(product);
         });
         displayCatalog();
-        if (
-          document
-            .getElementById("productManagementSection")
-            ?.classList.contains("active")
-        ) {
+        const pmSection = document.getElementById("productManagementSection");
+        if (pmSection && pmSection.classList.contains("active")) {
           displayProductManagement();
         }
         console.log("Products обновлены:", products);
@@ -813,14 +809,16 @@
       });
 
       function showSection(sectionId) {
-        document.querySelectorAll(".content-section").forEach((section) => {
-          section.classList.remove("active");
-        });
+        const sections = document.querySelectorAll(".content-section");
+        for (let i = 0; i < sections.length; i++) {
+          sections[i].classList.remove("active");
+        }
         const section = document.getElementById(sectionId);
-        section.classList.add("active");
-        section.scrollIntoView({ behavior: "smooth", block: "start" });
-        setTimeout(() => window.scrollBy(0, -100), 500);
-
+        if (section) {
+          section.classList.add("active");
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+          setTimeout(() => window.scrollBy(0, -100), 500);
+        }
         if (sectionId === "registerSection") {
           document.querySelector(".logo").style.display = "none";
         } else {
@@ -829,10 +827,13 @@
       }
 
       function adminLogin() {
-        let password = document.getElementById("adminPassword")?.value;
+        let passwordEl = document.getElementById("adminPassword");
+        if (!passwordEl) return;
+        let password = passwordEl.value;
         if (ADMIN_PASSWORDS.includes(password)) {
           adminLoggedIn = true;
-          if (document.getElementById("rememberAdmin")?.checked) {
+          let rememberAdminEl = document.getElementById("rememberAdmin");
+          if (rememberAdminEl && rememberAdminEl.checked) {
             localStorage.setItem("savedAdminPassword", password);
           } else {
             localStorage.removeItem("savedAdminPassword");
@@ -849,8 +850,7 @@
 
       function generateKey(prefix, childName) {
         const time = Date.now().toString(36);
-        return `${prefix}-${childName.replace(/\s+/g, "").slice(0, 5)}-${time}`
-          .toUpperCase();
+        return `${prefix}-${childName.replace(/\s+/g, "").slice(0, 5)}-${time}`.toUpperCase();
       }
 
       function generateAdminKey(childFullName, parentFullName, birthDate) {
@@ -868,7 +868,9 @@
         let baseKey = `${initials}${parentInitial}${birthYear}`;
         let uniqueKey = baseKey;
         let counter = 1;
-        while (Object.values(visitors).some((v) => v.adminKey === uniqueKey)) {
+        // Проверяем, нет ли уже такого adminKey
+        let allValues = Object.values(visitors);
+        while (allValues.some((v) => v.adminKey === uniqueKey)) {
           uniqueKey = `${baseKey}${counter}`;
           counter++;
         }
@@ -876,73 +878,92 @@
       }
 
       function generateVisitQR(childName) {
+        if (!visitors[childName]) return;
         let visitKey = generateKey("VISIT", childName);
         visitors[childName].visitKey = visitKey;
-        visitors[childName].visitKeyExpiration =
-          Date.now() + 24 * 60 * 60 * 1000;
+        visitors[childName].visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000;
         let qrCodeData = `visit:${visitKey}`;
+
+        // Генерация и рендер QR
         QRCode.toCanvas(
           document.createElement("canvas"),
           qrCodeData,
           { width: 150 },
           (error, canvas) => {
             if (error) console.error(error);
-            if (document.getElementById("visitQRCode")) {
-              document.getElementById("visitQRCode").innerHTML = "";
-              document.getElementById("visitQRCode").appendChild(canvas);
+            let visitQRCodeEl = document.getElementById("visitQRCode");
+            if (visitQRCodeEl) {
+              visitQRCodeEl.innerHTML = "";
+              visitQRCodeEl.appendChild(canvas);
             }
           }
         );
-        if (document.getElementById("visitKeyDisplay")) {
-          document.getElementById("visitKeyDisplay").innerText = visitKey;
+
+        let vkDisplay = document.getElementById("visitKeyDisplay");
+        if (vkDisplay) {
+          vkDisplay.innerText = visitKey;
         }
+
         setDoc(doc(db, "visitors", childName), visitors[childName])
-          .then(() => console.log("Visitor updated in Firestore"))
+          .then(() => console.log("Visitor updated in Firestore (visitKey)"))
           .catch((err) => console.error("Error updating visitor:", err));
+
         return visitKey;
       }
 
       function generatePaymentQR(childName) {
+        if (!visitors[childName]) return;
         let paymentKey = generateKey("PAY", childName);
         visitors[childName].paymentKey = paymentKey;
         let qrCodeData = `payment:${paymentKey}`;
+
+        // Генерация и рендер QR
         QRCode.toCanvas(
           document.createElement("canvas"),
           qrCodeData,
           { width: 150 },
           (error, canvas) => {
             if (error) console.error(error);
-            if (document.getElementById("paymentQRCode")) {
-              document.getElementById("paymentQRCode").innerHTML = "";
-              document.getElementById("paymentQRCode").appendChild(canvas);
+            let payQRCodeEl = document.getElementById("paymentQRCode");
+            if (payQRCodeEl) {
+              payQRCodeEl.innerHTML = "";
+              payQRCodeEl.appendChild(canvas);
             }
           }
         );
-        if (document.getElementById("paymentKeyDisplay")) {
-          document.getElementById("paymentKeyDisplay").innerText = paymentKey;
+
+        let pkDisplay = document.getElementById("paymentKeyDisplay");
+        if (pkDisplay) {
+          pkDisplay.innerText = paymentKey;
         }
+
         setDoc(doc(db, "visitors", childName), visitors[childName])
-          .then(() => console.log("Visitor updated in Firestore"))
+          .then(() => console.log("Visitor updated in Firestore (paymentKey)"))
           .catch((err) => console.error("Error updating visitor:", err));
+
         return paymentKey;
       }
 
       async function registerCard() {
-        let childName = document.getElementById("childFullName")?.value.trim();
-        let parentName = document.getElementById("parentFullName")?.value.trim();
-        let birthDate = document.getElementById("childBirthDate")?.value;
-        let phone = document.getElementById("parentPhone")?.value.trim();
-        let login = document.getElementById("newLogin")?.value.trim();
-        let password = document.getElementById("newPassword")?.value.trim();
+        let childNameEl = document.getElementById("childFullName");
+        let parentNameEl = document.getElementById("parentFullName");
+        let birthDateEl = document.getElementById("childBirthDate");
+        let phoneEl = document.getElementById("parentPhone");
+        let newLoginEl = document.getElementById("newLogin");
+        let newPassEl = document.getElementById("newPassword");
 
-        if (
-          !childName ||
-          !parentName ||
-          !birthDate ||
-          !phone ||
-          !login ||
-          !password
-        ) {
+        if (!childNameEl || !parentNameEl || !birthDateEl || !phoneEl || !newLoginEl || !newPassEl) {
+          alert("Поля формы недоступны!");
+          return;
+        }
+        let childName = childNameEl.value.trim();
+        let parentName = parentNameEl.value.trim();
+        let birthDate = birthDateEl.value;
+        let phone = phoneEl.value.trim();
+        let login = newLoginEl.value.trim();
+        let password = newPassEl.value.trim();
+
+        if (!childName || !parentName || !birthDate || !phone || !login || !password) {
           alert("Заполните все поля!");
           return;
         }
@@ -959,6 +980,7 @@
           let hashedPassword = CryptoJS.SHA256(password).toString();
           let adminKey = generateAdminKey(childName, parentName, birthDate);
           let registrationDate = new Date().toISOString().split("T")[0];
+
           visitors[childName] = {
             login,
             password: hashedPassword,
@@ -972,17 +994,19 @@
             registrationDate,
             visitKey: "",
             paymentKey: "",
-            visitKeyExpiration: 0,
+            visitKeyExpiration: 0
           };
+
+          // Генерируем ключи QR
           let visitKey = generateVisitQR(childName);
           let paymentKey = generatePaymentQR(childName);
           subscribeToPush(childName);
 
           alert(
-            `Карта зарегистрирована!
-Покажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).
-После оплаты используйте QR-код посещения (код: ${visitKey}).
-Админ-ключ: ${adminKey} (для внутреннего использования).`
+            `Карта зарегистрирована!\n\n` +
+            `Покажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).\n` +
+            `После оплаты используйте QR-код посещения (код: ${visitKey}).\n` +
+            `Админ-ключ: ${adminKey} (для внутреннего использования).`
           );
 
           await setDoc(doc(db, "visitors", childName), visitors[childName])
@@ -994,19 +1018,20 @@
       }
 
       function visitorLogin() {
-        let login = document.getElementById("visitorLoginInput")?.value;
-        let password = document.getElementById("visitorPasswordInput")?.value;
-        let rememberMe = document.getElementById("rememberMe")?.checked;
+        let loginEl = document.getElementById("visitorLoginInput");
+        let passwordEl = document.getElementById("visitorPasswordInput");
+        let rememberEl = document.getElementById("rememberMe");
+
+        if (!loginEl || !passwordEl) return;
+        let login = loginEl.value;
+        let password = passwordEl.value;
         let hashedPassword = CryptoJS.SHA256(password).toString();
 
         for (let childName in visitors) {
-          if (
-            visitors[childName].login === login &&
-            visitors[childName].password === hashedPassword &&
-            visitors[childName].registered
-          ) {
-            if (visitors[childName].paid) {
-              if (rememberMe) {
+          let v = visitors[childName];
+          if (v.login === login && v.password === hashedPassword && v.registered) {
+            if (v.paid) {
+              if (rememberEl && rememberEl.checked) {
                 localStorage.setItem("savedLogin", login);
                 localStorage.setItem("savedPassword", password);
               } else {
@@ -1014,33 +1039,34 @@
                 localStorage.removeItem("savedPassword");
               }
               showSection("clubCardSection");
-              if (document.getElementById("cardChildName")) {
-                document.getElementById("cardChildName").innerText = childName;
+
+              let cardChildNameEl = document.getElementById("cardChildName");
+              if (cardChildNameEl) {
+                cardChildNameEl.innerText = childName;
               }
-              if (
-                !visitors[childName].visitKey ||
-                Date.now() > visitors[childName].visitKeyExpiration
-              ) {
+
+              // Проверяем, не устарел ли visitKey
+              if (!v.visitKey || Date.now() > v.visitKeyExpiration) {
                 generateVisitQR(childName);
               } else {
-                let qrCodeData = `visit:${visitors[childName].visitKey}`;
+                // Отрисовать старый QR
+                let qrCodeData = `visit:${v.visitKey}`;
                 QRCode.toCanvas(
                   document.createElement("canvas"),
                   qrCodeData,
                   { width: 150 },
                   (error, canvas) => {
                     if (error) console.error(error);
-                    if (document.getElementById("visitQRCode")) {
-                      document.getElementById("visitQRCode").innerHTML = "";
-                      document
-                        .getElementById("visitQRCode")
-                        .appendChild(canvas);
+                    let visitQRCodeEl = document.getElementById("visitQRCode");
+                    if (visitQRCodeEl) {
+                      visitQRCodeEl.innerHTML = "";
+                      visitQRCodeEl.appendChild(canvas);
                     }
                   }
                 );
-                if (document.getElementById("visitKeyDisplay")) {
-                  document.getElementById("visitKeyDisplay").innerText =
-                    visitors[childName].visitKey;
+                let vkDisplay = document.getElementById("visitKeyDisplay");
+                if (vkDisplay) {
+                  vkDisplay.innerText = v.visitKey;
                 }
               }
               updateCard(childName);
@@ -1053,49 +1079,57 @@
         alert("Неверный логин или пароль!");
       }
 
-      window.onload = function () {
+      window.onload = function() {
         let savedLogin = localStorage.getItem("savedLogin");
         let savedPassword = localStorage.getItem("savedPassword");
         if (savedLogin && savedPassword) {
-          document.getElementById("visitorLoginInput").value = savedLogin;
-          document.getElementById("visitorPasswordInput").value = savedPassword;
-          document.getElementById("rememberMe").checked = true;
+          let loginEl = document.getElementById("visitorLoginInput");
+          let passEl = document.getElementById("visitorPasswordInput");
+          let remEl = document.getElementById("rememberMe");
+          if (loginEl) loginEl.value = savedLogin;
+          if (passEl) passEl.value = savedPassword;
+          if (remEl) remEl.checked = true;
         }
         let savedAdmin = localStorage.getItem("savedAdminPassword");
         if (savedAdmin) {
-          document.getElementById("adminPassword").value = savedAdmin;
-          document.getElementById("rememberAdmin").checked = true;
+          let adminPassEl = document.getElementById("adminPassword");
+          let remAdminEl = document.getElementById("rememberAdmin");
+          if (adminPassEl) adminPassEl.value = savedAdmin;
+          if (remAdminEl) remAdminEl.checked = true;
         }
       };
 
       function updateCard(childName) {
-        let visits = visitors[childName].visits;
+        let user = visitors[childName];
+        if (!user) return;
+        let visits = user.visits;
         let progressBar = document.getElementById("visitsProgressBar");
+        if (!progressBar) return;
         let progressPercentage = (visits / 5) * 100;
         if (progressPercentage > 100) progressPercentage = 100;
         progressBar.style.width = `${progressPercentage}%`;
         progressBar.setAttribute("aria-valuenow", visits);
         progressBar.innerText = `${visits}/5`;
 
-        let statusText =
-          visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
-        if (document.getElementById("visits")) {
-          document.getElementById("visits").innerText = visits;
+        let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
+        let visitsEl = document.getElementById("visits");
+        let statusEl = document.getElementById("status");
+
+        if (visitsEl) {
+          visitsEl.innerText = visits;
           if (visits === 5) {
-            document
-              .getElementById("visits")
-              .classList.add("bonus-animation");
+            visitsEl.classList.add("bonus-animation");
             setTimeout(() => {
-              document
-                .getElementById("visits")
-                .classList.remove("bonus-animation");
+              visitsEl.classList.remove("bonus-animation");
             }, 1000);
           }
         }
-        if (document.getElementById("status")) {
-          document.getElementById("status").innerText = statusText;
+        if (statusEl) {
+          statusEl.innerText = statusText;
         }
+
         if (visits >= 6) {
+          // Сбрасываем счётчик и снова сохраняем
           visitors[childName].visits = 0;
           setDoc(doc(db, "visitors", childName), visitors[childName]);
           alert("Счётчик сброшен! Начинаем заново.");
@@ -1108,19 +1142,19 @@
 
       function startQRScanner(type) {
         scanType = type;
-        const qrScanner = document.getElementById("qrScanner");
-        const qrVideo = document.getElementById("qrVideo");
-        const qrCanvas = document.getElementById("qrCanvas");
-        const debugInfo = document.getElementById("debugInfo");
+        let qrScanner = document.getElementById("qrScanner");
+        let qrVideo = document.getElementById("qrVideo");
+        let qrCanvas = document.getElementById("qrCanvas");
+        let debugInfo = document.getElementById("debugInfo");
+        if (!qrScanner || !qrVideo || !qrCanvas || !debugInfo) return;
+
         qrScanner.style.display = "block";
         debugInfo.innerText = "Запуск камеры...";
 
         navigator.mediaDevices
           .enumerateDevices()
           .then((devices) => {
-            const videoDevices = devices.filter(
-              (device) => device.kind === "videoinput"
-            );
+            const videoDevices = devices.filter((device) => device.kind === "videoinput");
             if (videoDevices.length === 0) {
               alert("На устройстве нет доступных камер.");
               qrScanner.style.display = "none";
@@ -1129,9 +1163,7 @@
             if (!video) {
               video = qrVideo;
               navigator.mediaDevices
-                .getUserMedia({
-                  video: { facingMode: { ideal: "environment" } },
-                })
+                .getUserMedia({ video: { facingMode: { ideal: "environment" } } })
                 .then((stream) => {
                   video.srcObject = stream;
                   video.play();
@@ -1160,18 +1192,13 @@
             debugInfo.innerText = "Камера не активна.";
             return;
           }
-          const canvasContext = qrCanvas.getContext("2d");
+          let canvasContext = qrCanvas.getContext("2d");
           qrCanvas.width = video.videoWidth || 300;
           qrCanvas.height = video.videoHeight || 300;
           canvasContext.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
 
-          const imageData = canvasContext.getImageData(
-            0,
-            0,
-            qrCanvas.width,
-            qrCanvas.height
-          );
-          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          let imageData = canvasContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+          let code = jsQR(imageData.data, imageData.width, imageData.height);
 
           if (code) {
             debugInfo.innerText = `QR-код распознан: ${code.data}`;
@@ -1183,14 +1210,11 @@
               const paymentKey = qrData.split(":")[1];
               confirmPaymentQR(paymentKey);
             } else {
-              debugInfo.innerText =
-                "Неверный формат QR-кода для выбранного типа.";
+              debugInfo.innerText = "Неверный формат QR-кода для выбранного типа.";
             }
             stopQRScanner();
           } else {
-            debugInfo.innerText = `QR-код не найден, продолжение сканирования ${
-              type === "visit" ? "посещения" : "оплаты"
-            }...`;
+            debugInfo.innerText = `QR-код не найден, продолжаю сканирование...`;
             requestAnimationFrame(scanQRCode);
           }
         }
@@ -1202,31 +1226,27 @@
           video.srcObject = null;
           video = null;
         }
-        document.getElementById("qrScanner").style.display = "none";
-        document.getElementById("debugInfo").innerText = "";
+        let qrScanner = document.getElementById("qrScanner");
+        let debugInfo = document.getElementById("debugInfo");
+        if (qrScanner) qrScanner.style.display = "none";
+        if (debugInfo) debugInfo.innerText = "";
       }
 
       function addVisitFromQR(visitKey) {
         for (let childName in visitors) {
-          if (
-            visitors[childName].visitKey === visitKey &&
-            visitors[childName].registered &&
-            visitors[childName].paid
-          ) {
-            if (Date.now() > visitors[childName].visitKeyExpiration) {
+          let v = visitors[childName];
+          if (v.visitKey === visitKey && v.registered && v.paid) {
+            if (Date.now() > v.visitKeyExpiration) {
               alert("QR-код посещения устарел! Попросите посетителя обновить его.");
               return;
             }
-            visitors[childName].visits++;
+            v.visits++;
             lastScannedChild = childName;
-            setDoc(doc(db, "visitors", childName), visitors[childName]);
-            if (document.getElementById("adminVisits")) {
-              document.getElementById("adminVisits").innerText =
-                visitors[childName].visits;
-            }
-            if (document.getElementById("removeVisitBtn")) {
-              document.getElementById("removeVisitBtn").disabled = false;
-            }
+            setDoc(doc(db, "visitors", childName), v);
+            let adminVisitsEl = document.getElementById("adminVisits");
+            if (adminVisitsEl) adminVisitsEl.innerText = v.visits;
+            let removeBtn = document.getElementById("removeVisitBtn");
+            if (removeBtn) removeBtn.disabled = false;
             alert(`Посещение добавлено для ${childName}!`);
             generateVisitQR(childName);
             return;
@@ -1236,32 +1256,26 @@
       }
 
       function addVisitFromManual() {
-        let visitKey = document.getElementById("manualVisitKey")?.value;
+        let visitKeyEl = document.getElementById("manualVisitKey");
+        if (!visitKeyEl) return;
+        let visitKey = visitKeyEl.value.trim();
         if (visitKey) {
           for (let childName in visitors) {
-            if (
-              visitors[childName].visitKey === visitKey &&
-              visitors[childName].registered &&
-              visitors[childName].paid
-            ) {
-              if (Date.now() > visitors[childName].visitKeyExpiration) {
-                alert(
-                  "Код посещения устарел! Попросите посетителя обновить его."
-                );
+            let v = visitors[childName];
+            if (v.visitKey === visitKey && v.registered && v.paid) {
+              if (Date.now() > v.visitKeyExpiration) {
+                alert("Код посещения устарел! Попросите посетителя обновить его.");
                 return;
               }
-              visitors[childName].visits++;
+              v.visits++;
               lastScannedChild = childName;
-              setDoc(doc(db, "visitors", childName), visitors[childName]);
-              if (document.getElementById("adminVisits")) {
-                document.getElementById("adminVisits").innerText =
-                  visitors[childName].visits;
-              }
-              if (document.getElementById("removeVisitBtn")) {
-                document.getElementById("removeVisitBtn").disabled = false;
-              }
+              setDoc(doc(db, "visitors", childName), v);
+              let adminVisitsEl = document.getElementById("adminVisits");
+              if (adminVisitsEl) adminVisitsEl.innerText = v.visits;
+              let removeBtn = document.getElementById("removeVisitBtn");
+              if (removeBtn) removeBtn.disabled = false;
               alert(`Посещение добавлено для ${childName}!`);
-              document.getElementById("manualVisitKey").value = "";
+              visitKeyEl.value = "";
               generateVisitQR(childName);
               return;
             }
@@ -1274,14 +1288,12 @@
 
       function confirmPaymentQR(paymentKey) {
         for (let childName in visitors) {
-          if (visitors[childName].paymentKey === paymentKey) {
-            visitors[childName].paid = true;
-            setDoc(doc(db, "visitors", childName), visitors[childName]);
+          let v = visitors[childName];
+          if (v.paymentKey === paymentKey) {
+            v.paid = true;
+            setDoc(doc(db, "visitors", childName), v);
             alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
-            sendPushToUser(
-              childName,
-              "Ваша карта активирована! Добро пожаловать в Песочные Острова!"
-            );
+            sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
             return;
           }
         }
@@ -1289,20 +1301,18 @@
       }
 
       function confirmPaymentManual() {
-        let paymentKey = document
-          .getElementById("manualPaymentKey")
-          ?.value.trim();
+        let paymentKeyEl = document.getElementById("manualPaymentKey");
+        if (!paymentKeyEl) return;
+        let paymentKey = paymentKeyEl.value.trim();
         if (paymentKey) {
           for (let childName in visitors) {
-            if (visitors[childName].paymentKey === paymentKey) {
-              visitors[childName].paid = true;
-              setDoc(doc(db, "visitors", childName), visitors[childName]);
+            let v = visitors[childName];
+            if (v.paymentKey === paymentKey) {
+              v.paid = true;
+              setDoc(doc(db, "visitors", childName), v);
               alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
-              sendPushToUser(
-                childName,
-                "Ваша карта активирована! Добро пожаловать в Песочные Острова!"
-              );
-              document.getElementById("manualPaymentKey").value = "";
+              sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
+              paymentKeyEl.value = "";
               return;
             }
           }
@@ -1326,35 +1336,29 @@
               alert("Ошибка отправки Push: " + err.message);
             });
         } else {
-          alert(`Push для ${childName}: ${message} (тест без HTTPS)`);
+          // Без HTTPS или без подписки — просто alert
+          alert(`Push для ${childName}: ${message} (тест без HTTPS/Service Worker)`);
         }
       }
 
       function removeVisit() {
         if (lastScannedChild && visitors[lastScannedChild]) {
-          if (visitors[lastScannedChild].visits > 0) {
-            visitors[lastScannedChild].visits--;
-            setDoc(
-              doc(db, "visitors", lastScannedChild),
-              visitors[lastScannedChild]
-            );
-            if (document.getElementById("adminVisits")) {
-              document.getElementById("adminVisits").innerText =
-                visitors[lastScannedChild].visits;
-            }
+          let v = visitors[lastScannedChild];
+          if (v.visits > 0) {
+            v.visits--;
+            setDoc(doc(db, "visitors", lastScannedChild), v);
+            let adminVisitsEl = document.getElementById("adminVisits");
+            if (adminVisitsEl) adminVisitsEl.innerText = v.visits;
             alert(`Последнее посещение для ${lastScannedChild} удалено!`);
-            if (
-              visitors[lastScannedChild].visits === 0 &&
-              document.getElementById("removeVisitBtn")
-            ) {
-              document.getElementById("removeVisitBtn").disabled = true;
+            if (v.visits === 0) {
+              let removeBtn = document.getElementById("removeVisitBtn");
+              if (removeBtn) removeBtn.disabled = true;
             }
             showAllUsers();
           } else {
             alert("У этого ребёнка нет посещений!");
-            if (document.getElementById("removeVisitBtn")) {
-              document.getElementById("removeVisitBtn").disabled = true;
-            }
+            let removeBtn = document.getElementById("removeVisitBtn");
+            if (removeBtn) removeBtn.disabled = true;
           }
         } else {
           alert("Сначала отсканируйте QR-код посещения!");
@@ -1362,8 +1366,14 @@
       }
 
       function showAllUsers() {
+        let usersTableEl = document.getElementById("usersTable");
+        if (!usersTableEl) return;
         let table =
-          "<table class='table table-striped' id='allUsersTable'><thead><tr><th>Ребёнок</th><th>Родитель</th><th>Дата рождения</th><th>Телефон</th><th>Статус</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr></thead><tbody>";
+          "<table class='table table-striped' id='allUsersTable'><thead><tr>" +
+          "<th>Ребёнок</th><th>Родитель</th><th>Дата рождения</th><th>Телефон</th>" +
+          "<th>Статус</th><th>Ключ оплаты</th><th>Код посещения</th>" +
+          "<th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th>" +
+          "</tr></thead><tbody>";
 
         for (let childName in visitors) {
           let user = visitors[childName];
@@ -1373,46 +1383,45 @@
             : "<span class='badge bg-danger'>Not Paid</span>";
 
           table += `<tr
-                      class="${rowClass}"
-                      data-child="${childName.toLowerCase()}"
-                      data-parent="${(user.parentName || '').toLowerCase()}"
-                      data-phone="${(user.phone || '').toLowerCase()}"
-                    >
-                      <td>${childName}</td>
-                      <td>${user.parentName}</td>
-                      <td>${user.birthDate}</td>
-                      <td>${user.phone}</td>
-                      <td>${statusBadge}</td>
-                      <td>${user.paymentKey}</td>
-                      <td>${user.visitKey}</td>
-                      <td>${user.visits}</td>
-                      <td>${user.registrationDate}</td>
-                      <td>${user.adminKey}</td>
-                      <td>${user.login}</td>
-                      <td>${user.password}</td>
-                    </tr>`;
+            class="${rowClass}"
+            data-child="${childName.toLowerCase()}"
+            data-parent="${(user.parentName || '').toLowerCase()}"
+            data-phone="${(user.phone || '').toLowerCase()}"
+            >
+            <td>${childName}</td>
+            <td>${user.parentName}</td>
+            <td>${user.birthDate}</td>
+            <td>${user.phone}</td>
+            <td>${statusBadge}</td>
+            <td>${user.paymentKey}</td>
+            <td>${user.visitKey}</td>
+            <td>${user.visits}</td>
+            <td>${user.registrationDate}</td>
+            <td>${user.adminKey}</td>
+            <td>${user.login}</td>
+            <td>${user.password}</td>
+          </tr>`;
         }
         table += "</tbody></table>";
-        document.getElementById("usersTable").innerHTML = table;
+        usersTableEl.innerHTML = table;
       }
 
       function searchUsers() {
-        const input = document.getElementById("searchInput");
+        let input = document.getElementById("searchInput");
         if (!input) return;
         const filterValue = input.value.trim().toLowerCase();
-        const table = document.getElementById("allUsersTable");
+        let table = document.getElementById("allUsersTable");
         if (!table) {
           alert("Сначала нажмите «Показать всех пользователей»");
           return;
         }
-
-        const rows = table.querySelectorAll("tbody tr");
+        let rows = table.querySelectorAll("tbody tr");
         let foundCount = 0;
         rows.forEach((row) => {
-          const childData = row.getAttribute("data-child") || "";
-          const parentData = row.getAttribute("data-parent") || "";
-          const phoneData = row.getAttribute("data-phone") || "";
-          const match =
+          let childData = row.getAttribute("data-child") || "";
+          let parentData = row.getAttribute("data-parent") || "";
+          let phoneData = row.getAttribute("data-phone") || "";
+          let match =
             childData.includes(filterValue) ||
             parentData.includes(filterValue) ||
             phoneData.includes(filterValue);
@@ -1438,37 +1447,42 @@
           <p>Оплаченных карт: <strong>${paidCount}</strong></p>
           <p>Суммарное количество посещений: <strong>${totalVisits}</strong></p>
         `;
-        document.getElementById("statsModalBody").innerHTML = statsText;
-
-        const statsModal = new bootstrap.Modal(
-          document.getElementById("statsModal"),
-          {}
-        );
-        statsModal.show();
+        let statsModalBody = document.getElementById("statsModalBody");
+        if (statsModalBody) {
+          statsModalBody.innerHTML = statsText;
+        }
+        let statsModalEl = document.getElementById("statsModal");
+        if (statsModalEl) {
+          let statsModal = new bootstrap.Modal(statsModalEl, {});
+          statsModal.show();
+        }
       }
 
-      /*
-         Здесь главная логика добавления товара + множественные фото
-         capture="camera" + multiple
-         Только админ может нажать, так как кнопка в админ-панели
-      */
       async function addProduct() {
-        alert("Добавление товара..."); // для отладки
+        alert("Добавление товара... (уберите alert при необходимости)");
 
-        let files = document.getElementById("productImages")?.files;
-        let name = document.getElementById("productName")?.value.trim();
-        let description = document
-          .getElementById("productDescription")
-          ?.value.trim();
-        let priceRegular = document
-          .getElementById("productPriceRegular")
-          ?.value.trim();
-        let priceCard = document
-          .getElementById("productPriceCard")
-          ?.value.trim();
+        let productImagesEl = document.getElementById("productImages");
+        let productNameEl = document.getElementById("productName");
+        let productDescEl = document.getElementById("productDescription");
+        let priceRegEl = document.getElementById("productPriceRegular");
+        let priceCardEl = document.getElementById("productPriceCard");
+        if (!productImagesEl || !productNameEl || !productDescEl || !priceRegEl || !priceCardEl) {
+          alert("Не найдены поля формы добавления товара!");
+          return;
+        }
+        let files = productImagesEl.files;
+        let name = productNameEl.value.trim();
+        let description = productDescEl.value.trim();
+        let priceRegular = priceRegEl.value.trim();
+        let priceCard = priceCardEl.value.trim();
 
         if (!files || files.length === 0 || !name || !description || !priceRegular || !priceCard) {
           alert("Заполните все поля и выберите хотя бы одну фотографию!");
+          return;
+        }
+
+        if (!adminLoggedIn) {
+          alert("Только администратор может добавлять товары!");
           return;
         }
 
@@ -1482,7 +1496,7 @@
               name,
               description,
               priceRegular,
-              priceCard,
+              priceCard
             });
             products.push({
               id: docRef.id,
@@ -1490,23 +1504,21 @@
               name,
               description,
               priceRegular,
-              priceCard,
+              priceCard
             });
             displayCatalog();
-            if (
-              document
-                .getElementById("productManagementSection")
-                ?.classList.contains("active")
-            ) {
+            const pmSection = document.getElementById("productManagementSection");
+            if (pmSection && pmSection.classList.contains("active")) {
               displayProductManagement();
             }
-            document.getElementById("productImages").value = "";
-            document.getElementById("productName").value = "";
-            document.getElementById("productDescription").value = "";
-            document.getElementById("productPriceRegular").value = "";
-            document.getElementById("productPriceCard").value = "";
 
-            alert("Товар добавлен!");
+            productImagesEl.value = "";
+            productNameEl.value = "";
+            productDescEl.value = "";
+            priceRegEl.value = "";
+            priceCardEl.value = "";
+
+            alert("Товар добавлен успешно!");
           } catch (err) {
             console.error("Ошибка добавления товара: ", err);
             alert("Ошибка при сохранении товара в Firebase: " + err.message);
@@ -1515,14 +1527,14 @@
 
         for (let i = 0; i < files.length; i++) {
           let reader = new FileReader();
-          reader.onload = function (e) {
+          reader.onload = function(e) {
             images.push(e.target.result);
             loadedCount++;
             if (loadedCount === files.length) {
               finalizeProduct();
             }
           };
-          reader.onerror = function (err) {
+          reader.onerror = function(err) {
             console.error("Ошибка чтения файла:", err);
             alert("Ошибка чтения файла: " + err.message);
           };
@@ -1530,13 +1542,10 @@
         }
       }
 
-      /*
-         Кнопка удалить в каталоге только если adminLoggedIn == true
-         (чтобы простой посетитель не мог удалять)
-      */
       function displayCatalog() {
+        let catalogListEl = document.getElementById("catalogList");
+        if (!catalogListEl) return;
         let list = "";
-        // adminLoggedIn (глобальная переменная), если false – не показываем кнопку
         products.forEach((product, index) => {
           list += `<div class="catalog-item mt-3">`;
           if (product.images && Array.isArray(product.images)) {
@@ -1550,19 +1559,16 @@
             <p>Цена (с картой): ${product.priceCard} руб.</p>
             <button class="btn btn-success" onclick="alert('Свяжитесь с администратором для покупки!')">Купить</button>`;
           if (adminLoggedIn) {
-            // только админ увидит
             list += `<button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>`;
           }
           list += `</div>`;
         });
-        document.getElementById("catalogList").innerHTML = list;
+        catalogListEl.innerHTML = list;
       }
 
-      /*
-         Аналогично в управлении товарами – это чисто админский раздел,
-         и здесь точно показываем кнопку "Удалить"
-      */
       function displayProductManagement() {
+        let pmListEl = document.getElementById("productManagementList");
+        if (!pmListEl) return;
         let list = "";
         products.forEach((product, index) => {
           list += `<div class="catalog-item mt-3">`;
@@ -1578,7 +1584,7 @@
             <button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>
           </div>`;
         });
-        document.getElementById("productManagementList").innerHTML = list;
+        pmListEl.innerHTML = list;
       }
 
       async function deleteProduct(index) {
@@ -1586,16 +1592,14 @@
           alert("Только администратор может удалять товары!");
           return;
         }
+        if (!products[index]) return;
         if (confirm(`Удалить "${products[index].name}" из каталога?`)) {
           try {
             await deleteDoc(doc(db, "products", products[index].id));
             products.splice(index, 1);
             displayCatalog();
-            if (
-              document
-                .getElementById("productManagementSection")
-                ?.classList.contains("active")
-            ) {
+            let pmSection = document.getElementById("productManagementSection");
+            if (pmSection && pmSection.classList.contains("active")) {
               displayProductManagement();
             }
             alert("Товар удалён!");
@@ -1616,11 +1620,11 @@
                   .then(async (subscription) => {
                     subscriptions.push({
                       childName,
-                      subscription: subscription.toJSON(),
+                      subscription: subscription.toJSON()
                     });
                     await addDoc(collection(db, "subscriptions"), {
                       childName,
-                      subscription: subscription.toJSON(),
+                      subscription: subscription.toJSON()
                     });
                   })
                   .catch((err) => console.error("Ошибка подписки на Push:", err));
@@ -1631,7 +1635,9 @@
       }
 
       function sendPushNotification() {
-        let message = document.getElementById("pushMessage")?.value;
+        let pushMsgEl = document.getElementById("pushMessage");
+        if (!pushMsgEl) return;
+        let message = pushMsgEl.value;
         if (message) {
           subscriptions.forEach((sub) => {
             navigator.serviceWorker.ready
@@ -1645,7 +1651,7 @@
                 alert("Ошибка отправки Push: " + err.message);
               });
           });
-          document.getElementById("pushMessage").value = "";
+          pushMsgEl.value = "";
           alert("Уведомление отправлено всем подписчикам (тест без HTTPS)");
         } else {
           alert("Введите текст уведомления!");
@@ -1653,7 +1659,9 @@
       }
 
       function deleteAccount() {
-        let childName = document.getElementById("cardChildName")?.innerText;
+        let childNameEl = document.getElementById("cardChildName");
+        if (!childNameEl) return;
+        let childName = childNameEl.innerText;
         if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
           delete visitors[childName];
           deleteDoc(doc(db, "visitors", childName));
@@ -1680,23 +1688,10 @@
             user.registrationDate,
             user.adminKey,
             user.login,
-            user.password,
+            user.password
           ]);
         }
-        data.push([
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "Итого посещений:",
-          totalVisits,
-          "",
-          "",
-          "",
-        ]);
+        data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, "", "", ""]);
         let ws = XLSX.utils.aoa_to_sheet([
           [
             "ФИО ребёнка",
@@ -1710,15 +1705,15 @@
             "Дата регистрации",
             "Админ-ключ",
             "Логин",
-            "Пароль (хэш)",
+            "Пароль (хэш)"
           ],
-          ...data,
+          ...data
         ]);
         let wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Посетители");
         XLSX.writeFile(wb, "Visitors_Pесочные_Острова.xlsx", {
           bookSST: true,
-          type: "binary",
+          type: "binary"
         });
       }
 
@@ -1729,34 +1724,32 @@
       }
 
       function showErrorLog() {
+        let adminPanel = document.getElementById("adminPanelSection");
+        if (!adminPanel) return;
         let logDiv = document.createElement("div");
         logDiv.innerHTML =
           '<h4 class="black-label">Лог ошибок</h4>' +
           errorLog.map((e) => `<p>${e.date}: ${e.message}</p>`).join("");
-        document.getElementById("adminPanelSection").appendChild(logDiv);
+        adminPanel.appendChild(logDiv);
       }
 
-      // Автоскроллинг для последних полей ввода
-      document.querySelectorAll(".last-input").forEach((input) => {
-        input.addEventListener("blur", () => {
+      // Автоскроллинг для последних полей ввода при потере фокуса
+      let lastInputs = document.querySelectorAll(".last-input");
+      for (let i = 0; i < lastInputs.length; i++) {
+        lastInputs[i].addEventListener("blur", () => {
           setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 300);
         });
-      });
+      }
 
       // Изначально показываем приветствие + каталог
       showSection("welcomeSection");
       displayCatalog();
 
-      /*
-        Не забудьте проверить, что ваш sw.js лежит рядом 
-        и FirebaseConfig – ваш реальный проект
-      */
+      // Регистрируем service worker (если есть sw.js)
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
           .register("sw.js")
-          .catch((err) =>
-            console.error("Service Worker регистрация не удалась:", err)
-          );
+          .catch((err) => console.error("Service Worker регистрация не удалась:", err));
       }
 
       // Делаем функции доступными глобально

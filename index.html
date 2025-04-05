@@ -200,16 +200,16 @@
 
       <!-- Секция приветствия -->
       <div id="welcomeSection" class="content-section active">
-        <h3 class="black-label">Добро пожаловать!</h3>
+        <h3 class="black-label">Добро пожаловать в «Песочные Острова»!</h3>
         <p>
-          Здравствуйте, дорогие родители наших маленьких исследователей! Добро
-          пожаловать в «Песочные Острова» — уголок радости, где дети
-          наслаждаются игрой с мягким белым песком в любое время года!
+          Мы рады приветствовать вас в нашем уютном оазисе, где дети могут
+          круглый год играть с мягким белым песком, а родители — отдыхать в
+          спокойной обстановке, зная, что всё организовано с заботой о малыше.
         </p>
         <p>
-          У нас ваш ребёнок проведёт время с удовольствием и пользой, а вы
-          сможете расслабиться, зная, что всё организовано для его комфорта и
-          безопасности.
+          «Песочные Острова» — это место, где всегда тепло, весело и уютно!
+          Присоединяйтесь к нам и подарите своим детям радостные моменты
+          творчества и игры.
         </p>
       </div>
 
@@ -518,13 +518,13 @@
         <i class="fas fa-video"></i>
       </button>
 
-      <!-- Кнопка «Написать нам в Telegram» (новая) -->
+      <!-- Кнопка «Обратная связь» с иконкой вопроса -->
       <button
         class="btn"
         onclick="window.open('https://t.me/pesocnye_ostrova', '_blank')"
-        title="Связаться в Telegram"
+        title="Обратная связь в Telegram"
       >
-        <i class="fab fa-telegram-plane"></i>
+        <i class="fas fa-circle-question"></i>
       </button>
 
       <!-- Кнопка для администратора -->
@@ -592,8 +592,10 @@
       let lastScannedChild = null;
       let adminLoggedIn = false;
 
+      // Массив (или объект) с админ-паролями
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
+      // Слушаем изменения в коллекциях Firestore
       onSnapshot(collection(db, "visitors"), (snapshot) => {
         visitors = {};
         snapshot.forEach((docSnap) => {
@@ -601,7 +603,6 @@
         });
         console.log("Visitors обновлены:", visitors);
       });
-
       onSnapshot(collection(db, "errorLog"), (snapshot) => {
         errorLog = [];
         snapshot.forEach((docSnap) => {
@@ -609,7 +610,6 @@
         });
         console.log("ErrorLog обновлён:", errorLog);
       });
-
       onSnapshot(collection(db, "subscriptions"), (snapshot) => {
         subscriptions = [];
         snapshot.forEach((docSnap) => {
@@ -618,6 +618,7 @@
         console.log("Subscriptions обновлены:", subscriptions);
       });
 
+      // Функция переключения секций (SPA)
       function showSection(sectionId) {
         document.querySelectorAll(".content-section").forEach((section) => {
           section.classList.remove("active");
@@ -627,6 +628,7 @@
         section.scrollIntoView({ behavior: "smooth", block: "start" });
         setTimeout(() => window.scrollBy(0, -100), 500);
 
+        // Прячем логотип на экране регистрации
         if (sectionId === "registerSection") {
           document.querySelector(".logo").style.display = "none";
         } else {
@@ -634,6 +636,7 @@
         }
       }
 
+      // Вход администратора
       function adminLogin() {
         let password = document.getElementById("adminPassword")?.value;
         if (ADMIN_PASSWORDS.includes(password)) {
@@ -649,6 +652,7 @@
         }
       }
 
+      // Вход посетителя (по логину/паролю)
       function visitorLogin() {
         let login = document.getElementById("visitorLoginInput")?.value;
         let password = document.getElementById("visitorPasswordInput")?.value;
@@ -671,6 +675,7 @@
                 localStorage.removeItem("savedLogin");
                 localStorage.removeItem("savedPassword");
               }
+              // Переход к клубной карте
               showSection("clubCardSection");
               document.getElementById("cardChildName").innerText = childName;
               if (!user.visitKey || Date.now() > user.visitKeyExpiration) {
@@ -702,6 +707,7 @@
         alert("Неверный логин или пароль!");
       }
 
+      // Сохраняем/восстанавливаем логины
       window.onload = function () {
         let savedLogin = localStorage.getItem("savedLogin");
         let savedPassword = localStorage.getItem("savedPassword");
@@ -717,6 +723,7 @@
         }
       };
 
+      // Регистрация клубной карты
       function registerCard() {
         let childName = document.getElementById("childFullName")?.value.trim();
         let parentName = document.getElementById("parentFullName")?.value.trim();
@@ -774,6 +781,7 @@
         }
       }
 
+      // Генерация adminKey
       function generateAdminKey(childFullName, parentFullName, birthDate) {
         let childParts = childFullName.trim().split(/\s+/);
         let initials = "";
@@ -796,6 +804,7 @@
         return uniqueKey;
       }
 
+      // Генерация ключей
       function generateKey(prefix, childName) {
         const time = Date.now().toString(36);
         return `${prefix}-${childName.replace(/\s+/g, "").slice(0, 5)}-${time}`.toUpperCase();
@@ -846,6 +855,7 @@
         return paymentKey;
       }
 
+      // Обновление карты (прогресс посещений)
       function updateCard(childName) {
         let user = visitors[childName];
         let visits = user.visits;
@@ -879,6 +889,7 @@
         }
       }
 
+      // Сканирование QR
       let video = null;
       let scanType = "visit";
 
@@ -984,6 +995,7 @@
         document.getElementById("debugInfo").innerText = "";
       }
 
+      // Добавить визит (QR)
       function addVisitFromQR(visitKey) {
         for (let childName in visitors) {
           let user = visitors[childName];
@@ -1009,6 +1021,7 @@
         alert("Неверный QR-код посещения или карта не оплачена!");
       }
 
+      // Добавить визит вручную
       function addVisitFromManual() {
         let visitKey = document.getElementById("manualVisitKey")?.value;
         if (visitKey) {
@@ -1040,6 +1053,7 @@
         }
       }
 
+      // Подтверждение оплаты (QR)
       function confirmPaymentQR(paymentKey) {
         for (let childName in visitors) {
           let user = visitors[childName];
@@ -1054,6 +1068,7 @@
         alert("Неверный QR-код оплаты!");
       }
 
+      // Подтверждение оплаты вручную
       function confirmPaymentManual() {
         let paymentKey = document.getElementById("manualPaymentKey")?.value.trim();
         if (paymentKey) {
@@ -1074,6 +1089,7 @@
         }
       }
 
+      // Push-уведомление (тест)
       function sendPushToUser(childName, message) {
         const sub = subscriptions.find((s) => s.childName === childName);
         if (sub && "serviceWorker" in navigator) {
@@ -1092,6 +1108,7 @@
         }
       }
 
+      // Отмена последнего посещения
       function removeVisit() {
         if (lastScannedChild && visitors[lastScannedChild]) {
           let user = visitors[lastScannedChild];
@@ -1117,6 +1134,7 @@
         }
       }
 
+      // Показать всех пользователей
       function showAllUsers() {
         let table =
           "<table class='table table-striped' id='allUsersTable'><thead><tr><th>Ребёнок</th><th>Родитель</th><th>Дата рождения</th><th>Телефон</th><th>Статус</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr></thead><tbody>";
@@ -1152,6 +1170,7 @@
         document.getElementById("usersTable").innerHTML = table;
       }
 
+      // Статистика
       function showStats() {
         let totalUsers = 0;
         let paidCount = 0;
@@ -1177,6 +1196,7 @@
         statsModal.show();
       }
 
+      // Удалить аккаунт посетителя
       function deleteAccount() {
         let childName = document.getElementById("cardChildName")?.innerText;
         if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
@@ -1187,6 +1207,7 @@
         }
       }
 
+      // Экспорт в Excel
       function exportToExcel() {
         let data = [];
         let totalVisits = 0;
@@ -1247,6 +1268,7 @@
         });
       }
 
+      // Лог ошибок
       function logError(message) {
         const errObj = {
           date: new Date().toISOString(),
@@ -1264,21 +1286,24 @@
         document.getElementById("adminPanelSection").appendChild(logDiv);
       }
 
+      // Автоскролл при потере фокуса последних полей
       document.querySelectorAll(".last-input").forEach((input) => {
         input.addEventListener("blur", () => {
           setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 300);
         });
       });
 
-      // При старте показываем приветствие
+      // Изначально показываем приветствие
       showSection("welcomeSection");
 
+      // Регистрируем Service Worker (для Push)
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
           .register("sw.js")
           .catch((err) => console.error("SW регистрация не удалась:", err));
       }
 
+      // Делаем некоторые функции доступными глобально
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;
@@ -1295,6 +1320,7 @@
       window.showStats = showStats;
       window.deleteAccount = deleteAccount;
       window.logError = logError;
+      window.sendPushToUser = sendPushToUser; // если нужно явным вызовом
     </script>
   </body>
 </html>

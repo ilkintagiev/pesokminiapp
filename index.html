@@ -158,12 +158,6 @@
         color: #000;
         text-shadow: none;
       }
-      .catalog-item img {
-        max-width: 100px;
-        border-radius: 5px;
-        margin-right: 5px;
-        margin-bottom: 5px;
-      }
       .qr-container {
         margin-top: 10px;
       }
@@ -361,7 +355,7 @@
               </div>
             </div>
           </div>
-          <!-- Управление данными, экспорт, лог, товары -->
+          <!-- Управление данными, экспорт, лог, статистика -->
           <div class="col-12">
             <div class="card border-info bg-light mt-3">
               <div class="card-body">
@@ -393,12 +387,6 @@
                   <i class="fas fa-exclamation-triangle"></i> Показать лог ошибок
                 </button>
                 <button
-                  class="btn btn-info w-100 mt-2"
-                  onclick="showSection('productManagementSection')"
-                >
-                  <i class="fas fa-boxes"></i> Управление товарами
-                </button>
-                <button
                   class="btn btn-warning w-100 mt-2"
                   onclick="showStats()"
                 >
@@ -407,104 +395,13 @@
               </div>
             </div>
           </div>
-          <!-- Карточка добавления товара -->
-          <div class="col-12">
-            <div class="card border-warning bg-light mt-3">
-              <div class="card-body">
-                <h5 class="card-title">Добавить товар</h5>
-                <p class="card-text">
-                  Заполните поля и добавьте новый товар.
-                  Можно сразу открыть камеру (зависит от телефона).
-                </p>
-                <input
-                  type="file"
-                  class="form-control mt-2"
-                  id="productImages"
-                  accept="image/*"
-                  capture="camera"
-                  multiple
-                />
-                <input
-                  type="text"
-                  class="form-control mt-2"
-                  id="productName"
-                  placeholder="Название товара"
-                />
-                <textarea
-                  class="form-control mt-2"
-                  id="productDescription"
-                  placeholder="Описание товара"
-                ></textarea>
-                <div class="row mt-2">
-                  <div class="col">
-                    <input
-                      type="number"
-                      class="form-control"
-                      id="productPriceRegular"
-                      placeholder="Цена (без карты)"
-                    />
-                  </div>
-                  <div class="col">
-                    <input
-                      type="number"
-                      class="form-control"
-                      id="productPriceCard"
-                      placeholder="Цена (с картой)"
-                    />
-                  </div>
-                </div>
-                <button
-                  class="btn btn-primary w-100 mt-3"
-                  onclick="addProduct()"
-                >
-                  <i class="fas fa-plus"></i> Добавить товар
-                </button>
-              </div>
-            </div>
-          </div>
-          <!-- Поиск пользователей -->
-          <div class="col-12">
-            <div class="card border-secondary bg-light mt-3">
-              <div class="card-body">
-                <h5 class="card-title">Поиск по пользователям</h5>
-                <p class="card-text">
-                  Введите часть ФИО ребёнка/родителя или телефон, затем нажмите
-                  «Найти».
-                </p>
-                <div class="input-group">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="searchInput"
-                    placeholder="Поиск..."
-                  />
-                  <button
-                    class="btn btn-outline-secondary"
-                    type="button"
-                    onclick="searchUsers()"
-                  >
-                    Найти
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Раньше здесь была карточка добавления товара — убрали -->
         </div>
         <!-- Таблица пользователей -->
         <div id="usersTable" class="mt-4" style="overflow-x: auto;"></div>
       </div>
 
-      <!-- Секция управления товарами (для админа) -->
-      <div id="productManagementSection" class="content-section">
-        <h3 class="black-label">Управление товарами</h3>
-        <div id="productManagementList"></div>
-        <button
-          class="btn btn-secondary w-100 mt-2"
-          onclick="showSection('adminPanelSection')"
-        >
-          <i class="fas fa-arrow-left"></i> Вернуться в панель
-        </button>
-      </div>
+      <!-- Раньше здесь была секция управления товарами (productManagementSection) — убрали -->
 
       <!-- Секция входа для посетителя -->
       <div id="visitorLoginSection" class="content-section">
@@ -632,11 +529,7 @@
         </div>
       </div>
 
-      <!-- Секция каталога товаров -->
-      <div id="catalogSection" class="content-section">
-        <h3 class="black-label">Каталог товаров</h3>
-        <div id="catalogList"></div>
-      </div>
+      <!-- Раньше здесь была "Секция каталога товаров" — удалили -->
 
       <!-- Секция видеотрансляции -->
       <div id="broadcastSection" class="content-section">
@@ -659,9 +552,7 @@
       <button class="btn" onclick="showSection('visitorLoginSection')">
         <i class="fas fa-users"></i>
       </button>
-      <button class="btn" onclick="showSection('catalogSection')">
-        <i class="fas fa-shopping-cart"></i>
-      </button>
+      <!-- Удалили кнопку каталога (была здесь) -->
       <button class="btn" onclick="showSection('broadcastSection')">
         <i class="fas fa-video"></i>
       </button>
@@ -710,7 +601,7 @@
         deleteDoc,
       } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
-      // Ваши реальные данные:
+      // Ваши реальные данные (из вопроса)
       const firebaseConfig = {
         apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
         authDomain: "pesochnyeostrova.firebaseapp.com",
@@ -727,13 +618,12 @@
          Глобальные переменные
          =============================== */
       let visitors = {};
-      let products = [];
       let errorLog = [];
       let subscriptions = [];
       let lastScannedChild = null;
       let adminLoggedIn = false;
 
-      // Можно хранить несколько паролей, если хотите
+      // Можно хранить несколько паролей
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
       /* ===============================
@@ -745,24 +635,6 @@
           visitors[docSnap.id] = docSnap.data();
         });
         console.log("Visitors обновлены:", visitors);
-      });
-
-      onSnapshot(collection(db, "products"), (snapshot) => {
-        products = [];
-        snapshot.forEach((docSnap) => {
-          let product = docSnap.data();
-          product.id = docSnap.id;
-          products.push(product);
-        });
-        displayCatalog(); // Обновляем каталог на главной
-        if (
-          document
-            .getElementById("productManagementSection")
-            ?.classList.contains("active")
-        ) {
-          displayProductManagement(); // Обновляем список товаров в админке
-        }
-        console.log("Products обновлены:", products);
       });
 
       onSnapshot(collection(db, "errorLog"), (snapshot) => {
@@ -837,7 +709,6 @@
             user.password === hashedPassword &&
             user.registered
           ) {
-            // Есть такой пользователь, проверяем оплату
             if (user.paid) {
               if (rememberMe) {
                 localStorage.setItem("savedLogin", login);
@@ -846,17 +717,11 @@
                 localStorage.removeItem("savedLogin");
                 localStorage.removeItem("savedPassword");
               }
-              // Переходим в личный кабинет (клубная карта)
               showSection("clubCardSection");
               document.getElementById("cardChildName").innerText = childName;
-              // Проверяем, не истёк ли QR-код посещения
-              if (
-                !user.visitKey ||
-                Date.now() > user.visitKeyExpiration
-              ) {
+              if (!user.visitKey || Date.now() > user.visitKeyExpiration) {
                 generateVisitQR(childName);
               } else {
-                // Отображаем уже существующий QR-код
                 let qrCodeData = `visit:${user.visitKey}`;
                 QRCode.toCanvas(
                   document.createElement("canvas"),
@@ -866,7 +731,9 @@
                     if (error) console.error(error);
                     if (document.getElementById("visitQRCode")) {
                       document.getElementById("visitQRCode").innerHTML = "";
-                      document.getElementById("visitQRCode").appendChild(canvas);
+                      document
+                        .getElementById("visitQRCode")
+                        .appendChild(canvas);
                     }
                   }
                 );
@@ -931,7 +798,6 @@
         let baseKey = `${initials}${parentInitial}${birthYear}`;
         let uniqueKey = baseKey;
         let counter = 1;
-        // Убеждаемся, что нет дубликатов
         while (Object.values(visitors).some((v) => v.adminKey === uniqueKey)) {
           uniqueKey = `${baseKey}${counter}`;
           counter++;
@@ -988,9 +854,7 @@
          =============================== */
       async function registerCard() {
         let childName = document.getElementById("childFullName")?.value.trim();
-        let parentName = document
-          .getElementById("parentFullName")
-          ?.value.trim();
+        let parentName = document.getElementById("parentFullName")?.value.trim();
         let birthDate = document.getElementById("childBirthDate")?.value;
         let phone = document.getElementById("parentPhone")?.value.trim();
         let login = document.getElementById("newLogin")?.value.trim();
@@ -1008,7 +872,6 @@
           alert("Введите корректный номер телефона (10-12 цифр)!");
           return;
         }
-        // Проверяем, нет ли уже такого ребёнка
         if (!visitors[childName]) {
           let hashedPassword = CryptoJS.SHA256(password).toString();
           let adminKey = generateAdminKey(childName, parentName, birthDate);
@@ -1022,7 +885,7 @@
             phone,
             visits: 0,
             registered: true,
-            paid: false, // Оплата пока не подтверждена
+            paid: false,
             adminKey,
             registrationDate,
             visitKey: "",
@@ -1064,7 +927,6 @@
         document.getElementById("visits").innerText = visits;
         document.getElementById("status").innerText = statusText;
 
-        // Анимация при достижении 5
         if (visits === 5) {
           document
             .getElementById("visits")
@@ -1075,7 +937,6 @@
               .classList.remove("bonus-animation");
           }, 1000);
         }
-        // Если 6, сбрасываем счётчик
         if (visits >= 6) {
           visitors[childName].visits = 0;
           setDoc(doc(db, "visitors", childName), visitors[childName]);
@@ -1198,11 +1059,7 @@
       function addVisitFromQR(visitKey) {
         for (let childName in visitors) {
           let user = visitors[childName];
-          if (
-            user.visitKey === visitKey &&
-            user.registered &&
-            user.paid
-          ) {
+          if (user.visitKey === visitKey && user.registered && user.paid) {
             if (Date.now() > user.visitKeyExpiration) {
               alert("QR-код посещения устарел! Попросите посетителя обновить его.");
               return;
@@ -1217,7 +1074,7 @@
               document.getElementById("removeVisitBtn").disabled = false;
             }
             alert(`Посещение добавлено для ${childName}!`);
-            generateVisitQR(childName); // Генерируем новый QR
+            generateVisitQR(childName);
             return;
           }
         }
@@ -1229,11 +1086,7 @@
         if (visitKey) {
           for (let childName in visitors) {
             let user = visitors[childName];
-            if (
-              user.visitKey === visitKey &&
-              user.registered &&
-              user.paid
-            ) {
+            if (user.visitKey === visitKey && user.registered && user.paid) {
               if (Date.now() > user.visitKeyExpiration) {
                 alert("Код посещения устарел! Попросите посетителя обновить его.");
                 return;
@@ -1249,7 +1102,7 @@
               }
               alert(`Посещение добавлено для ${childName}!`);
               document.getElementById("manualVisitKey").value = "";
-              generateVisitQR(childName); // Обновляем QR
+              generateVisitQR(childName);
               return;
             }
           }
@@ -1441,250 +1294,6 @@
       }
 
       /* ===============================
-         Добавление товара (только админ)
-         =============================== */
-      async function addProduct() {
-        if (!adminLoggedIn) {
-          alert("Только администратор может добавлять товары!");
-          return;
-        }
-        alert("Добавление товара..."); // Для отладки
-
-        let files = document.getElementById("productImages")?.files;
-        let name = document.getElementById("productName")?.value.trim();
-        let description = document
-          .getElementById("productDescription")
-          ?.value.trim();
-        let priceRegular = document
-          .getElementById("productPriceRegular")
-          ?.value.trim();
-        let priceCard = document
-          .getElementById("productPriceCard")
-          ?.value.trim();
-
-        if (
-          !files ||
-          files.length === 0 ||
-          !name ||
-          !description ||
-          !priceRegular ||
-          !priceCard
-        ) {
-          alert("Заполните все поля и выберите хотя бы одну фотографию!");
-          return;
-        }
-
-        let images = [];
-        let loadedCount = 0;
-
-        async function finalizeProduct() {
-          try {
-            const docRef = await addDoc(collection(db, "products"), {
-              images,
-              name,
-              description,
-              priceRegular,
-              priceCard,
-            });
-            products.push({
-              id: docRef.id,
-              images,
-              name,
-              description,
-              priceRegular,
-              priceCard,
-            });
-            displayCatalog();
-            if (
-              document
-                .getElementById("productManagementSection")
-                ?.classList.contains("active")
-            ) {
-              displayProductManagement();
-            }
-            // Очищаем поля
-            document.getElementById("productImages").value = "";
-            document.getElementById("productName").value = "";
-            document.getElementById("productDescription").value = "";
-            document.getElementById("productPriceRegular").value = "";
-            document.getElementById("productPriceCard").value = "";
-
-            alert("Товар добавлен!");
-          } catch (err) {
-            console.error("Ошибка добавления товара: ", err);
-            alert("Ошибка при сохранении товара в Firebase: " + err.message);
-          }
-        }
-
-        for (let i = 0; i < files.length; i++) {
-          let reader = new FileReader();
-          reader.onload = function (e) {
-            images.push(e.target.result);
-            loadedCount++;
-            if (loadedCount === files.length) {
-              finalizeProduct();
-            }
-          };
-          reader.onerror = function (err) {
-            console.error("Ошибка чтения файла:", err);
-            alert("Ошибка чтения файла: " + err.message);
-          };
-          reader.readAsDataURL(files[i]);
-        }
-      }
-
-      /* ===============================
-         Отображение каталога (для всех)
-         =============================== */
-      function displayCatalog() {
-        let list = "";
-        products.forEach((product, index) => {
-          list += `<div class="catalog-item mt-3">`;
-          if (product.images && Array.isArray(product.images)) {
-            product.images.forEach((img) => {
-              list += `<img src="${img}" alt="${product.name}">`;
-            });
-          }
-          list += `
-            <p><strong>${product.name}</strong></p>
-            <p>Цена (без карты): ${product.priceRegular} руб.</p>
-            <p>Цена (с картой): ${product.priceCard} руб.</p>
-            <button
-              class="btn btn-success"
-              onclick="alert('Свяжитесь с администратором для покупки!')"
-            >
-              Купить
-            </button>
-          `;
-          // Если админ вошёл, показываем кнопку удалить
-          if (adminLoggedIn) {
-            list += `
-              <button
-                class="btn btn-danger mt-1"
-                onclick="deleteProduct(${index})"
-              >
-                Удалить
-              </button>
-            `;
-          }
-          list += `</div>`;
-        });
-        document.getElementById("catalogList").innerHTML = list;
-      }
-
-      /* ===============================
-         Отображение списка товаров (админ)
-         =============================== */
-      function displayProductManagement() {
-        let list = "";
-        products.forEach((product, index) => {
-          list += `<div class="catalog-item mt-3">`;
-          if (product.images && Array.isArray(product.images)) {
-            product.images.forEach((img) => {
-              list += `<img src="${img}" alt="${product.name}">`;
-            });
-          }
-          list += `
-            <p><strong>${product.name}</strong></p>
-            <p>Цена (без карты): ${product.priceRegular} руб.</p>
-            <p>Цена (с картой): ${product.priceCard} руб.</p>
-            <button
-              class="btn btn-danger mt-1"
-              onclick="deleteProduct(${index})"
-            >
-              Удалить
-            </button>
-          </div>`;
-        });
-        document.getElementById("productManagementList").innerHTML = list;
-      }
-
-      /* ===============================
-         Удаление товара (только админ)
-         =============================== */
-      async function deleteProduct(index) {
-        if (!adminLoggedIn) {
-          alert("Только администратор может удалять товары!");
-          return;
-        }
-        if (
-          confirm(`Удалить "${products[index].name}" из каталога?`)
-        ) {
-          try {
-            await deleteDoc(doc(db, "products", products[index].id));
-            products.splice(index, 1);
-            displayCatalog();
-            if (
-              document
-                .getElementById("productManagementSection")
-                ?.classList.contains("active")
-            ) {
-              displayProductManagement();
-            }
-            alert("Товар удалён!");
-          } catch (err) {
-            console.error("Ошибка удаления товара: ", err);
-            alert("Ошибка при удалении: " + err.message);
-          }
-        }
-      }
-
-      /* ===============================
-         Подписка на PUSH
-         =============================== */
-      function subscribeToPush(childName) {
-        if ("Notification" in window && "serviceWorker" in navigator) {
-          Notification.requestPermission().then((permission) => {
-            if (permission === "granted") {
-              navigator.serviceWorker.register("sw.js").then((registration) => {
-                registration.pushManager
-                  .subscribe({ userVisibleOnly: true })
-                  .then(async (subscription) => {
-                    subscriptions.push({
-                      childName,
-                      subscription: subscription.toJSON(),
-                    });
-                    await addDoc(collection(db, "subscriptions"), {
-                      childName,
-                      subscription: subscription.toJSON(),
-                    });
-                  })
-                  .catch((err) =>
-                    console.error("Ошибка подписки на Push:", err)
-                  );
-              });
-            }
-          });
-        }
-      }
-
-      /* ===============================
-         Отправка push-уведомления
-         (пример для всех подписчиков)
-         =============================== */
-      function sendPushNotification() {
-        let message = document.getElementById("pushMessage")?.value;
-        if (message) {
-          subscriptions.forEach((sub) => {
-            navigator.serviceWorker.ready
-              .then((registration) => {
-                registration.showNotification("Песочные Острова", {
-                  body: message,
-                  icon: "Ресурс 1@10x.png",
-                });
-              })
-              .catch((err) => {
-                alert("Ошибка отправки Push: " + err.message);
-              });
-          });
-          document.getElementById("pushMessage").value = "";
-          alert("Уведомление отправлено всем подписчикам (тест без HTTPS)");
-        } else {
-          alert("Введите текст уведомления!");
-        }
-      }
-
-      /* ===============================
          Удалить аккаунт посетителя
          =============================== */
       function deleteAccount() {
@@ -1788,10 +1397,9 @@
       });
 
       /* ===============================
-         Изначально показываем приветствие + каталог
+         Изначально показываем приветствие
          =============================== */
       showSection("welcomeSection");
-      displayCatalog();
 
       // Регистрируем Service Worker для push
       if ("serviceWorker" in navigator) {
@@ -1800,7 +1408,7 @@
           .catch((err) => console.error("SW регистрация не удалась:", err));
       }
 
-      // Делаем функции доступными глобально (для кнопок onclick)
+      // Делаем функции доступными глобально
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;
@@ -1816,9 +1424,7 @@
       window.showErrorLog = showErrorLog;
       window.searchUsers = searchUsers;
       window.showStats = showStats;
-      window.sendPushNotification = sendPushNotification;
-      window.addProduct = addProduct;
-      window.deleteProduct = deleteProduct;
+      window.sendPushToUser = sendPushToUser; // если нужно прямую отправку
       window.deleteAccount = deleteAccount;
       window.logError = logError;
     </script>

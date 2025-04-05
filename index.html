@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Песочные Острова</title>
 
     <!-- Подключение сторонних библиотек -->
@@ -23,7 +23,9 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
     <style>
-      /* Основные стили */
+      /* ======================
+         Основные стили
+         ====================== */
       body {
         font-family: Arial, sans-serif;
         background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80')
@@ -36,19 +38,14 @@
         display: flex;
         flex-direction: column;
       }
-
-      /* Шапка сайта (navbar сверху) */
       .navbar-top {
         z-index: 10000;
       }
-
       .main-container {
         flex: 1;
         padding: 20px;
         overflow-y: auto;
       }
-
-      /* Анимация появления секций */
       @keyframes fadeInUp {
         0% {
           opacity: 0;
@@ -71,8 +68,7 @@
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         margin: 20px auto;
         text-align: center;
-        opacity: 0;
-        /* Чтобы анимация сработала при добавлении класса active */
+        opacity: 0; 
         animation-duration: 0.5s;
         animation-fill-mode: forwards;
       }
@@ -80,23 +76,16 @@
         display: block;
         animation-name: fadeInUp;
       }
-
-      /* Для регистрации уменьшаем ширину */
       .content-section.reg-form {
         max-width: 400px;
       }
-
-      /* Остальные секции можно растянуть чуть сильнее */
       .content-section:not(.reg-form) {
         max-width: 600px;
       }
-
-      /* Нижняя панель навигации */
       .navbar-bottom {
         position: fixed;
         bottom: 0;
         width: 100%;
-        /* Градиент + небольшая прозрачность */
         background: linear-gradient(90deg, #ffc107, #ff9800);
         opacity: 0.95;
         padding: 10px 0;
@@ -130,7 +119,6 @@
         transform: translateY(1px) scale(0.98) !important;
         box-shadow: none;
       }
-
       img.logo {
         max-width: 200px;
         margin: 20px auto;
@@ -151,7 +139,6 @@
           filter: drop-shadow(0 0 10px #e0f7ff) brightness(1.1);
         }
       }
-
       table {
         width: 100%;
         border-collapse: collapse;
@@ -167,13 +154,10 @@
       th {
         background-color: rgba(255, 245, 200, 0.9);
       }
-
       .black-label {
         color: #000;
         text-shadow: none;
       }
-
-      /* Множественные картинки - выравниваем */
       .catalog-item img {
         max-width: 100px;
         border-radius: 5px;
@@ -200,8 +184,6 @@
         position: relative;
         z-index: 10;
       }
-
-      /* Анимация для бонусного счётчика */
       .bonus-animation {
         animation: bonusGlow 1s ease-in-out;
       }
@@ -219,7 +201,7 @@
     </style>
   </head>
   <body>
-    <!-- Шапка (navbar) -->
+    <!-- Навбар (верх) -->
     <nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top navbar-top">
       <div class="container">
         <a class="navbar-brand" href="#" onclick="showSection('welcomeSection')">
@@ -236,7 +218,6 @@
         >
           <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="topNav">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
@@ -248,18 +229,12 @@
               >
             </li>
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="#"
-                onclick="showSection('adminLoginSection')"
+              <a class="nav-link" href="#" onclick="showSection('adminLoginSection')"
                 >Администратор</a
               >
             </li>
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="#"
-                onclick="showSection('broadcastSection')"
+              <a class="nav-link" href="#" onclick="showSection('broadcastSection')"
                 >Трансляция</a
               >
             </li>
@@ -272,24 +247,23 @@
       <!-- Логотип -->
       <img
         src="Ресурс 1@10x.png"
-        alt="Лейбл Песочные Острова"
+        alt="Логотип Песочные Острова"
         class="logo"
       />
 
       <!-- Секция приветствия -->
       <div id="welcomeSection" class="content-section active">
         <h3 class="black-label">Добро пожаловать!</h3>
-        <p>Здравствуйте, дорогие родители наших маленьких исследователей!</p>
         <p>
-          Добро пожаловать в "Песочные Острова" — уголок радости, где дети
-          наслаждаются игрой с мягким белым песком в любое время года! 🌴🌊
+          Здравствуйте, дорогие родители наших маленьких исследователей! Добро
+          пожаловать в «Песочные Острова» — уголок радости, где дети
+          наслаждаются игрой с мягким белым песком в любое время года!
         </p>
         <p>
           У нас ваш ребёнок проведёт время с удовольствием и пользой, а вы
           сможете расслабиться, зная, что всё организовано для его комфорта и
           безопасности.
         </p>
-        <p>"Песочные Острова" — это место, где рождаются улыбки и воспоминания!</p>
       </div>
 
       <!-- Секция входа для администратора -->
@@ -316,12 +290,14 @@
       <div id="adminPanelSection" class="content-section">
         <h3 class="black-label mb-3">Панель администратора</h3>
         <div class="row g-3">
-          <!-- Карточка сканирования QR -->
+          <!-- Карточка QR-сканирования -->
           <div class="col-md-6">
             <div class="card border-primary bg-light">
               <div class="card-body">
                 <h5 class="card-title">QR-сканирование</h5>
-                <p class="card-text">Быстрое добавление посещений и подтверждение оплат</p>
+                <p class="card-text">
+                  Быстрое добавление посещений и подтверждение оплат
+                </p>
                 <button
                   class="btn btn-primary w-100 mt-2"
                   onclick="startQRScanner('visit')"
@@ -337,7 +313,10 @@
                 <div id="qrScanner" class="qr-container" style="display: none;">
                   <video id="qrVideo"></video>
                   <canvas id="qrCanvas"></canvas>
-                  <button class="btn btn-danger w-100 mt-2" onclick="stopQRScanner()">
+                  <button
+                    class="btn btn-danger w-100 mt-2"
+                    onclick="stopQRScanner()"
+                  >
                     <i class="fas fa-stop"></i> Остановить сканирование
                   </button>
                   <div id="debugInfo"></div>
@@ -345,7 +324,6 @@
               </div>
             </div>
           </div>
-
           <!-- Карточка ручного ввода -->
           <div class="col-md-6">
             <div class="card border-success bg-light">
@@ -358,7 +336,10 @@
                   id="manualVisitKey"
                   placeholder="Код посещения"
                 />
-                <button class="btn btn-primary w-100 mt-2" onclick="addVisitFromManual()">
+                <button
+                  class="btn btn-primary w-100 mt-2"
+                  onclick="addVisitFromManual()"
+                >
                   <i class="fas fa-user-plus"></i> Добавить посещение
                 </button>
                 <input
@@ -380,7 +361,6 @@
               </div>
             </div>
           </div>
-
           <!-- Управление данными, экспорт, лог, товары -->
           <div class="col-12">
             <div class="card border-info bg-light mt-3">
@@ -392,7 +372,10 @@
                 <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">
                   <i class="fas fa-users"></i> Показать всех пользователей
                 </button>
-                <button class="btn btn-secondary w-100 mt-2" onclick="exportToExcel()">
+                <button
+                  class="btn btn-secondary w-100 mt-2"
+                  onclick="exportToExcel()"
+                >
                   <i class="fas fa-file-export"></i> Экспорт в Excel
                 </button>
                 <button
@@ -403,7 +386,10 @@
                 >
                   <i class="fas fa-trash-alt"></i> Удалить последнее посещение
                 </button>
-                <button class="btn btn-info w-100 mt-2" onclick="showErrorLog()">
+                <button
+                  class="btn btn-info w-100 mt-2"
+                  onclick="showErrorLog()"
+                >
                   <i class="fas fa-exclamation-triangle"></i> Показать лог ошибок
                 </button>
                 <button
@@ -412,28 +398,24 @@
                 >
                   <i class="fas fa-boxes"></i> Управление товарами
                 </button>
-                <button class="btn btn-warning w-100 mt-2" onclick="showStats()">
+                <button
+                  class="btn btn-warning w-100 mt-2"
+                  onclick="showStats()"
+                >
                   <i class="fas fa-chart-bar"></i> Статистика
                 </button>
               </div>
             </div>
           </div>
-
           <!-- Карточка добавления товара -->
           <div class="col-12">
             <div class="card border-warning bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Добавить товар</h5>
                 <p class="card-text">
-                  Заполните поля и добавьте новый товар.  
-                  При желании можно сразу открыть камеру (зависит от телефона).
+                  Заполните поля и добавьте новый товар.
+                  Можно сразу открыть камеру (зависит от телефона).
                 </p>
-                
-                <!--
-                  capture="camera" + multiple
-                  Не везде работает локально (file://). 
-                  Рекомендуется запускать на http://localhost или HTTPS.
-                -->
                 <input
                   type="file"
                   class="form-control mt-2"
@@ -471,20 +453,23 @@
                     />
                   </div>
                 </div>
-                <button class="btn btn-primary w-100 mt-3" onclick="addProduct()">
+                <button
+                  class="btn btn-primary w-100 mt-3"
+                  onclick="addProduct()"
+                >
                   <i class="fas fa-plus"></i> Добавить товар
                 </button>
               </div>
             </div>
           </div>
-
           <!-- Поиск пользователей -->
           <div class="col-12">
             <div class="card border-secondary bg-light mt-3">
               <div class="card-body">
                 <h5 class="card-title">Поиск по пользователям</h5>
                 <p class="card-text">
-                  Введите часть ФИО ребёнка/родителя или телефон, затем нажмите «Найти».
+                  Введите часть ФИО ребёнка/родителя или телефон, затем нажмите
+                  «Найти».
                 </p>
                 <div class="input-group">
                   <input
@@ -505,7 +490,6 @@
             </div>
           </div>
         </div>
-
         <!-- Таблица пользователей -->
         <div id="usersTable" class="mt-4" style="overflow-x: auto;"></div>
       </div>
@@ -539,7 +523,9 @@
         />
         <div class="form-check mt-2">
           <input type="checkbox" class="form-check-input" id="rememberMe" />
-          <label class="form-check-label" for="rememberMe">Запомнить меня</label>
+          <label class="form-check-label" for="rememberMe"
+            >Запомнить меня</label
+          >
         </div>
         <button class="btn btn-primary w-100 mt-2" onclick="visitorLogin()">
           <i class="fas fa-sign-in-alt"></i> Войти
@@ -603,18 +589,13 @@
           class="card mx-auto"
           style="max-width: 500px; border: none; box-shadow: 0 0 15px rgba(0,0,0,0.2);"
         >
-          <div
-            class="card-body bg-light"
-            style="border-radius: 15px;"
-          >
+          <div class="card-body bg-light" style="border-radius: 15px;">
             <h3 class="card-title text-center">Клубная карта</h3>
             <h5 class="text-muted text-center mb-4">«Песочные Острова»</h5>
-
             <p>
               <strong>Ребёнок:</strong>
               <span id="cardChildName"></span>
             </p>
-
             <div class="d-flex justify-content-between">
               <p>
                 <strong>Посещений:</strong>
@@ -625,7 +606,6 @@
                 <span id="status">0/5 до бонуса</span>
               </p>
             </div>
-
             <div class="progress mt-2">
               <div
                 id="visitsProgressBar"
@@ -640,16 +620,11 @@
               </div>
             </div>
             <hr />
-
             <p><strong>QR-код для посещения:</strong></p>
             <div id="visitQRCode" class="qr-container"></div>
             <p class="mt-2">
-              <small
-                >Код посещения:
-                <span id="visitKeyDisplay"></span></small
-              >
+              <small>Код посещения: <span id="visitKeyDisplay"></span></small>
             </p>
-
             <button class="btn btn-danger w-100 mt-3" onclick="deleteAccount()">
               <i class="fas fa-user-times"></i> Удалить аккаунт
             </button>
@@ -679,30 +654,18 @@
       </div>
     </div>
 
-    <!-- Нижняя панель навигации -->
+    <!-- Нижняя панель навигации (footer) -->
     <nav class="navbar-bottom">
-      <button
-        class="btn"
-        onclick="showSection('visitorLoginSection')"
-        title="Семья"
-      >
+      <button class="btn" onclick="showSection('visitorLoginSection')">
         <i class="fas fa-users"></i>
       </button>
-      <button class="btn" onclick="showSection('catalogSection')" title="Каталог">
+      <button class="btn" onclick="showSection('catalogSection')">
         <i class="fas fa-shopping-cart"></i>
       </button>
-      <button
-        class="btn"
-        onclick="showSection('broadcastSection')"
-        title="Трансляция"
-      >
+      <button class="btn" onclick="showSection('broadcastSection')">
         <i class="fas fa-video"></i>
       </button>
-      <button
-        class="btn"
-        onclick="showSection('adminLoginSection')"
-        title="Администратор"
-      >
+      <button class="btn" onclick="showSection('adminLoginSection')">
         <i class="fas fa-user-tie"></i>
       </button>
     </nav>
@@ -731,8 +694,11 @@
       </div>
     </div>
 
-    <!-- Скрипт с Firebase и всей логикой -->
+    <!-- Скрипт с интеграцией Firebase (v9) + onSnapshot -->
     <script type="module">
+      /* ===============================
+         Инициализация Firebase
+         =============================== */
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
       import {
         getFirestore,
@@ -741,34 +707,38 @@
         doc,
         setDoc,
         addDoc,
-        deleteDoc
+        deleteDoc,
       } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
+      // Ваши реальные данные:
       const firebaseConfig = {
-        apiKey: "ВАШ_API_KEY",
-        authDomain: "ВАШ_ПРОЕКТ.firebaseapp.com",
-        projectId: "ВАШ_ПРОЕКТ",
-        storageBucket: "ВАШ_ПРОЕКТ.appspot.com",
-        messagingSenderId: "ВАШ_ID",
-        appId: "ВАШ_appId"
+        apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
+        authDomain: "pesochnyeostrova.firebaseapp.com",
+        projectId: "pesochnyeostrova",
+        storageBucket: "pesochnyeostrova.firebasestorage.app",
+        messagingSenderId: "632919679127",
+        appId: "1:632919679127:web:564b427bca7f0052a289d2"
       };
-      /*
-        ВНИМАНИЕ:
-        Замените выше на ваши реальные данные из Firebase Console → Project Settings → Web
-      */
 
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
+      /* ===============================
+         Глобальные переменные
+         =============================== */
       let visitors = {};
       let products = [];
       let errorLog = [];
       let subscriptions = [];
       let lastScannedChild = null;
       let adminLoggedIn = false;
+
+      // Можно хранить несколько паролей, если хотите
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
-      // onSnapshot для синхронизации в реальном времени
+      /* ===============================
+         onSnapshot — слушаем Firestore
+         =============================== */
       onSnapshot(collection(db, "visitors"), (snapshot) => {
         visitors = {};
         snapshot.forEach((docSnap) => {
@@ -784,10 +754,13 @@
           product.id = docSnap.id;
           products.push(product);
         });
-        displayCatalog();
-        const pmSection = document.getElementById("productManagementSection");
-        if (pmSection && pmSection.classList.contains("active")) {
-          displayProductManagement();
+        displayCatalog(); // Обновляем каталог на главной
+        if (
+          document
+            .getElementById("productManagementSection")
+            ?.classList.contains("active")
+        ) {
+          displayProductManagement(); // Обновляем список товаров в админке
         }
         console.log("Products обновлены:", products);
       });
@@ -808,17 +781,19 @@
         console.log("Subscriptions обновлены:", subscriptions);
       });
 
+      /* ===============================
+         Переход по секциям (SPA)
+         =============================== */
       function showSection(sectionId) {
-        const sections = document.querySelectorAll(".content-section");
-        for (let i = 0; i < sections.length; i++) {
-          sections[i].classList.remove("active");
-        }
+        document.querySelectorAll(".content-section").forEach((section) => {
+          section.classList.remove("active");
+        });
         const section = document.getElementById(sectionId);
-        if (section) {
-          section.classList.add("active");
-          section.scrollIntoView({ behavior: "smooth", block: "start" });
-          setTimeout(() => window.scrollBy(0, -100), 500);
-        }
+        section.classList.add("active");
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+        setTimeout(() => window.scrollBy(0, -100), 500);
+
+        // Прячем лого при регистрации
         if (sectionId === "registerSection") {
           document.querySelector(".logo").style.display = "none";
         } else {
@@ -826,14 +801,14 @@
         }
       }
 
+      /* ===============================
+         Логин админа
+         =============================== */
       function adminLogin() {
-        let passwordEl = document.getElementById("adminPassword");
-        if (!passwordEl) return;
-        let password = passwordEl.value;
+        let password = document.getElementById("adminPassword")?.value;
         if (ADMIN_PASSWORDS.includes(password)) {
           adminLoggedIn = true;
-          let rememberAdminEl = document.getElementById("rememberAdmin");
-          if (rememberAdminEl && rememberAdminEl.checked) {
+          if (document.getElementById("rememberAdmin")?.checked) {
             localStorage.setItem("savedAdminPassword", password);
           } else {
             localStorage.removeItem("savedAdminPassword");
@@ -844,10 +819,98 @@
         }
       }
 
+      /* ===============================
+         Логин посетителя
+         =============================== */
+      function visitorLogin() {
+        let login = document.getElementById("visitorLoginInput")?.value;
+        let password = document.getElementById("visitorPasswordInput")?.value;
+        let rememberMe = document.getElementById("rememberMe")?.checked;
+
+        // Хэшируем пароль
+        let hashedPassword = CryptoJS.SHA256(password).toString();
+
+        for (let childName in visitors) {
+          let user = visitors[childName];
+          if (
+            user.login === login &&
+            user.password === hashedPassword &&
+            user.registered
+          ) {
+            // Есть такой пользователь, проверяем оплату
+            if (user.paid) {
+              if (rememberMe) {
+                localStorage.setItem("savedLogin", login);
+                localStorage.setItem("savedPassword", password);
+              } else {
+                localStorage.removeItem("savedLogin");
+                localStorage.removeItem("savedPassword");
+              }
+              // Переходим в личный кабинет (клубная карта)
+              showSection("clubCardSection");
+              document.getElementById("cardChildName").innerText = childName;
+              // Проверяем, не истёк ли QR-код посещения
+              if (
+                !user.visitKey ||
+                Date.now() > user.visitKeyExpiration
+              ) {
+                generateVisitQR(childName);
+              } else {
+                // Отображаем уже существующий QR-код
+                let qrCodeData = `visit:${user.visitKey}`;
+                QRCode.toCanvas(
+                  document.createElement("canvas"),
+                  qrCodeData,
+                  { width: 150 },
+                  (error, canvas) => {
+                    if (error) console.error(error);
+                    if (document.getElementById("visitQRCode")) {
+                      document.getElementById("visitQRCode").innerHTML = "";
+                      document.getElementById("visitQRCode").appendChild(canvas);
+                    }
+                  }
+                );
+                document.getElementById("visitKeyDisplay").innerText =
+                  user.visitKey;
+              }
+              updateCard(childName);
+            } else {
+              alert("Карта не оплачена. Покажите QR-код оплаты администратору.");
+            }
+            return;
+          }
+        }
+        alert("Неверный логин или пароль!");
+      }
+
+      /* ===============================
+         При загрузке страницы
+         =============================== */
+      window.onload = function () {
+        let savedLogin = localStorage.getItem("savedLogin");
+        let savedPassword = localStorage.getItem("savedPassword");
+        if (savedLogin && savedPassword) {
+          document.getElementById("visitorLoginInput").value = savedLogin;
+          document.getElementById("visitorPasswordInput").value = savedPassword;
+          document.getElementById("rememberMe").checked = true;
+        }
+        let savedAdmin = localStorage.getItem("savedAdminPassword");
+        if (savedAdmin) {
+          document.getElementById("adminPassword").value = savedAdmin;
+          document.getElementById("rememberAdmin").checked = true;
+        }
+      };
+
+      /* ===============================
+         Показать форму регистрации
+         =============================== */
       function showRegister() {
         showSection("registerSection");
       }
 
+      /* ===============================
+         Генерация ключей
+         =============================== */
       function generateKey(prefix, childName) {
         const time = Date.now().toString(36);
         return `${prefix}-${childName.replace(/\s+/g, "").slice(0, 5)}-${time}`.toUpperCase();
@@ -868,9 +931,8 @@
         let baseKey = `${initials}${parentInitial}${birthYear}`;
         let uniqueKey = baseKey;
         let counter = 1;
-        // Проверяем, нет ли уже такого adminKey
-        let allValues = Object.values(visitors);
-        while (allValues.some((v) => v.adminKey === uniqueKey)) {
+        // Убеждаемся, что нет дубликатов
+        while (Object.values(visitors).some((v) => v.adminKey === uniqueKey)) {
           uniqueKey = `${baseKey}${counter}`;
           counter++;
         }
@@ -878,90 +940,61 @@
       }
 
       function generateVisitQR(childName) {
-        if (!visitors[childName]) return;
         let visitKey = generateKey("VISIT", childName);
         visitors[childName].visitKey = visitKey;
-        visitors[childName].visitKeyExpiration = Date.now() + 24 * 60 * 60 * 1000;
+        visitors[childName].visitKeyExpiration =
+          Date.now() + 24 * 60 * 60 * 1000;
         let qrCodeData = `visit:${visitKey}`;
-
-        // Генерация и рендер QR
         QRCode.toCanvas(
           document.createElement("canvas"),
           qrCodeData,
           { width: 150 },
           (error, canvas) => {
             if (error) console.error(error);
-            let visitQRCodeEl = document.getElementById("visitQRCode");
-            if (visitQRCodeEl) {
-              visitQRCodeEl.innerHTML = "";
-              visitQRCodeEl.appendChild(canvas);
+            if (document.getElementById("visitQRCode")) {
+              document.getElementById("visitQRCode").innerHTML = "";
+              document.getElementById("visitQRCode").appendChild(canvas);
             }
           }
         );
-
-        let vkDisplay = document.getElementById("visitKeyDisplay");
-        if (vkDisplay) {
-          vkDisplay.innerText = visitKey;
-        }
-
-        setDoc(doc(db, "visitors", childName), visitors[childName])
-          .then(() => console.log("Visitor updated in Firestore (visitKey)"))
-          .catch((err) => console.error("Error updating visitor:", err));
-
+        document.getElementById("visitKeyDisplay").innerText = visitKey;
+        setDoc(doc(db, "visitors", childName), visitors[childName]);
         return visitKey;
       }
 
       function generatePaymentQR(childName) {
-        if (!visitors[childName]) return;
         let paymentKey = generateKey("PAY", childName);
         visitors[childName].paymentKey = paymentKey;
         let qrCodeData = `payment:${paymentKey}`;
-
-        // Генерация и рендер QR
         QRCode.toCanvas(
           document.createElement("canvas"),
           qrCodeData,
           { width: 150 },
           (error, canvas) => {
             if (error) console.error(error);
-            let payQRCodeEl = document.getElementById("paymentQRCode");
-            if (payQRCodeEl) {
-              payQRCodeEl.innerHTML = "";
-              payQRCodeEl.appendChild(canvas);
+            if (document.getElementById("paymentQRCode")) {
+              document.getElementById("paymentQRCode").innerHTML = "";
+              document.getElementById("paymentQRCode").appendChild(canvas);
             }
           }
         );
-
-        let pkDisplay = document.getElementById("paymentKeyDisplay");
-        if (pkDisplay) {
-          pkDisplay.innerText = paymentKey;
-        }
-
-        setDoc(doc(db, "visitors", childName), visitors[childName])
-          .then(() => console.log("Visitor updated in Firestore (paymentKey)"))
-          .catch((err) => console.error("Error updating visitor:", err));
-
+        document.getElementById("paymentKeyDisplay").innerText = paymentKey;
+        setDoc(doc(db, "visitors", childName), visitors[childName]);
         return paymentKey;
       }
 
+      /* ===============================
+         Регистрация клубной карты
+         =============================== */
       async function registerCard() {
-        let childNameEl = document.getElementById("childFullName");
-        let parentNameEl = document.getElementById("parentFullName");
-        let birthDateEl = document.getElementById("childBirthDate");
-        let phoneEl = document.getElementById("parentPhone");
-        let newLoginEl = document.getElementById("newLogin");
-        let newPassEl = document.getElementById("newPassword");
-
-        if (!childNameEl || !parentNameEl || !birthDateEl || !phoneEl || !newLoginEl || !newPassEl) {
-          alert("Поля формы недоступны!");
-          return;
-        }
-        let childName = childNameEl.value.trim();
-        let parentName = parentNameEl.value.trim();
-        let birthDate = birthDateEl.value;
-        let phone = phoneEl.value.trim();
-        let login = newLoginEl.value.trim();
-        let password = newPassEl.value.trim();
+        let childName = document.getElementById("childFullName")?.value.trim();
+        let parentName = document
+          .getElementById("parentFullName")
+          ?.value.trim();
+        let birthDate = document.getElementById("childBirthDate")?.value;
+        let phone = document.getElementById("parentPhone")?.value.trim();
+        let login = document.getElementById("newLogin")?.value.trim();
+        let password = document.getElementById("newPassword")?.value.trim();
 
         if (!childName || !parentName || !birthDate || !phone || !login || !password) {
           alert("Заполните все поля!");
@@ -975,7 +1008,7 @@
           alert("Введите корректный номер телефона (10-12 цифр)!");
           return;
         }
-
+        // Проверяем, нет ли уже такого ребёнка
         if (!visitors[childName]) {
           let hashedPassword = CryptoJS.SHA256(password).toString();
           let adminKey = generateAdminKey(childName, parentName, birthDate);
@@ -989,147 +1022,61 @@
             phone,
             visits: 0,
             registered: true,
-            paid: false,
+            paid: false, // Оплата пока не подтверждена
             adminKey,
             registrationDate,
             visitKey: "",
             paymentKey: "",
-            visitKeyExpiration: 0
+            visitKeyExpiration: 0,
           };
-
-          // Генерируем ключи QR
           let visitKey = generateVisitQR(childName);
           let paymentKey = generatePaymentQR(childName);
           subscribeToPush(childName);
 
           alert(
-            `Карта зарегистрирована!\n\n` +
-            `Покажите QR-код оплаты администратору (или передайте ключ: ${paymentKey}).\n` +
-            `После оплаты используйте QR-код посещения (код: ${visitKey}).\n` +
-            `Админ-ключ: ${adminKey} (для внутреннего использования).`
+            `Карта зарегистрирована!\n
+Покажите QR-код оплаты администратору (или передайте ключ оплаты: ${paymentKey}).
+После оплаты используйте QR-код посещения (код: ${visitKey}).
+Админ-ключ: ${adminKey} (для внутреннего использования).`
           );
 
-          await setDoc(doc(db, "visitors", childName), visitors[childName])
-            .then(() => console.log("New visitor saved in Firestore"))
-            .catch((err) => console.error("Error saving visitor:", err));
+          await setDoc(doc(db, "visitors", childName), visitors[childName]);
         } else {
           alert("Этот ребёнок уже зарегистрирован!");
         }
       }
 
-      function visitorLogin() {
-        let loginEl = document.getElementById("visitorLoginInput");
-        let passwordEl = document.getElementById("visitorPasswordInput");
-        let rememberEl = document.getElementById("rememberMe");
-
-        if (!loginEl || !passwordEl) return;
-        let login = loginEl.value;
-        let password = passwordEl.value;
-        let hashedPassword = CryptoJS.SHA256(password).toString();
-
-        for (let childName in visitors) {
-          let v = visitors[childName];
-          if (v.login === login && v.password === hashedPassword && v.registered) {
-            if (v.paid) {
-              if (rememberEl && rememberEl.checked) {
-                localStorage.setItem("savedLogin", login);
-                localStorage.setItem("savedPassword", password);
-              } else {
-                localStorage.removeItem("savedLogin");
-                localStorage.removeItem("savedPassword");
-              }
-              showSection("clubCardSection");
-
-              let cardChildNameEl = document.getElementById("cardChildName");
-              if (cardChildNameEl) {
-                cardChildNameEl.innerText = childName;
-              }
-
-              // Проверяем, не устарел ли visitKey
-              if (!v.visitKey || Date.now() > v.visitKeyExpiration) {
-                generateVisitQR(childName);
-              } else {
-                // Отрисовать старый QR
-                let qrCodeData = `visit:${v.visitKey}`;
-                QRCode.toCanvas(
-                  document.createElement("canvas"),
-                  qrCodeData,
-                  { width: 150 },
-                  (error, canvas) => {
-                    if (error) console.error(error);
-                    let visitQRCodeEl = document.getElementById("visitQRCode");
-                    if (visitQRCodeEl) {
-                      visitQRCodeEl.innerHTML = "";
-                      visitQRCodeEl.appendChild(canvas);
-                    }
-                  }
-                );
-                let vkDisplay = document.getElementById("visitKeyDisplay");
-                if (vkDisplay) {
-                  vkDisplay.innerText = v.visitKey;
-                }
-              }
-              updateCard(childName);
-            } else {
-              alert("Карта не оплачена. Покажите QR-код оплаты администратору.");
-            }
-            return;
-          }
-        }
-        alert("Неверный логин или пароль!");
-      }
-
-      window.onload = function() {
-        let savedLogin = localStorage.getItem("savedLogin");
-        let savedPassword = localStorage.getItem("savedPassword");
-        if (savedLogin && savedPassword) {
-          let loginEl = document.getElementById("visitorLoginInput");
-          let passEl = document.getElementById("visitorPasswordInput");
-          let remEl = document.getElementById("rememberMe");
-          if (loginEl) loginEl.value = savedLogin;
-          if (passEl) passEl.value = savedPassword;
-          if (remEl) remEl.checked = true;
-        }
-        let savedAdmin = localStorage.getItem("savedAdminPassword");
-        if (savedAdmin) {
-          let adminPassEl = document.getElementById("adminPassword");
-          let remAdminEl = document.getElementById("rememberAdmin");
-          if (adminPassEl) adminPassEl.value = savedAdmin;
-          if (remAdminEl) remAdminEl.checked = true;
-        }
-      };
-
+      /* ===============================
+         Обновление прогресса на карте
+         =============================== */
       function updateCard(childName) {
         let user = visitors[childName];
-        if (!user) return;
         let visits = user.visits;
         let progressBar = document.getElementById("visitsProgressBar");
-        if (!progressBar) return;
         let progressPercentage = (visits / 5) * 100;
         if (progressPercentage > 100) progressPercentage = 100;
         progressBar.style.width = `${progressPercentage}%`;
         progressBar.setAttribute("aria-valuenow", visits);
         progressBar.innerText = `${visits}/5`;
 
-        let statusText = visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
-        let visitsEl = document.getElementById("visits");
-        let statusEl = document.getElementById("status");
+        let statusText =
+          visits < 5 ? `${visits}/5 до бонуса` : "Бесплатное посещение (30 мин)";
+        document.getElementById("visits").innerText = visits;
+        document.getElementById("status").innerText = statusText;
 
-        if (visitsEl) {
-          visitsEl.innerText = visits;
-          if (visits === 5) {
-            visitsEl.classList.add("bonus-animation");
-            setTimeout(() => {
-              visitsEl.classList.remove("bonus-animation");
-            }, 1000);
-          }
+        // Анимация при достижении 5
+        if (visits === 5) {
+          document
+            .getElementById("visits")
+            .classList.add("bonus-animation");
+          setTimeout(() => {
+            document
+              .getElementById("visits")
+              .classList.remove("bonus-animation");
+          }, 1000);
         }
-        if (statusEl) {
-          statusEl.innerText = statusText;
-        }
-
+        // Если 6, сбрасываем счётчик
         if (visits >= 6) {
-          // Сбрасываем счётчик и снова сохраняем
           visitors[childName].visits = 0;
           setDoc(doc(db, "visitors", childName), visitors[childName]);
           alert("Счётчик сброшен! Начинаем заново.");
@@ -1137,16 +1084,18 @@
         }
       }
 
+      /* ===============================
+         Скрипт для сканирования QR-кода
+         =============================== */
       let video = null;
       let scanType = "visit";
 
       function startQRScanner(type) {
         scanType = type;
-        let qrScanner = document.getElementById("qrScanner");
-        let qrVideo = document.getElementById("qrVideo");
-        let qrCanvas = document.getElementById("qrCanvas");
-        let debugInfo = document.getElementById("debugInfo");
-        if (!qrScanner || !qrVideo || !qrCanvas || !debugInfo) return;
+        const qrScanner = document.getElementById("qrScanner");
+        const qrVideo = document.getElementById("qrVideo");
+        const qrCanvas = document.getElementById("qrCanvas");
+        const debugInfo = document.getElementById("debugInfo");
 
         qrScanner.style.display = "block";
         debugInfo.innerText = "Запуск камеры...";
@@ -1154,7 +1103,9 @@
         navigator.mediaDevices
           .enumerateDevices()
           .then((devices) => {
-            const videoDevices = devices.filter((device) => device.kind === "videoinput");
+            const videoDevices = devices.filter(
+              (device) => device.kind === "videoinput"
+            );
             if (videoDevices.length === 0) {
               alert("На устройстве нет доступных камер.");
               qrScanner.style.display = "none";
@@ -1163,7 +1114,9 @@
             if (!video) {
               video = qrVideo;
               navigator.mediaDevices
-                .getUserMedia({ video: { facingMode: { ideal: "environment" } } })
+                .getUserMedia({
+                  video: { facingMode: { ideal: "environment" } },
+                })
                 .then((stream) => {
                   video.srcObject = stream;
                   video.play();
@@ -1175,7 +1128,7 @@
                 .catch((err) => {
                   debugInfo.innerText = `Ошибка камеры: ${err.message}`;
                   alert(
-                    `Не удалось открыть камеру: ${err.message}. Проверьте разрешения и попробуйте снова.`
+                    `Не удалось открыть камеру: ${err.message}.\nПроверьте разрешения и попробуйте снова.`
                   );
                   qrScanner.style.display = "none";
                 });
@@ -1192,13 +1145,18 @@
             debugInfo.innerText = "Камера не активна.";
             return;
           }
-          let canvasContext = qrCanvas.getContext("2d");
+          const canvasContext = qrCanvas.getContext("2d");
           qrCanvas.width = video.videoWidth || 300;
           qrCanvas.height = video.videoHeight || 300;
           canvasContext.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
 
-          let imageData = canvasContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-          let code = jsQR(imageData.data, imageData.width, imageData.height);
+          const imageData = canvasContext.getImageData(
+            0,
+            0,
+            qrCanvas.width,
+            qrCanvas.height
+          );
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
 
           if (code) {
             debugInfo.innerText = `QR-код распознан: ${code.data}`;
@@ -1210,11 +1168,15 @@
               const paymentKey = qrData.split(":")[1];
               confirmPaymentQR(paymentKey);
             } else {
-              debugInfo.innerText = "Неверный формат QR-кода для выбранного типа.";
+              debugInfo.innerText =
+                "Неверный формат QR-кода для выбранного типа.";
             }
             stopQRScanner();
           } else {
-            debugInfo.innerText = `QR-код не найден, продолжаю сканирование...`;
+            debugInfo.innerText =
+              `QR-код не найден, продолжение сканирования ${
+                type === "visit" ? "посещения" : "оплаты"
+              }...`;
             requestAnimationFrame(scanQRCode);
           }
         }
@@ -1226,29 +1188,36 @@
           video.srcObject = null;
           video = null;
         }
-        let qrScanner = document.getElementById("qrScanner");
-        let debugInfo = document.getElementById("debugInfo");
-        if (qrScanner) qrScanner.style.display = "none";
-        if (debugInfo) debugInfo.innerText = "";
+        document.getElementById("qrScanner").style.display = "none";
+        document.getElementById("debugInfo").innerText = "";
       }
 
+      /* ===============================
+         Добавить визит (QR или вручную)
+         =============================== */
       function addVisitFromQR(visitKey) {
         for (let childName in visitors) {
-          let v = visitors[childName];
-          if (v.visitKey === visitKey && v.registered && v.paid) {
-            if (Date.now() > v.visitKeyExpiration) {
+          let user = visitors[childName];
+          if (
+            user.visitKey === visitKey &&
+            user.registered &&
+            user.paid
+          ) {
+            if (Date.now() > user.visitKeyExpiration) {
               alert("QR-код посещения устарел! Попросите посетителя обновить его.");
               return;
             }
-            v.visits++;
+            user.visits++;
             lastScannedChild = childName;
-            setDoc(doc(db, "visitors", childName), v);
-            let adminVisitsEl = document.getElementById("adminVisits");
-            if (adminVisitsEl) adminVisitsEl.innerText = v.visits;
-            let removeBtn = document.getElementById("removeVisitBtn");
-            if (removeBtn) removeBtn.disabled = false;
+            setDoc(doc(db, "visitors", childName), user);
+            if (document.getElementById("adminVisits")) {
+              document.getElementById("adminVisits").innerText = user.visits;
+            }
+            if (document.getElementById("removeVisitBtn")) {
+              document.getElementById("removeVisitBtn").disabled = false;
+            }
             alert(`Посещение добавлено для ${childName}!`);
-            generateVisitQR(childName);
+            generateVisitQR(childName); // Генерируем новый QR
             return;
           }
         }
@@ -1256,27 +1225,31 @@
       }
 
       function addVisitFromManual() {
-        let visitKeyEl = document.getElementById("manualVisitKey");
-        if (!visitKeyEl) return;
-        let visitKey = visitKeyEl.value.trim();
+        let visitKey = document.getElementById("manualVisitKey")?.value;
         if (visitKey) {
           for (let childName in visitors) {
-            let v = visitors[childName];
-            if (v.visitKey === visitKey && v.registered && v.paid) {
-              if (Date.now() > v.visitKeyExpiration) {
+            let user = visitors[childName];
+            if (
+              user.visitKey === visitKey &&
+              user.registered &&
+              user.paid
+            ) {
+              if (Date.now() > user.visitKeyExpiration) {
                 alert("Код посещения устарел! Попросите посетителя обновить его.");
                 return;
               }
-              v.visits++;
+              user.visits++;
               lastScannedChild = childName;
-              setDoc(doc(db, "visitors", childName), v);
-              let adminVisitsEl = document.getElementById("adminVisits");
-              if (adminVisitsEl) adminVisitsEl.innerText = v.visits;
-              let removeBtn = document.getElementById("removeVisitBtn");
-              if (removeBtn) removeBtn.disabled = false;
+              setDoc(doc(db, "visitors", childName), user);
+              if (document.getElementById("adminVisits")) {
+                document.getElementById("adminVisits").innerText = user.visits;
+              }
+              if (document.getElementById("removeVisitBtn")) {
+                document.getElementById("removeVisitBtn").disabled = false;
+              }
               alert(`Посещение добавлено для ${childName}!`);
-              visitKeyEl.value = "";
-              generateVisitQR(childName);
+              document.getElementById("manualVisitKey").value = "";
+              generateVisitQR(childName); // Обновляем QR
               return;
             }
           }
@@ -1286,14 +1259,17 @@
         }
       }
 
+      /* ===============================
+         Подтверждение оплаты (QR/вручную)
+         =============================== */
       function confirmPaymentQR(paymentKey) {
         for (let childName in visitors) {
-          let v = visitors[childName];
-          if (v.paymentKey === paymentKey) {
-            v.paid = true;
-            setDoc(doc(db, "visitors", childName), v);
-            alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
-            sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
+          let user = visitors[childName];
+          if (user.paymentKey === paymentKey) {
+            user.paid = true;
+            setDoc(doc(db, "visitors", childName), user);
+            alert(`Оплата для ${childName} подтверждена!`);
+            sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать!");
             return;
           }
         }
@@ -1301,18 +1277,16 @@
       }
 
       function confirmPaymentManual() {
-        let paymentKeyEl = document.getElementById("manualPaymentKey");
-        if (!paymentKeyEl) return;
-        let paymentKey = paymentKeyEl.value.trim();
+        let paymentKey = document.getElementById("manualPaymentKey")?.value.trim();
         if (paymentKey) {
           for (let childName in visitors) {
-            let v = visitors[childName];
-            if (v.paymentKey === paymentKey) {
-              v.paid = true;
-              setDoc(doc(db, "visitors", childName), v);
+            let user = visitors[childName];
+            if (user.paymentKey === paymentKey) {
+              user.paid = true;
+              setDoc(doc(db, "visitors", childName), user);
               alert(`Оплата для ${childName} подтверждена! Карта активирована.`);
-              sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать в Песочные Острова!");
-              paymentKeyEl.value = "";
+              sendPushToUser(childName, "Ваша карта активирована! Добро пожаловать!");
+              document.getElementById("manualPaymentKey").value = "";
               return;
             }
           }
@@ -1322,6 +1296,9 @@
         }
       }
 
+      /* ===============================
+         Уведомления (Push)
+         =============================== */
       function sendPushToUser(childName, message) {
         const sub = subscriptions.find((s) => s.childName === childName);
         if (sub && "serviceWorker" in navigator) {
@@ -1336,44 +1313,44 @@
               alert("Ошибка отправки Push: " + err.message);
             });
         } else {
-          // Без HTTPS или без подписки — просто alert
-          alert(`Push для ${childName}: ${message} (тест без HTTPS/Service Worker)`);
+          console.log(`Push для ${childName}: ${message} (тест без HTTPS)`);
         }
       }
 
+      /* ===============================
+         Отмена последнего посещения
+         =============================== */
       function removeVisit() {
         if (lastScannedChild && visitors[lastScannedChild]) {
-          let v = visitors[lastScannedChild];
-          if (v.visits > 0) {
-            v.visits--;
-            setDoc(doc(db, "visitors", lastScannedChild), v);
-            let adminVisitsEl = document.getElementById("adminVisits");
-            if (adminVisitsEl) adminVisitsEl.innerText = v.visits;
+          let user = visitors[lastScannedChild];
+          if (user.visits > 0) {
+            user.visits--;
+            setDoc(doc(db, "visitors", lastScannedChild), user);
+            if (document.getElementById("adminVisits")) {
+              document.getElementById("adminVisits").innerText = user.visits;
+            }
             alert(`Последнее посещение для ${lastScannedChild} удалено!`);
-            if (v.visits === 0) {
-              let removeBtn = document.getElementById("removeVisitBtn");
-              if (removeBtn) removeBtn.disabled = true;
+            if (user.visits === 0 && document.getElementById("removeVisitBtn")) {
+              document.getElementById("removeVisitBtn").disabled = true;
             }
             showAllUsers();
           } else {
             alert("У этого ребёнка нет посещений!");
-            let removeBtn = document.getElementById("removeVisitBtn");
-            if (removeBtn) removeBtn.disabled = true;
+            if (document.getElementById("removeVisitBtn")) {
+              document.getElementById("removeVisitBtn").disabled = true;
+            }
           }
         } else {
           alert("Сначала отсканируйте QR-код посещения!");
         }
       }
 
+      /* ===============================
+         Вывести всех пользователей
+         =============================== */
       function showAllUsers() {
-        let usersTableEl = document.getElementById("usersTable");
-        if (!usersTableEl) return;
         let table =
-          "<table class='table table-striped' id='allUsersTable'><thead><tr>" +
-          "<th>Ребёнок</th><th>Родитель</th><th>Дата рождения</th><th>Телефон</th>" +
-          "<th>Статус</th><th>Ключ оплаты</th><th>Код посещения</th>" +
-          "<th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th>" +
-          "</tr></thead><tbody>";
+          "<table class='table table-striped' id='allUsersTable'><thead><tr><th>Ребёнок</th><th>Родитель</th><th>Дата рождения</th><th>Телефон</th><th>Статус</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr></thead><tbody>";
 
         for (let childName in visitors) {
           let user = visitors[childName];
@@ -1383,45 +1360,49 @@
             : "<span class='badge bg-danger'>Not Paid</span>";
 
           table += `<tr
-            class="${rowClass}"
-            data-child="${childName.toLowerCase()}"
-            data-parent="${(user.parentName || '').toLowerCase()}"
-            data-phone="${(user.phone || '').toLowerCase()}"
-            >
-            <td>${childName}</td>
-            <td>${user.parentName}</td>
-            <td>${user.birthDate}</td>
-            <td>${user.phone}</td>
-            <td>${statusBadge}</td>
-            <td>${user.paymentKey}</td>
-            <td>${user.visitKey}</td>
-            <td>${user.visits}</td>
-            <td>${user.registrationDate}</td>
-            <td>${user.adminKey}</td>
-            <td>${user.login}</td>
-            <td>${user.password}</td>
-          </tr>`;
+                      class="${rowClass}"
+                      data-child="${childName.toLowerCase()}"
+                      data-parent="${(user.parentName || '').toLowerCase()}"
+                      data-phone="${(user.phone || '').toLowerCase()}"
+                    >
+                      <td>${childName}</td>
+                      <td>${user.parentName}</td>
+                      <td>${user.birthDate}</td>
+                      <td>${user.phone}</td>
+                      <td>${statusBadge}</td>
+                      <td>${user.paymentKey}</td>
+                      <td>${user.visitKey}</td>
+                      <td>${user.visits}</td>
+                      <td>${user.registrationDate}</td>
+                      <td>${user.adminKey}</td>
+                      <td>${user.login}</td>
+                      <td>${user.password}</td>
+                    </tr>`;
         }
         table += "</tbody></table>";
-        usersTableEl.innerHTML = table;
+        document.getElementById("usersTable").innerHTML = table;
       }
 
+      /* ===============================
+         Поиск по таблице
+         =============================== */
       function searchUsers() {
-        let input = document.getElementById("searchInput");
+        const input = document.getElementById("searchInput");
         if (!input) return;
         const filterValue = input.value.trim().toLowerCase();
-        let table = document.getElementById("allUsersTable");
+        const table = document.getElementById("allUsersTable");
         if (!table) {
-          alert("Сначала нажмите «Показать всех пользователей»");
+          alert("Сначала нажмите «Показать всех пользователей».");
           return;
         }
-        let rows = table.querySelectorAll("tbody tr");
+
+        const rows = table.querySelectorAll("tbody tr");
         let foundCount = 0;
         rows.forEach((row) => {
-          let childData = row.getAttribute("data-child") || "";
-          let parentData = row.getAttribute("data-parent") || "";
-          let phoneData = row.getAttribute("data-phone") || "";
-          let match =
+          const childData = row.getAttribute("data-child") || "";
+          const parentData = row.getAttribute("data-parent") || "";
+          const phoneData = row.getAttribute("data-phone") || "";
+          const match =
             childData.includes(filterValue) ||
             parentData.includes(filterValue) ||
             phoneData.includes(filterValue);
@@ -1431,6 +1412,9 @@
         alert(`Найдено совпадений: ${foundCount}`);
       }
 
+      /* ===============================
+         Статистика
+         =============================== */
       function showStats() {
         let totalUsers = 0;
         let paidCount = 0;
@@ -1447,42 +1431,46 @@
           <p>Оплаченных карт: <strong>${paidCount}</strong></p>
           <p>Суммарное количество посещений: <strong>${totalVisits}</strong></p>
         `;
-        let statsModalBody = document.getElementById("statsModalBody");
-        if (statsModalBody) {
-          statsModalBody.innerHTML = statsText;
-        }
-        let statsModalEl = document.getElementById("statsModal");
-        if (statsModalEl) {
-          let statsModal = new bootstrap.Modal(statsModalEl, {});
-          statsModal.show();
-        }
+        document.getElementById("statsModalBody").innerHTML = statsText;
+
+        const statsModal = new bootstrap.Modal(
+          document.getElementById("statsModal"),
+          {}
+        );
+        statsModal.show();
       }
 
+      /* ===============================
+         Добавление товара (только админ)
+         =============================== */
       async function addProduct() {
-        alert("Добавление товара... (уберите alert при необходимости)");
-
-        let productImagesEl = document.getElementById("productImages");
-        let productNameEl = document.getElementById("productName");
-        let productDescEl = document.getElementById("productDescription");
-        let priceRegEl = document.getElementById("productPriceRegular");
-        let priceCardEl = document.getElementById("productPriceCard");
-        if (!productImagesEl || !productNameEl || !productDescEl || !priceRegEl || !priceCardEl) {
-          alert("Не найдены поля формы добавления товара!");
-          return;
-        }
-        let files = productImagesEl.files;
-        let name = productNameEl.value.trim();
-        let description = productDescEl.value.trim();
-        let priceRegular = priceRegEl.value.trim();
-        let priceCard = priceCardEl.value.trim();
-
-        if (!files || files.length === 0 || !name || !description || !priceRegular || !priceCard) {
-          alert("Заполните все поля и выберите хотя бы одну фотографию!");
-          return;
-        }
-
         if (!adminLoggedIn) {
           alert("Только администратор может добавлять товары!");
+          return;
+        }
+        alert("Добавление товара..."); // Для отладки
+
+        let files = document.getElementById("productImages")?.files;
+        let name = document.getElementById("productName")?.value.trim();
+        let description = document
+          .getElementById("productDescription")
+          ?.value.trim();
+        let priceRegular = document
+          .getElementById("productPriceRegular")
+          ?.value.trim();
+        let priceCard = document
+          .getElementById("productPriceCard")
+          ?.value.trim();
+
+        if (
+          !files ||
+          files.length === 0 ||
+          !name ||
+          !description ||
+          !priceRegular ||
+          !priceCard
+        ) {
+          alert("Заполните все поля и выберите хотя бы одну фотографию!");
           return;
         }
 
@@ -1496,7 +1484,7 @@
               name,
               description,
               priceRegular,
-              priceCard
+              priceCard,
             });
             products.push({
               id: docRef.id,
@@ -1504,21 +1492,24 @@
               name,
               description,
               priceRegular,
-              priceCard
+              priceCard,
             });
             displayCatalog();
-            const pmSection = document.getElementById("productManagementSection");
-            if (pmSection && pmSection.classList.contains("active")) {
+            if (
+              document
+                .getElementById("productManagementSection")
+                ?.classList.contains("active")
+            ) {
               displayProductManagement();
             }
+            // Очищаем поля
+            document.getElementById("productImages").value = "";
+            document.getElementById("productName").value = "";
+            document.getElementById("productDescription").value = "";
+            document.getElementById("productPriceRegular").value = "";
+            document.getElementById("productPriceCard").value = "";
 
-            productImagesEl.value = "";
-            productNameEl.value = "";
-            productDescEl.value = "";
-            priceRegEl.value = "";
-            priceCardEl.value = "";
-
-            alert("Товар добавлен успешно!");
+            alert("Товар добавлен!");
           } catch (err) {
             console.error("Ошибка добавления товара: ", err);
             alert("Ошибка при сохранении товара в Firebase: " + err.message);
@@ -1527,14 +1518,14 @@
 
         for (let i = 0; i < files.length; i++) {
           let reader = new FileReader();
-          reader.onload = function(e) {
+          reader.onload = function (e) {
             images.push(e.target.result);
             loadedCount++;
             if (loadedCount === files.length) {
               finalizeProduct();
             }
           };
-          reader.onerror = function(err) {
+          reader.onerror = function (err) {
             console.error("Ошибка чтения файла:", err);
             alert("Ошибка чтения файла: " + err.message);
           };
@@ -1542,9 +1533,10 @@
         }
       }
 
+      /* ===============================
+         Отображение каталога (для всех)
+         =============================== */
       function displayCatalog() {
-        let catalogListEl = document.getElementById("catalogList");
-        if (!catalogListEl) return;
         let list = "";
         products.forEach((product, index) => {
           list += `<div class="catalog-item mt-3">`;
@@ -1557,18 +1549,33 @@
             <p><strong>${product.name}</strong></p>
             <p>Цена (без карты): ${product.priceRegular} руб.</p>
             <p>Цена (с картой): ${product.priceCard} руб.</p>
-            <button class="btn btn-success" onclick="alert('Свяжитесь с администратором для покупки!')">Купить</button>`;
+            <button
+              class="btn btn-success"
+              onclick="alert('Свяжитесь с администратором для покупки!')"
+            >
+              Купить
+            </button>
+          `;
+          // Если админ вошёл, показываем кнопку удалить
           if (adminLoggedIn) {
-            list += `<button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>`;
+            list += `
+              <button
+                class="btn btn-danger mt-1"
+                onclick="deleteProduct(${index})"
+              >
+                Удалить
+              </button>
+            `;
           }
           list += `</div>`;
         });
-        catalogListEl.innerHTML = list;
+        document.getElementById("catalogList").innerHTML = list;
       }
 
+      /* ===============================
+         Отображение списка товаров (админ)
+         =============================== */
       function displayProductManagement() {
-        let pmListEl = document.getElementById("productManagementList");
-        if (!pmListEl) return;
         let list = "";
         products.forEach((product, index) => {
           list += `<div class="catalog-item mt-3">`;
@@ -1581,25 +1588,37 @@
             <p><strong>${product.name}</strong></p>
             <p>Цена (без карты): ${product.priceRegular} руб.</p>
             <p>Цена (с картой): ${product.priceCard} руб.</p>
-            <button class="btn btn-danger mt-1" onclick="deleteProduct(${index})">Удалить</button>
+            <button
+              class="btn btn-danger mt-1"
+              onclick="deleteProduct(${index})"
+            >
+              Удалить
+            </button>
           </div>`;
         });
-        pmListEl.innerHTML = list;
+        document.getElementById("productManagementList").innerHTML = list;
       }
 
+      /* ===============================
+         Удаление товара (только админ)
+         =============================== */
       async function deleteProduct(index) {
         if (!adminLoggedIn) {
           alert("Только администратор может удалять товары!");
           return;
         }
-        if (!products[index]) return;
-        if (confirm(`Удалить "${products[index].name}" из каталога?`)) {
+        if (
+          confirm(`Удалить "${products[index].name}" из каталога?`)
+        ) {
           try {
             await deleteDoc(doc(db, "products", products[index].id));
             products.splice(index, 1);
             displayCatalog();
-            let pmSection = document.getElementById("productManagementSection");
-            if (pmSection && pmSection.classList.contains("active")) {
+            if (
+              document
+                .getElementById("productManagementSection")
+                ?.classList.contains("active")
+            ) {
               displayProductManagement();
             }
             alert("Товар удалён!");
@@ -1610,6 +1629,9 @@
         }
       }
 
+      /* ===============================
+         Подписка на PUSH
+         =============================== */
       function subscribeToPush(childName) {
         if ("Notification" in window && "serviceWorker" in navigator) {
           Notification.requestPermission().then((permission) => {
@@ -1620,24 +1642,28 @@
                   .then(async (subscription) => {
                     subscriptions.push({
                       childName,
-                      subscription: subscription.toJSON()
+                      subscription: subscription.toJSON(),
                     });
                     await addDoc(collection(db, "subscriptions"), {
                       childName,
-                      subscription: subscription.toJSON()
+                      subscription: subscription.toJSON(),
                     });
                   })
-                  .catch((err) => console.error("Ошибка подписки на Push:", err));
+                  .catch((err) =>
+                    console.error("Ошибка подписки на Push:", err)
+                  );
               });
             }
           });
         }
       }
 
+      /* ===============================
+         Отправка push-уведомления
+         (пример для всех подписчиков)
+         =============================== */
       function sendPushNotification() {
-        let pushMsgEl = document.getElementById("pushMessage");
-        if (!pushMsgEl) return;
-        let message = pushMsgEl.value;
+        let message = document.getElementById("pushMessage")?.value;
         if (message) {
           subscriptions.forEach((sub) => {
             navigator.serviceWorker.ready
@@ -1651,17 +1677,18 @@
                 alert("Ошибка отправки Push: " + err.message);
               });
           });
-          pushMsgEl.value = "";
+          document.getElementById("pushMessage").value = "";
           alert("Уведомление отправлено всем подписчикам (тест без HTTPS)");
         } else {
           alert("Введите текст уведомления!");
         }
       }
 
+      /* ===============================
+         Удалить аккаунт посетителя
+         =============================== */
       function deleteAccount() {
-        let childNameEl = document.getElementById("cardChildName");
-        if (!childNameEl) return;
-        let childName = childNameEl.innerText;
+        let childName = document.getElementById("cardChildName")?.innerText;
         if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
           delete visitors[childName];
           deleteDoc(doc(db, "visitors", childName));
@@ -1670,12 +1697,15 @@
         }
       }
 
+      /* ===============================
+         Экспорт в Excel
+         =============================== */
       function exportToExcel() {
         let data = [];
         let totalVisits = 0;
         for (let childName in visitors) {
           let user = visitors[childName];
-          totalVisits += user.visits;
+          totalVisits += user.visits || 0;
           data.push([
             childName,
             user.parentName,
@@ -1688,10 +1718,23 @@
             user.registrationDate,
             user.adminKey,
             user.login,
-            user.password
+            user.password,
           ]);
         }
-        data.push(["", "", "", "", "", "", "", "Итого посещений:", totalVisits, "", "", ""]);
+        data.push([
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Итого посещений:",
+          totalVisits,
+          "",
+          "",
+          "",
+        ]);
         let ws = XLSX.utils.aoa_to_sheet([
           [
             "ФИО ребёнка",
@@ -1705,74 +1748,79 @@
             "Дата регистрации",
             "Админ-ключ",
             "Логин",
-            "Пароль (хэш)"
+            "Пароль (хэш)",
           ],
-          ...data
+          ...data,
         ]);
         let wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Посетители");
         XLSX.writeFile(wb, "Visitors_Pесочные_Острова.xlsx", {
           bookSST: true,
-          type: "binary"
+          type: "binary",
         });
       }
 
+      /* ===============================
+         Лог ошибок
+         =============================== */
       function logError(message) {
-        const errObj = { date: new Date().toISOString(), message };
+        const errObj = {
+          date: new Date().toISOString(),
+          message
+        };
         errorLog.push(errObj);
         addDoc(collection(db, "errorLog"), errObj);
       }
 
       function showErrorLog() {
-        let adminPanel = document.getElementById("adminPanelSection");
-        if (!adminPanel) return;
         let logDiv = document.createElement("div");
         logDiv.innerHTML =
           '<h4 class="black-label">Лог ошибок</h4>' +
           errorLog.map((e) => `<p>${e.date}: ${e.message}</p>`).join("");
-        adminPanel.appendChild(logDiv);
+        document.getElementById("adminPanelSection").appendChild(logDiv);
       }
 
-      // Автоскроллинг для последних полей ввода при потере фокуса
-      let lastInputs = document.querySelectorAll(".last-input");
-      for (let i = 0; i < lastInputs.length; i++) {
-        lastInputs[i].addEventListener("blur", () => {
+      // Автоскролл при потере фокуса последних полей
+      document.querySelectorAll(".last-input").forEach((input) => {
+        input.addEventListener("blur", () => {
           setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 300);
         });
-      }
+      });
 
-      // Изначально показываем приветствие + каталог
+      /* ===============================
+         Изначально показываем приветствие + каталог
+         =============================== */
       showSection("welcomeSection");
       displayCatalog();
 
-      // Регистрируем service worker (если есть sw.js)
+      // Регистрируем Service Worker для push
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
           .register("sw.js")
-          .catch((err) => console.error("Service Worker регистрация не удалась:", err));
+          .catch((err) => console.error("SW регистрация не удалась:", err));
       }
 
-      // Делаем функции доступными глобально
+      // Делаем функции доступными глобально (для кнопок onclick)
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;
+      window.showRegister = showRegister;
       window.registerCard = registerCard;
       window.startQRScanner = startQRScanner;
       window.stopQRScanner = stopQRScanner;
       window.addVisitFromManual = addVisitFromManual;
+      window.removeVisit = removeVisit;
       window.confirmPaymentManual = confirmPaymentManual;
-      window.sendPushNotification = sendPushNotification;
       window.showAllUsers = showAllUsers;
       window.exportToExcel = exportToExcel;
-      window.removeVisit = removeVisit;
-      window.deleteAccount = deleteAccount;
-      window.addProduct = addProduct;
-      window.deleteProduct = deleteProduct;
-      window.showRegister = showRegister;
-      window.logError = logError;
       window.showErrorLog = showErrorLog;
       window.searchUsers = searchUsers;
       window.showStats = showStats;
+      window.sendPushNotification = sendPushNotification;
+      window.addProduct = addProduct;
+      window.deleteProduct = deleteProduct;
+      window.deleteAccount = deleteAccount;
+      window.logError = logError;
     </script>
   </body>
 </html>

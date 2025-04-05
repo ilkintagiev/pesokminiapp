@@ -23,23 +23,17 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
     <style>
-      /* ======================
-         Основные стили
-         ====================== */
       body {
         font-family: Arial, sans-serif;
         background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80')
           no-repeat center fixed;
         background-size: cover;
         margin: 0;
-        padding-bottom: 70px; /* отступ под нижнюю навигацию */
+        padding-bottom: 70px;
         color: #333;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-      }
-      .navbar-top {
-        z-index: 10000;
       }
       .main-container {
         flex: 1;
@@ -68,7 +62,7 @@
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         margin: 20px auto;
         text-align: center;
-        opacity: 0; 
+        opacity: 0;
         animation-duration: 0.5s;
         animation-fill-mode: forwards;
       }
@@ -195,47 +189,7 @@
     </style>
   </head>
   <body>
-    <!-- Навбар (верх) -->
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top navbar-top">
-      <div class="container">
-        <a class="navbar-brand" href="#" onclick="showSection('welcomeSection')">
-          Песочные Острова
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#topNav"
-          aria-controls="topNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="topNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a
-                class="nav-link"
-                href="#"
-                onclick="showSection('visitorLoginSection')"
-                >Для посетителей</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" onclick="showSection('adminLoginSection')"
-                >Администратор</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" onclick="showSection('broadcastSection')"
-                >Трансляция</a
-              >
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    <!-- Верхнее меню УДАЛЕНО, остался только основной блок -->
 
     <div class="main-container">
       <!-- Логотип -->
@@ -258,6 +212,21 @@
           сможете расслабиться, зная, что всё организовано для его комфорта и
           безопасности.
         </p>
+        <button
+          class="btn btn-info w-75 mt-3"
+          onclick="window.open('tg://resolve?domain=pesocnye_ostrova','_blank')"
+        >
+          <i class="fab fa-telegram-plane"></i> Написать нам в Telegram
+        </button>
+        <!-- Если нужно дублировать ссылку через HTTPS -->
+        <!--
+        <button
+          class="btn btn-info w-75 mt-3"
+          onclick="window.open('https://t.me/pesocnye_ostrova','_blank')"
+        >
+          <i class="fab fa-telegram-plane"></i> Написать нам в Telegram
+        </button>
+        -->
       </div>
 
       <!-- Секция входа для администратора -->
@@ -395,13 +364,10 @@
               </div>
             </div>
           </div>
-          <!-- Раньше здесь была карточка добавления товара — убрали -->
         </div>
         <!-- Таблица пользователей -->
         <div id="usersTable" class="mt-4" style="overflow-x: auto;"></div>
       </div>
-
-      <!-- Раньше здесь была секция управления товарами (productManagementSection) — убрали -->
 
       <!-- Секция входа для посетителя -->
       <div id="visitorLoginSection" class="content-section">
@@ -480,7 +446,7 @@
         </p>
       </div>
 
-      <!-- Секция клубной карты (улучшенный дизайн) -->
+      <!-- Секция клубной карты -->
       <div id="clubCardSection" class="content-section">
         <div
           class="card mx-auto"
@@ -529,8 +495,6 @@
         </div>
       </div>
 
-      <!-- Раньше здесь была "Секция каталога товаров" — удалили -->
-
       <!-- Секция видеотрансляции -->
       <div id="broadcastSection" class="content-section">
         <h3 class="black-label">Видеотрансляция</h3>
@@ -547,16 +511,30 @@
       </div>
     </div>
 
-    <!-- Нижняя панель навигации (footer) -->
+    <!-- Нижняя панель навигации -->
     <nav class="navbar-bottom">
-      <button class="btn" onclick="showSection('visitorLoginSection')">
+      <!-- Кнопка для посетителей -->
+      <button
+        class="btn"
+        onclick="showSection('visitorLoginSection')"
+        title="Семья"
+      >
         <i class="fas fa-users"></i>
       </button>
-      <!-- Удалили кнопку каталога (была здесь) -->
-      <button class="btn" onclick="showSection('broadcastSection')">
+      <!-- Кнопка для трансляции -->
+      <button
+        class="btn"
+        onclick="showSection('broadcastSection')"
+        title="Трансляция"
+      >
         <i class="fas fa-video"></i>
       </button>
-      <button class="btn" onclick="showSection('adminLoginSection')">
+      <!-- Кнопка для администратора -->
+      <button
+        class="btn"
+        onclick="showSection('adminLoginSection')"
+        title="Администратор"
+      >
         <i class="fas fa-user-tie"></i>
       </button>
     </nav>
@@ -587,9 +565,6 @@
 
     <!-- Скрипт с интеграцией Firebase (v9) + onSnapshot -->
     <script type="module">
-      /* ===============================
-         Инициализация Firebase
-         =============================== */
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
       import {
         getFirestore,
@@ -601,7 +576,6 @@
         deleteDoc,
       } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
-      // Ваши реальные данные (из вопроса)
       const firebaseConfig = {
         apiKey: "AIzaSyCHzIpWUU0BOpZMl0eNxwIn_GdqSkIInHk",
         authDomain: "pesochnyeostrova.firebaseapp.com",
@@ -614,21 +588,14 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      /* ===============================
-         Глобальные переменные
-         =============================== */
       let visitors = {};
       let errorLog = [];
       let subscriptions = [];
       let lastScannedChild = null;
       let adminLoggedIn = false;
 
-      // Можно хранить несколько паролей
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
 
-      /* ===============================
-         onSnapshot — слушаем Firestore
-         =============================== */
       onSnapshot(collection(db, "visitors"), (snapshot) => {
         visitors = {};
         snapshot.forEach((docSnap) => {
@@ -653,9 +620,6 @@
         console.log("Subscriptions обновлены:", subscriptions);
       });
 
-      /* ===============================
-         Переход по секциям (SPA)
-         =============================== */
       function showSection(sectionId) {
         document.querySelectorAll(".content-section").forEach((section) => {
           section.classList.remove("active");
@@ -664,8 +628,7 @@
         section.classList.add("active");
         section.scrollIntoView({ behavior: "smooth", block: "start" });
         setTimeout(() => window.scrollBy(0, -100), 500);
-
-        // Прячем лого при регистрации
+        
         if (sectionId === "registerSection") {
           document.querySelector(".logo").style.display = "none";
         } else {
@@ -673,9 +636,6 @@
         }
       }
 
-      /* ===============================
-         Логин админа
-         =============================== */
       function adminLogin() {
         let password = document.getElementById("adminPassword")?.value;
         if (ADMIN_PASSWORDS.includes(password)) {
@@ -691,15 +651,11 @@
         }
       }
 
-      /* ===============================
-         Логин посетителя
-         =============================== */
       function visitorLogin() {
         let login = document.getElementById("visitorLoginInput")?.value;
         let password = document.getElementById("visitorPasswordInput")?.value;
         let rememberMe = document.getElementById("rememberMe")?.checked;
 
-        // Хэшируем пароль
         let hashedPassword = CryptoJS.SHA256(password).toString();
 
         for (let childName in visitors) {
@@ -731,9 +687,7 @@
                     if (error) console.error(error);
                     if (document.getElementById("visitQRCode")) {
                       document.getElementById("visitQRCode").innerHTML = "";
-                      document
-                        .getElementById("visitQRCode")
-                        .appendChild(canvas);
+                      document.getElementById("visitQRCode").appendChild(canvas);
                     }
                   }
                 );
@@ -750,9 +704,6 @@
         alert("Неверный логин или пароль!");
       }
 
-      /* ===============================
-         При загрузке страницы
-         =============================== */
       window.onload = function () {
         let savedLogin = localStorage.getItem("savedLogin");
         let savedPassword = localStorage.getItem("savedPassword");
@@ -768,91 +719,7 @@
         }
       };
 
-      /* ===============================
-         Показать форму регистрации
-         =============================== */
-      function showRegister() {
-        showSection("registerSection");
-      }
-
-      /* ===============================
-         Генерация ключей
-         =============================== */
-      function generateKey(prefix, childName) {
-        const time = Date.now().toString(36);
-        return `${prefix}-${childName.replace(/\s+/g, "").slice(0, 5)}-${time}`.toUpperCase();
-      }
-
-      function generateAdminKey(childFullName, parentFullName, birthDate) {
-        let childParts = childFullName.trim().split(/\s+/);
-        let initials = "";
-        if (childParts.length === 3) {
-          initials = childParts[0][0] + childParts[1][0] + childParts[2][0];
-        } else if (childParts.length === 2) {
-          initials = childParts[0][0] + childParts[1][0];
-        } else {
-          initials = childParts[0][0];
-        }
-        let parentInitial = parentFullName.trim()[0];
-        let birthYear = new Date(birthDate).getFullYear();
-        let baseKey = `${initials}${parentInitial}${birthYear}`;
-        let uniqueKey = baseKey;
-        let counter = 1;
-        while (Object.values(visitors).some((v) => v.adminKey === uniqueKey)) {
-          uniqueKey = `${baseKey}${counter}`;
-          counter++;
-        }
-        return uniqueKey;
-      }
-
-      function generateVisitQR(childName) {
-        let visitKey = generateKey("VISIT", childName);
-        visitors[childName].visitKey = visitKey;
-        visitors[childName].visitKeyExpiration =
-          Date.now() + 24 * 60 * 60 * 1000;
-        let qrCodeData = `visit:${visitKey}`;
-        QRCode.toCanvas(
-          document.createElement("canvas"),
-          qrCodeData,
-          { width: 150 },
-          (error, canvas) => {
-            if (error) console.error(error);
-            if (document.getElementById("visitQRCode")) {
-              document.getElementById("visitQRCode").innerHTML = "";
-              document.getElementById("visitQRCode").appendChild(canvas);
-            }
-          }
-        );
-        document.getElementById("visitKeyDisplay").innerText = visitKey;
-        setDoc(doc(db, "visitors", childName), visitors[childName]);
-        return visitKey;
-      }
-
-      function generatePaymentQR(childName) {
-        let paymentKey = generateKey("PAY", childName);
-        visitors[childName].paymentKey = paymentKey;
-        let qrCodeData = `payment:${paymentKey}`;
-        QRCode.toCanvas(
-          document.createElement("canvas"),
-          qrCodeData,
-          { width: 150 },
-          (error, canvas) => {
-            if (error) console.error(error);
-            if (document.getElementById("paymentQRCode")) {
-              document.getElementById("paymentQRCode").innerHTML = "";
-              document.getElementById("paymentQRCode").appendChild(canvas);
-            }
-          }
-        );
-        document.getElementById("paymentKeyDisplay").innerText = paymentKey;
-        setDoc(doc(db, "visitors", childName), visitors[childName]);
-        return paymentKey;
-      }
-
-      /* ===============================
-         Регистрация клубной карты
-         =============================== */
-      async function registerCard() {
+      function registerCard() {
         let childName = document.getElementById("childFullName")?.value.trim();
         let parentName = document.getElementById("parentFullName")?.value.trim();
         let birthDate = document.getElementById("childBirthDate")?.value;
@@ -903,15 +770,82 @@
 Админ-ключ: ${adminKey} (для внутреннего использования).`
           );
 
-          await setDoc(doc(db, "visitors", childName), visitors[childName]);
+          setDoc(doc(db, "visitors", childName), visitors[childName]);
         } else {
           alert("Этот ребёнок уже зарегистрирован!");
         }
       }
 
-      /* ===============================
-         Обновление прогресса на карте
-         =============================== */
+      function generateAdminKey(childFullName, parentFullName, birthDate) {
+        let childParts = childFullName.trim().split(/\s+/);
+        let initials = "";
+        if (childParts.length === 3) {
+          initials = childParts[0][0] + childParts[1][0] + childParts[2][0];
+        } else if (childParts.length === 2) {
+          initials = childParts[0][0] + childParts[1][0];
+        } else {
+          initials = childParts[0][0];
+        }
+        let parentInitial = parentFullName.trim()[0];
+        let birthYear = new Date(birthDate).getFullYear();
+        let baseKey = `${initials}${parentInitial}${birthYear}`;
+        let uniqueKey = baseKey;
+        let counter = 1;
+        while (Object.values(visitors).some((v) => v.adminKey === uniqueKey)) {
+          uniqueKey = `${baseKey}${counter}`;
+          counter++;
+        }
+        return uniqueKey;
+      }
+
+      function generateKey(prefix, childName) {
+        const time = Date.now().toString(36);
+        return `${prefix}-${childName.replace(/\s+/g, "").slice(0, 5)}-${time}`.toUpperCase();
+      }
+
+      function generateVisitQR(childName) {
+        let visitKey = generateKey("VISIT", childName);
+        visitors[childName].visitKey = visitKey;
+        visitors[childName].visitKeyExpiration =
+          Date.now() + 24 * 60 * 60 * 1000;
+        let qrCodeData = `visit:${visitKey}`;
+        QRCode.toCanvas(
+          document.createElement("canvas"),
+          qrCodeData,
+          { width: 150 },
+          (error, canvas) => {
+            if (error) console.error(error);
+            if (document.getElementById("visitQRCode")) {
+              document.getElementById("visitQRCode").innerHTML = "";
+              document.getElementById("visitQRCode").appendChild(canvas);
+            }
+          }
+        );
+        document.getElementById("visitKeyDisplay").innerText = visitKey;
+        setDoc(doc(db, "visitors", childName), visitors[childName]);
+        return visitKey;
+      }
+
+      function generatePaymentQR(childName) {
+        let paymentKey = generateKey("PAY", childName);
+        visitors[childName].paymentKey = paymentKey;
+        let qrCodeData = `payment:${paymentKey}`;
+        QRCode.toCanvas(
+          document.createElement("canvas"),
+          qrCodeData,
+          { width: 150 },
+          (error, canvas) => {
+            if (error) console.error(error);
+            if (document.getElementById("paymentQRCode")) {
+              document.getElementById("paymentQRCode").innerHTML = "";
+              document.getElementById("paymentQRCode").appendChild(canvas);
+            }
+          }
+        );
+        setDoc(doc(db, "visitors", childName), visitors[childName]);
+        return paymentKey;
+      }
+
       function updateCard(childName) {
         let user = visitors[childName];
         let visits = user.visits;
@@ -945,9 +879,6 @@
         }
       }
 
-      /* ===============================
-         Скрипт для сканирования QR-кода
-         =============================== */
       let video = null;
       let scanType = "visit";
 
@@ -1053,9 +984,6 @@
         document.getElementById("debugInfo").innerText = "";
       }
 
-      /* ===============================
-         Добавить визит (QR или вручную)
-         =============================== */
       function addVisitFromQR(visitKey) {
         for (let childName in visitors) {
           let user = visitors[childName];
@@ -1112,9 +1040,6 @@
         }
       }
 
-      /* ===============================
-         Подтверждение оплаты (QR/вручную)
-         =============================== */
       function confirmPaymentQR(paymentKey) {
         for (let childName in visitors) {
           let user = visitors[childName];
@@ -1149,9 +1074,6 @@
         }
       }
 
-      /* ===============================
-         Уведомления (Push)
-         =============================== */
       function sendPushToUser(childName, message) {
         const sub = subscriptions.find((s) => s.childName === childName);
         if (sub && "serviceWorker" in navigator) {
@@ -1170,9 +1092,6 @@
         }
       }
 
-      /* ===============================
-         Отмена последнего посещения
-         =============================== */
       function removeVisit() {
         if (lastScannedChild && visitors[lastScannedChild]) {
           let user = visitors[lastScannedChild];
@@ -1198,9 +1117,6 @@
         }
       }
 
-      /* ===============================
-         Вывести всех пользователей
-         =============================== */
       function showAllUsers() {
         let table =
           "<table class='table table-striped' id='allUsersTable'><thead><tr><th>Ребёнок</th><th>Родитель</th><th>Дата рождения</th><th>Телефон</th><th>Статус</th><th>Ключ оплаты</th><th>Код посещения</th><th>Посещений</th><th>Дата регистрации</th><th>Админ-ключ</th><th>Логин</th><th>Пароль (хэш)</th></tr></thead><tbody>";
@@ -1236,38 +1152,6 @@
         document.getElementById("usersTable").innerHTML = table;
       }
 
-      /* ===============================
-         Поиск по таблице
-         =============================== */
-      function searchUsers() {
-        const input = document.getElementById("searchInput");
-        if (!input) return;
-        const filterValue = input.value.trim().toLowerCase();
-        const table = document.getElementById("allUsersTable");
-        if (!table) {
-          alert("Сначала нажмите «Показать всех пользователей».");
-          return;
-        }
-
-        const rows = table.querySelectorAll("tbody tr");
-        let foundCount = 0;
-        rows.forEach((row) => {
-          const childData = row.getAttribute("data-child") || "";
-          const parentData = row.getAttribute("data-parent") || "";
-          const phoneData = row.getAttribute("data-phone") || "";
-          const match =
-            childData.includes(filterValue) ||
-            parentData.includes(filterValue) ||
-            phoneData.includes(filterValue);
-          row.style.display = match ? "" : "none";
-          if (match) foundCount++;
-        });
-        alert(`Найдено совпадений: ${foundCount}`);
-      }
-
-      /* ===============================
-         Статистика
-         =============================== */
       function showStats() {
         let totalUsers = 0;
         let paidCount = 0;
@@ -1293,9 +1177,6 @@
         statsModal.show();
       }
 
-      /* ===============================
-         Удалить аккаунт посетителя
-         =============================== */
       function deleteAccount() {
         let childName = document.getElementById("cardChildName")?.innerText;
         if (confirm("Вы уверены, что хотите удалить аккаунт?")) {
@@ -1306,9 +1187,6 @@
         }
       }
 
-      /* ===============================
-         Экспорт в Excel
-         =============================== */
       function exportToExcel() {
         let data = [];
         let totalVisits = 0;
@@ -1369,9 +1247,6 @@
         });
       }
 
-      /* ===============================
-         Лог ошибок
-         =============================== */
       function logError(message) {
         const errObj = {
           date: new Date().toISOString(),
@@ -1389,26 +1264,21 @@
         document.getElementById("adminPanelSection").appendChild(logDiv);
       }
 
-      // Автоскролл при потере фокуса последних полей
       document.querySelectorAll(".last-input").forEach((input) => {
         input.addEventListener("blur", () => {
           setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 300);
         });
       });
 
-      /* ===============================
-         Изначально показываем приветствие
-         =============================== */
+      // При старте показываем приветствие
       showSection("welcomeSection");
 
-      // Регистрируем Service Worker для push
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
           .register("sw.js")
           .catch((err) => console.error("SW регистрация не удалась:", err));
       }
 
-      // Делаем функции доступными глобально
       window.showSection = showSection;
       window.adminLogin = adminLogin;
       window.visitorLogin = visitorLogin;
@@ -1422,9 +1292,7 @@
       window.showAllUsers = showAllUsers;
       window.exportToExcel = exportToExcel;
       window.showErrorLog = showErrorLog;
-      window.searchUsers = searchUsers;
       window.showStats = showStats;
-      window.sendPushToUser = sendPushToUser; // если нужно прямую отправку
       window.deleteAccount = deleteAccount;
       window.logError = logError;
     </script>

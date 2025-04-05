@@ -189,8 +189,7 @@
     </style>
   </head>
   <body>
-    <!-- Верхнее меню УДАЛЕНО, остался только основной блок -->
-
+    <!-- Основной контейнер -->
     <div class="main-container">
       <!-- Логотип -->
       <img
@@ -212,21 +211,6 @@
           сможете расслабиться, зная, что всё организовано для его комфорта и
           безопасности.
         </p>
-        <button
-          class="btn btn-info w-75 mt-3"
-          onclick="window.open('tg://resolve?domain=pesocnye_ostrova','_blank')"
-        >
-          <i class="fab fa-telegram-plane"></i> Написать нам в Telegram
-        </button>
-        <!-- Если нужно дублировать ссылку через HTTPS -->
-        <!--
-        <button
-          class="btn btn-info w-75 mt-3"
-          onclick="window.open('https://t.me/pesocnye_ostrova','_blank')"
-        >
-          <i class="fab fa-telegram-plane"></i> Написать нам в Telegram
-        </button>
-        -->
       </div>
 
       <!-- Секция входа для администратора -->
@@ -287,6 +271,7 @@
               </div>
             </div>
           </div>
+
           <!-- Карточка ручного ввода -->
           <div class="col-md-6">
             <div class="card border-success bg-light">
@@ -324,6 +309,7 @@
               </div>
             </div>
           </div>
+
           <!-- Управление данными, экспорт, лог, статистика -->
           <div class="col-12">
             <div class="card border-info bg-light mt-3">
@@ -365,6 +351,7 @@
             </div>
           </div>
         </div>
+
         <!-- Таблица пользователей -->
         <div id="usersTable" class="mt-4" style="overflow-x: auto;"></div>
       </div>
@@ -521,6 +508,7 @@
       >
         <i class="fas fa-users"></i>
       </button>
+
       <!-- Кнопка для трансляции -->
       <button
         class="btn"
@@ -529,6 +517,16 @@
       >
         <i class="fas fa-video"></i>
       </button>
+
+      <!-- Кнопка «Написать нам в Telegram» (новая) -->
+      <button
+        class="btn"
+        onclick="window.open('https://t.me/pesocnye_ostrova', '_blank')"
+        title="Связаться в Telegram"
+      >
+        <i class="fab fa-telegram-plane"></i>
+      </button>
+
       <!-- Кнопка для администратора -->
       <button
         class="btn"
@@ -628,7 +626,7 @@
         section.classList.add("active");
         section.scrollIntoView({ behavior: "smooth", block: "start" });
         setTimeout(() => window.scrollBy(0, -100), 500);
-        
+
         if (sectionId === "registerSection") {
           document.querySelector(".logo").style.display = "none";
         } else {
@@ -838,7 +836,9 @@
             if (error) console.error(error);
             if (document.getElementById("paymentQRCode")) {
               document.getElementById("paymentQRCode").innerHTML = "";
-              document.getElementById("paymentQRCode").appendChild(canvas);
+              document
+                .getElementById("paymentQRCode")
+                .appendChild(canvas);
             }
           }
         );

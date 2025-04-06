@@ -23,9 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
     <!-- Firebase (compat) -->
-    <!-- Новый скрипт для Auth (ВАЖНО: обязательно до firestore-compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
     <style>
@@ -351,6 +349,7 @@
               <i class="fas fa-file-export"></i> Экспорт в Excel
             </button>
 
+            <!-- Старая кнопка: удалить последнее посещение у "lastScannedChild" -->
             <button
               class="btn btn-danger w-100 mt-2"
               id="removeVisitBtn"
@@ -601,7 +600,7 @@
       </div>
     </div>
 
-    <!-- Основной JS-код -->
+    <!-- Основной JS-код без сокращений -->
     <script>
       // ======== Инициализация Firebase ========
       const firebaseConfig = {
@@ -613,29 +612,7 @@
         appId: "1:632919679127:web:564b427bca7f0052a289d2"
       };
       firebase.initializeApp(firebaseConfig);
-
-      // *** ВАЖНО: подключаем Firestore ***
       const db = firebase.firestore();
-
-      // *** NEW ***: Проверяем ?token=... в URL, если есть – авторизуемся
-      (function checkTelegramToken() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const customToken = urlParams.get('token');
-        if (customToken) {
-          firebase.auth().signInWithCustomToken(customToken)
-            .then((userCredential) => {
-              console.log("Телеграм-вход выполнен! UID=", userCredential.user.uid);
-              alert("Вы успешно авторизованы через Telegram.");
-              // При желании, переключаемся сразу на нужный раздел
-              // showSection("visitorLoginSection");
-              // или показываем клубную карту, если у вас есть логика...
-            })
-            .catch((err) => {
-              console.error("Ошибка входа через кастомный токен:", err);
-              alert("Ошибка входа через Telegram:\n" + err.message);
-            });
-        }
-      })();
 
       // ======== Глобальные переменные ========
       let visitors = {};
@@ -705,7 +682,7 @@
         }
       }
 
-      // ======== Вход посетителя (старый метод логин/пароль) ========
+      // ======== Вход посетителя ========
       function visitorLogin() {
         let login = document.getElementById("visitorLoginInput")?.value;
         let password = document.getElementById("visitorPasswordInput")?.value;
@@ -1378,7 +1355,7 @@
         );
       }
 
-      // ======== Делаем функции доступны глобально (для onclick) ========
+      // ======== Дополняем логику: делаем функции доступны глобально ========
       window.showSection=showSection;
       window.adminLogin=adminLogin;
       window.visitorLogin=visitorLogin;
@@ -1394,6 +1371,7 @@
       window.logError=logError;
       window.startQRScanner=startQRScanner;
       window.stopQRScanner=stopQRScanner;
+      // добавляем новую функцию
       window.removeVisitSelected = removeVisitSelected;
     </script>
   </body>

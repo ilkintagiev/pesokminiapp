@@ -248,47 +248,22 @@
       <div id="adminPanelSection" class="content-section">
         <h3 class="black-label mb-3">Панель администратора</h3>
         <div class="row g-3">
-          <!-- Карточка QR-сканирования -->
+          <!-- Блок для посещения (QR + ручной ввод) -->
           <div class="col-md-6">
             <div class="card border-primary bg-light">
               <div class="card-body">
-                <h5 class="card-title">QR-сканирование</h5>
-                <p class="card-text">
-                  Быстрое добавление посещений и подтверждение оплат
-                </p>
+                <h5 class="card-title">Посещение</h5>
+                <p class="card-text">Сканировать или вручную добавить посещение</p>
+
+                <!-- Кнопка и сканер для VISIT -->
                 <button
                   class="btn btn-primary w-100 mt-2"
                   onclick="startQRScanner('visit')"
                 >
                   <i class="fas fa-qrcode"></i> Сканировать QR-код посещения
                 </button>
-                <button
-                  class="btn btn-success w-100 mt-2"
-                  onclick="startQRScanner('payment')"
-                >
-                  <i class="fas fa-money-bill-wave"></i> Сканировать QR-код оплаты
-                </button>
-                <div id="qrScanner" class="qr-container" style="display: none;">
-                  <video id="qrVideo"></video>
-                  <canvas id="qrCanvas"></canvas>
-                  <button
-                    class="btn btn-danger w-100 mt-2"
-                    onclick="stopQRScanner()"
-                  >
-                    <i class="fas fa-stop"></i> Остановить сканирование
-                  </button>
-                  <div id="debugInfo"></div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Карточка ручного ввода -->
-          <div class="col-md-6">
-            <div class="card border-success bg-light">
-              <div class="card-body">
-                <h5 class="card-title">Ручной ввод</h5>
-                <p class="card-text">Если нет возможности сканировать QR-код</p>
+                <!-- Ручной ввод для VISIT -->
                 <input
                   type="text"
                   class="form-control mt-2"
@@ -301,6 +276,26 @@
                 >
                   <i class="fas fa-user-plus"></i> Добавить посещение
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Блок для оплаты (QR + ручной ввод) -->
+          <div class="col-md-6">
+            <div class="card border-success bg-light">
+              <div class="card-body">
+                <h5 class="card-title">Оплата</h5>
+                <p class="card-text">Сканировать или вручную подтвердить оплату</p>
+
+                <!-- Кнопка и сканер для PAYMENT -->
+                <button
+                  class="btn btn-success w-100 mt-2"
+                  onclick="startQRScanner('payment')"
+                >
+                  <i class="fas fa-money-bill-wave"></i> Сканировать QR-код оплаты
+                </button>
+
+                <!-- Ручной ввод для PAYMENT -->
                 <input
                   type="text"
                   class="form-control mt-3"
@@ -313,53 +308,83 @@
                 >
                   <i class="fas fa-check-circle"></i> Подтвердить оплату
                 </button>
+
+                <!-- Отображение текущего счёта (посещений) у последнего отсканированного -->
                 <p class="mt-3">
-                  <strong>Текущий счёт:</strong>
+                  <strong>Текущий счёт (для последнего отсканированного):</strong>
                   <span id="adminVisits">0</span>
                 </p>
               </div>
             </div>
           </div>
 
-          <!-- Управление данными, экспорт, лог, статистика -->
-          <div class="col-12">
-            <div class="card border-info bg-light mt-3">
-              <div class="card-body">
-                <h5 class="card-title">Управление данными</h5>
-                <p class="card-text">
-                  Посмотреть всех пользователей, экспорт, удалять визиты, лог и т.д.
-                </p>
-                <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">
-                  <i class="fas fa-users"></i> Показать всех пользователей
-                </button>
-                <button
-                  class="btn btn-secondary w-100 mt-2"
-                  onclick="exportToExcel()"
-                >
-                  <i class="fas fa-file-export"></i> Экспорт в Excel
-                </button>
-                <button
-                  class="btn btn-danger w-100 mt-2"
-                  id="removeVisitBtn"
-                  onclick="removeVisit()"
-                  disabled
-                >
-                  <i class="fas fa-trash-alt"></i> Удалить последнее посещение
-                </button>
-                <button
-                  class="btn btn-info w-100 mt-2"
-                  onclick="showErrorLog()"
-                >
-                  <i class="fas fa-exclamation-triangle"></i> Показать лог ошибок
-                </button>
-                <button
-                  class="btn btn-warning w-100 mt-2"
-                  onclick="showStats()"
-                >
-                  <i class="fas fa-chart-bar"></i> Статистика
-                </button>
-              </div>
+          <!-- Сам сканер для QR (скрыт по умолчанию) -->
+          <div id="qrScanner" class="qr-container" style="display: none;">
+            <video id="qrVideo"></video>
+            <canvas id="qrCanvas"></canvas>
+            <button
+              class="btn btn-danger w-100 mt-2"
+              onclick="stopQRScanner()"
+            >
+              <i class="fas fa-stop"></i> Остановить сканирование
+            </button>
+            <div id="debugInfo"></div>
+          </div>
+        </div>
+
+        <!-- Управление данными, экспорт, лог, статистика -->
+        <div class="card border-info bg-light mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Управление данными</h5>
+            <p class="card-text">
+              Посмотреть всех пользователей, экспорт, удалять визиты, лог и т.д.
+            </p>
+            <button class="btn btn-info w-100 mt-2" onclick="showAllUsers()">
+              <i class="fas fa-users"></i> Показать всех пользователей
+            </button>
+            <button
+              class="btn btn-secondary w-100 mt-2"
+              onclick="exportToExcel()"
+            >
+              <i class="fas fa-file-export"></i> Экспорт в Excel
+            </button>
+
+            <!-- Старая кнопка: удалить последнее посещение у "lastScannedChild" -->
+            <button
+              class="btn btn-danger w-100 mt-2"
+              id="removeVisitBtn"
+              onclick="removeVisit()"
+              disabled
+            >
+              <i class="fas fa-trash-alt"></i> Удалить последнее посещение (отсканированного)
+            </button>
+
+            <!-- Новый блок: выбрать ребёнка и удалить посещение -->
+            <div class="mt-3">
+              <label for="childSelectForRemove" class="form-label"><strong>Выберите ребёнка:</strong></label>
+              <select id="childSelectForRemove" class="form-select">
+                <!-- Будем наполнять динамически -->
+              </select>
+              <button
+                class="btn btn-danger w-100 mt-2"
+                onclick="removeVisitSelected()"
+              >
+                <i class="fas fa-user-minus"></i> Удалить последнее посещение (из списка)
+              </button>
             </div>
+
+            <button
+              class="btn btn-info w-100 mt-2"
+              onclick="showErrorLog()"
+            >
+              <i class="fas fa-exclamation-triangle"></i> Показать лог ошибок
+            </button>
+            <button
+              class="btn btn-warning w-100 mt-2"
+              onclick="showStats()"
+            >
+              <i class="fas fa-chart-bar"></i> Статистика
+            </button>
           </div>
         </div>
 
@@ -519,6 +544,7 @@
       </div>
     </div>
 
+    <!-- Нижняя панель навигации -->
     <nav class="navbar-bottom">
       <button
         class="btn"
@@ -603,6 +629,9 @@
           visitors[docSnap.id] = docSnap.data();
         });
         console.log("Visitors обновлены:", visitors);
+
+        // Одновременно, если мы в админ-панели, обновим список для removeVisitSelected
+        populateChildSelectForRemove();
       });
       db.collection("errorLog").onSnapshot((snapshot) => {
         errorLog = [];
@@ -939,7 +968,9 @@
             }).then(stream=>{
               video.srcObject = stream;
               video.play();
-              dbg.innerText = `Камера активна, сканирование ${type==="visit"?"посещения":"оплаты"}...`;
+              dbg.innerText = (scanType==="visit")
+                ? "Камера активна, сканирование посещения..."
+                : "Камера активна, сканирование оплаты...";
               scanQRCode();
             }).catch(err=>{
               dbg.innerText = `Ошибка камеры: ${err.message}`;
@@ -998,7 +1029,6 @@
         for(let childName in visitors){
           let user = visitors[childName];
           if(user.visitKey===visitKey && user.registered && user.paid){
-            // Можем проверять expiration, но пусть всегда работает
             user.visits++;
             lastScannedChild = childName;
             db.collection("visitors").doc(childName).set(user);
@@ -1007,7 +1037,6 @@
             let rvb=document.getElementById("removeVisitBtn");
             if(rvb) rvb.disabled=false;
             alert(`Посещение добавлено для ${childName}!`);
-            // Генерируем снова (новый QR)
             generateVisitQR(childName);
             return;
           }
@@ -1089,7 +1118,7 @@
         }
       }
 
-      // ======== Удаление последнего посещения ========
+      // ======== Удаление последнего посещения (для lastScannedChild) ========
       function removeVisit() {
         if(lastScannedChild && visitors[lastScannedChild]){
           let u=visitors[lastScannedChild];
@@ -1112,6 +1141,48 @@
         } else {
           alert("Сначала отсканируйте QR-код посещения!");
         }
+      }
+
+      // ======== Заполняем список select для ручного удаления посещений ========
+      function populateChildSelectForRemove(){
+        let sel = document.getElementById("childSelectForRemove");
+        if(!sel) return;
+        sel.innerHTML="";
+        let optDefault = document.createElement("option");
+        optDefault.value="";
+        optDefault.textContent="Выберите ребёнка...";
+        sel.appendChild(optDefault);
+
+        for(let childName in visitors){
+          let op=document.createElement("option");
+          op.value=childName;
+          op.textContent=childName;
+          sel.appendChild(op);
+        }
+      }
+
+      // ======== Удаление последнего посещения, выбранного вручную из списка ========
+      function removeVisitSelected() {
+        let sel = document.getElementById("childSelectForRemove");
+        if(!sel) return;
+        let childName = sel.value;
+        if(!childName){
+          alert("Сначала выберите ребёнка из списка!");
+          return;
+        }
+        let u=visitors[childName];
+        if(!u){
+          alert("Такого ребёнка нет в базе.");
+          return;
+        }
+        if(u.visits>0){
+          u.visits--;
+          db.collection("visitors").doc(childName).set(u);
+          alert(`Уменьшено посещение для ${childName}. Текущее: ${u.visits}`);
+        } else {
+          alert(`У ребёнка ${childName} нет посещений для удаления.`);
+        }
+        showAllUsers();
       }
 
       // ======== Показать всех пользователей ========
@@ -1284,13 +1355,13 @@
         );
       }
 
-      // ======== Делаем функции доступны глобально ========
+      // ======== Дополняем логику: делаем функции доступны глобально ========
       window.showSection=showSection;
       window.adminLogin=adminLogin;
       window.visitorLogin=visitorLogin;
       window.registerCard=registerCard;
       window.addVisitFromManual=addVisitFromManual;
-      window.removeVisit=removeVisit;
+      window.removeVisit=removeVisit; // по lastScannedChild
       window.confirmPaymentManual=confirmPaymentManual;
       window.showAllUsers=showAllUsers;
       window.exportToExcel=exportToExcel;
@@ -1300,6 +1371,8 @@
       window.logError=logError;
       window.startQRScanner=startQRScanner;
       window.stopQRScanner=stopQRScanner;
+      // добавляем новую функцию
+      window.removeVisitSelected = removeVisitSelected;
     </script>
   </body>
 </html>

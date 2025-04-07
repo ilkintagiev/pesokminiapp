@@ -199,6 +199,22 @@
           color: #000;
         }
       }
+
+      /* Спиннер загрузки */
+      .spinner {
+        display: none;
+        margin: 10px auto;
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #ff9800;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
@@ -322,6 +338,7 @@
           <div id="qrScanner" class="qr-container" style="display: none;">
             <video id="qrVideo"></video>
             <canvas id="qrCanvas"></canvas>
+            <div class="spinner" id="qrSpinner"></div>
             <button
               class="btn btn-danger w-100 mt-2"
               onclick="stopQRScanner()"
@@ -389,7 +406,7 @@
         </div>
 
         <!-- Таблица пользователей -->
-        <div id="usersTable" class="mt-4" style="overflow-x: auto;"></div>
+        <div id="usersTable" class="mt-4 table-responsive" style="overflow-x: auto;"></div>
       </div>
 
       <!-- Секция входа для посетителя -->
@@ -767,10 +784,29 @@
           alert("Пароль должен быть не менее 6 символов!");
           return;
         }
-        if (!/^\+?\d{10,12}$/.test(phone)) {
-          alert("Введите корректный номер телефона!");
+
+        // Проверка даты рождения
+        let today = new Date();
+        let birth = new Date(birthDate);
+        let age = today.getFullYear() - birth.getFullYear();
+        if (birth > today || age > 18) {
+          alert("Дата рождения некорректна!");
           return;
         }
+
+        // Строгая проверка телефона (например, +7XXXXXXXXXX)
+        if (!/^\+7\d{10}$/.test(phone)) {
+          alert("Введите номер в формате +7XXXXXXXXXX!");
+          return;
+        }
+
+        // Проверка уникальности логина
+        let loginExists = Object.values(visitors).some(u => u.login === login);
+        if (loginExists) {
+          alert("Этот логин уже занят!");
+          return;
+        }
+
         if (!visitors[childName]) {
           let hashed = CryptoJS.SHA256(pwd).toString();
           let adminKey = generateAdminKey(childName, parentName, birthDate);
@@ -888,7 +924,7 @@
         // Каждый вход генерируем новый ключ
         let visitKey = generateKey("VISIT", childName);
         visitors[childName].visitKey = visitKey;
-        visitors[childName].visitKeyExpiration = Date.now() + 24*60*60*1000;
+        visitors[childName].visitKeyExpiration = Date.now() + 24*60*60*1000; // 24 часа
 
         let data = `visit:${visitKey}`;
         let qrDiv = document.getElementById("visitQRCode");
@@ -950,8 +986,10 @@
         let vid = document.getElementById("qrVideo");
         let canv = document.getElementById("qrCanvas");
         let dbg = document.getElementById("debugInfo");
+        let spinner = document.getElementById("qrSpinner");
 
         qrS.style.display = "block";
+        spinner.style.display = "block";
         dbg.innerText = "Запуск камеры...";
 
         navigator.mediaDevices.enumerateDevices().then((devices)=>{
@@ -959,6 +997,7 @@
           if (videoDevs.length===0) {
             alert("На устройстве нет доступных камер.");
             qrS.style.display = "none";
+            spinner.style.display = "none";
             return;
           }
           if(!video) {
@@ -971,17 +1010,22 @@
               dbg.innerText = (scanType==="visit")
                 ? "Камера активна, сканирование посещения..."
                 : "Камера активна, сканирование оплаты...";
+              spinner.style.display = "none";
               scanQRCode();
             }).catch(err=>{
               dbg.innerText = `Ошибка камеры: ${err.message}`;
+              logError(`Ошибка камеры: ${err.message}`);
               alert(`Не удалось открыть камеру: ${err.message}`);
               qrS.style.display = "none";
+              spinner.style.display = "none";
             });
           }
         }).catch(err=>{
           dbg.innerText = `Ошибка проверки устройств: ${err.message}`;
+          logError(`Ошибка проверки устройств: ${err.message}`);
           alert("Не удалось проверить устройства: " + err.message);
           qrS.style.display = "none";
+          spinner.style.display = "none";
         });
 
         function scanQRCode(){
@@ -1028,7 +1072,7 @@
       function addVisitFromQR(visitKey) {
         for(let childName in visitors){
           let user = visitors[childName];
-          if(user.visitKey===visitKey && user.registered && user.paid){
+          if(user.visitKey===visitKey && user.registered && user.paid && Date.now() < user.visitKeyExpiration){
             user.visits++;
             lastScannedChild = childName;
             db.collection("visitors").doc(childName).set(user);
@@ -1041,7 +1085,7 @@
             return;
           }
         }
-        alert("Неверный QR-код посещения или карта не оплачена!");
+        alert("Неверный или просроченный QR-код посещения, или карта не оплачена!");
       }
 
       function addVisitFromManual() {
@@ -1049,7 +1093,7 @@
         if(vKey){
           for(let childName in visitors){
             let u=visitors[childName];
-            if(u.visitKey===vKey && u.registered && u.paid){
+            if(u.visitKey===vKey && u.registered && u.paid && Date.now() < u.visitKeyExpiration){
               u.visits++;
               lastScannedChild=childName;
               db.collection("visitors").doc(childName).set(u);
@@ -1063,7 +1107,7 @@
               return;
             }
           }
-          alert("Неверный код посещения или карта не оплачена!");
+          alert("Неверный или просроченный код посещения, или карта не оплачена!");
         } else {
           alert("Введите код посещения!");
         }
@@ -1112,7 +1156,7 @@
               body:msg,
               icon:"Ресурс 1@10x.png"
             });
-          }).catch(err=> alert("Ошибка push: "+err.message));
+          }).catch(err=> logError("Ошибка push: "+err.message));
         } else {
           console.log(`Push для ${childName}: ${msg} (возможно без HTTPS)`);
         }
@@ -1321,7 +1365,7 @@
         ]);
         let wb=XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb,ws,"Посетители");
-        XLSX.writeFile(wb,"Visitors_Pесочные_Острова.xlsx",{bookSST:true,type:"binary"});
+        XLSX.writeFile(wb,"Visitors_Песочные_Острова.xlsx",{bookSST:true,type:"binary"});
       }
 
       // ======== Лог ошибок ========
@@ -1371,7 +1415,6 @@
       window.logError=logError;
       window.startQRScanner=startQRScanner;
       window.stopQRScanner=stopQRScanner;
-      // добавляем новую функцию
       window.removeVisitSelected = removeVisitSelected;
     </script>
   </body>

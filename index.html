@@ -704,48 +704,47 @@
         let login = document.getElementById("visitorLoginInput")?.value;
         let password = document.getElementById("visitorPasswordInput")?.value;
         let rememberMe = document.getElementById("rememberMe")?.checked;
-        let hashed = CryptoJS.SHA256(password).toString();
 
         for (let childName in visitors) {
           let user = visitors[childName];
-          if (
-            user.login === login &&
-            user.password === hashed &&
-            user.registered
-          ) {
-            if (rememberMe) {
-              localStorage.setItem("savedLogin", login);
-              localStorage.setItem("savedPassword", password);
-            } else {
-              localStorage.removeItem("savedLogin");
-              localStorage.removeItem("savedPassword");
+          if (user.login === login && user.registered) {
+            const salt = user.passwordSalt;
+            const hashedInput = CryptoJS.SHA256(salt + password).toString();
+            if (hashedInput === user.passwordHash) {
+              if (rememberMe) {
+                localStorage.setItem("savedLogin", login);
+                localStorage.setItem("savedPassword", password);
+              } else {
+                localStorage.removeItem("savedLogin");
+                localStorage.removeItem("savedPassword");
+              }
+
+              // Если уже оплачено, показываем клубную карту
+              if (user.paid) {
+                showSection("clubCardSection");
+                document.getElementById("cardChildName").innerText = childName;
+
+                // Генерируем новый QR посещения (меняется каждый раз)
+                generateVisitQR(childName);
+
+                // Скрываем блок unpaid
+                document.getElementById("unpaidBlock").style.display = "none";
+
+                // Обновляем прогресс
+                updateCard(childName);
+              } else {
+                // Если НЕ оплачено — показываем клубную карту, но без visits
+                showSection("clubCardSection");
+                document.getElementById("cardChildName").innerText = childName;
+                document.getElementById("unpaidBlock").style.display = "block";
+
+                // Генерируем новый QR оплаты
+                generateUnpaidPaymentQR(childName);
+
+                updateCard(childName);
+              }
+              return;
             }
-
-            // Если уже оплачено, показываем клубную карту
-            if (user.paid) {
-              showSection("clubCardSection");
-              document.getElementById("cardChildName").innerText = childName;
-
-              // Генерируем новый QR посещения (меняется каждый раз)
-              generateVisitQR(childName);
-
-              // Скрываем блок unpaid
-              document.getElementById("unpaidBlock").style.display = "none";
-
-              // Обновляем прогресс
-              updateCard(childName);
-            } else {
-              // Если НЕ оплачено — показываем клубную карту, но без visits
-              showSection("clubCardSection");
-              document.getElementById("cardChildName").innerText = childName;
-              document.getElementById("unpaidBlock").style.display = "block";
-
-              // Генерируем новый QR оплаты
-              generateUnpaidPaymentQR(childName);
-
-              updateCard(childName);
-            }
-            return;
           }
         }
         alert("Неверный логин или пароль!");
@@ -808,13 +807,15 @@
         }
 
         if (!visitors[childName]) {
-          let hashed = CryptoJS.SHA256(pwd).toString();
+          const salt = CryptoJS.lib.WordArray.random(16).toString();
+          const hashedPassword = CryptoJS.SHA256(salt + pwd).toString();
           let adminKey = generateAdminKey(childName, parentName, birthDate);
           let regDate = new Date().toISOString().split("T")[0];
 
           visitors[childName] = {
             login,
-            password: hashed,
+            passwordSalt: salt,
+            passwordHash: hashedPassword,
             parentName,
             birthDate,
             phone,
@@ -832,11 +833,14 @@
           let payKey = generatePaymentQR(childName);
           document.getElementById("paymentKeyDisplay").innerText = payKey;
 
-          db.collection("visitors").doc(childName).set(visitors[childName]);
-          alert(
-            `Карта зарегистрирована!\n` +
-            `Покажите QR-код оплаты администратору или передайте ключ: ${payKey}.`
-          );
+          db.collection("visitors").doc(childName).set(visitors[childName])
+            .then(() => {
+              alert(`Карта зарегистрирована!\nПокажите QR-код оплаты администратору или передайте ключ: ${payKey}.`);
+            })
+            .catch(err => {
+              logError(`Ошибка при регистрации: ${err.message}`);
+              alert("Произошла ошибка при регистрации!");
+            });
         } else {
           alert("Этот ребёнок уже зарегистрирован!");
         }
@@ -888,7 +892,8 @@
             }
           );
         }
-        db.collection("visitors").doc(childName).set(visitors[childName]);
+        db.collection("visitors").doc(childName).set(visitors[childName])
+          .catch(err => logError(`Ошибка при обновлении paymentKey: ${err.message}`));
         return payKey;
       }
 
@@ -916,7 +921,8 @@
           );
         }
         if (spanKey) spanKey.innerText = payKey;
-        db.collection("visitors").doc(childName).set(visitors[childName]);
+        db.collection("visitors").doc(childName).set(visitors[childName])
+          .catch(err => logError(`Ошибка при обновлении paymentKey: ${err.message}`));
         return payKey;
       }
 
@@ -942,7 +948,8 @@
           );
         }
         if (spanKey) spanKey.innerText = visitKey;
-        db.collection("visitors").doc(childName).set(visitors[childName]);
+        db.collection("visitors").doc(childName).set(visitors[childName])
+          .catch(err => logError(`Ошибка при обновлении visitKey: ${err.message}`));
         return visitKey;
       }
 
@@ -970,7 +977,8 @@
         }
         if (visits >= 6) {
           visitors[childName].visits = 0;
-          db.collection("visitors").doc(childName).set(visitors[childName]);
+          db.collection("visitors").doc(childName).set(visitors[childName])
+            .catch(err => logError(`Ошибка при сбросе посещений: ${err.message}`));
           alert("Счётчик посещений сброшен! Начинаем заново.");
           updateCard(childName);
         }
@@ -1075,7 +1083,8 @@
           if(user.visitKey===visitKey && user.registered && user.paid && Date.now() < user.visitKeyExpiration){
             user.visits++;
             lastScannedChild = childName;
-            db.collection("visitors").doc(childName).set(user);
+            db.collection("visitors").doc(childName).set(user)
+              .catch(err => logError(`Ошибка при обновлении посещений: ${err.message}`));
             let av=document.getElementById("adminVisits");
             if(av) av.innerText=user.visits;
             let rvb=document.getElementById("removeVisitBtn");
@@ -1096,7 +1105,8 @@
             if(u.visitKey===vKey && u.registered && u.paid && Date.now() < u.visitKeyExpiration){
               u.visits++;
               lastScannedChild=childName;
-              db.collection("visitors").doc(childName).set(u);
+              db.collection("visitors").doc(childName).set(u)
+                .catch(err => logError(`Ошибка при обновлении посещений: ${err.message}`));
               let av=document.getElementById("adminVisits");
               if(av) av.innerText=u.visits;
               let rvb=document.getElementById("removeVisitBtn");
@@ -1118,7 +1128,8 @@
           let u=visitors[childName];
           if(u.paymentKey===paymentKey){
             u.paid=true;
-            db.collection("visitors").doc(childName).set(u);
+            db.collection("visitors").doc(childName).set(u)
+              .catch(err => logError(`Ошибка при подтверждении оплаты: ${err.message}`));
             alert(`Оплата для ${childName} подтверждена!`);
             sendPushToUser(childName,"Ваша карта активирована!");
             return;
@@ -1134,7 +1145,8 @@
             let u=visitors[childName];
             if(u.paymentKey===pKey){
               u.paid=true;
-              db.collection("visitors").doc(childName).set(u);
+              db.collection("visitors").doc(childName).set(u)
+                .catch(err => logError(`Ошибка при подтверждении оплаты: ${err.message}`));
               alert(`Оплата для ${childName} подтверждена!`);
               sendPushToUser(childName,"Ваша карта активирована!");
               document.getElementById("manualPaymentKey").value="";
@@ -1168,7 +1180,8 @@
           let u=visitors[lastScannedChild];
           if(u.visits>0){
             u.visits--;
-            db.collection("visitors").doc(lastScannedChild).set(u);
+            db.collection("visitors").doc(lastScannedChild).set(u)
+              .catch(err => logError(`Ошибка при удалении посещения: ${err.message}`));
             let av=document.getElementById("adminVisits");
             if(av) av.innerText=u.visits;
             alert(`Последнее посещение для ${lastScannedChild} удалено!`);
@@ -1221,7 +1234,8 @@
         }
         if(u.visits>0){
           u.visits--;
-          db.collection("visitors").doc(childName).set(u);
+          db.collection("visitors").doc(childName).set(u)
+            .catch(err => logError(`Ошибка при удалении посещения: ${err.message}`));
           alert(`Уменьшено посещение для ${childName}. Текущее: ${u.visits}`);
         } else {
           alert(`У ребёнка ${childName} нет посещений для удаления.`);
@@ -1231,54 +1245,83 @@
 
       // ======== Показать всех пользователей ========
       function showAllUsers() {
-        let html=`
-          <table class='table table-striped' id='allUsersTable'>
-          <thead>
-            <tr>
-              <th>Ребёнок</th>
-              <th>Родитель</th>
-              <th>Дата рождения</th>
-              <th>Телефон</th>
-              <th>Статус</th>
-              <th>Ключ оплаты</th>
-              <th>Код посещения</th>
-              <th>Посещений</th>
-              <th>Дата регистрации</th>
-              <th>Админ-ключ</th>
-              <th>Логин</th>
-              <th>Пароль (хэш)</th>
-            </tr>
-          </thead>
-          <tbody>
-        `;
-        for(let childName in visitors){
-          let u=visitors[childName];
-          let rowClass=u.paid ? "table-success":"table-warning";
-          let statusBadge = u.paid
-            ? "<span class='badge bg-success'>Paid</span>"
-            : "<span class='badge bg-danger'>Not Paid</span>";
-          html+=`
-            <tr class="${rowClass}"
-                data-child="${childName.toLowerCase()}"
-                data-parent="${(u.parentName||"").toLowerCase()}"
-                data-phone="${(u.phone||"").toLowerCase()}">
-              <td>${childName}</td>
-              <td>${u.parentName}</td>
-              <td>${u.birthDate}</td>
-              <td>${u.phone}</td>
-              <td>${statusBadge}</td>
-              <td>${u.paymentKey}</td>
-              <td>${u.visitKey}</td>
-              <td>${u.visits}</td>
-              <td>${u.registrationDate}</td>
-              <td>${u.adminKey}</td>
-              <td>${u.login}</td>
-              <td>${u.password}</td>
-            </tr>
-          `;
+        const table = document.createElement('table');
+        table.className = 'table table-striped';
+        const thead = document.createElement('thead');
+        const trHead = document.createElement('tr');
+        ['Ребёнок', 'Родитель', 'Дата рождения', 'Телефон', 'Статус', 'Ключ оплаты', 'Код посещения', 'Посещений', 'Дата регистрации', 'Админ-ключ', 'Логин', 'Пароль (хэш)'].forEach(headerText => {
+          const th = document.createElement('th');
+          th.textContent = headerText;
+          trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        for (let childName in visitors) {
+          let u = visitors[childName];
+          const tr = document.createElement('tr');
+          tr.className = u.paid ? 'table-success' : 'table-warning';
+          tr.dataset.child = childName.toLowerCase();
+          tr.dataset.parent = (u.parentName || '').toLowerCase();
+          tr.dataset.phone = (u.phone || '').toLowerCase();
+
+          const tdChild = document.createElement('td');
+          tdChild.textContent = childName;
+          tr.appendChild(tdChild);
+
+          const tdParent = document.createElement('td');
+          tdParent.textContent = u.parentName;
+          tr.appendChild(tdParent);
+
+          const tdBirthDate = document.createElement('td');
+          tdBirthDate.textContent = u.birthDate;
+          tr.appendChild(tdBirthDate);
+
+          const tdPhone = document.createElement('td');
+          tdPhone.textContent = u.phone;
+          tr.appendChild(tdPhone);
+
+          const tdStatus = document.createElement('td');
+          const statusBadge = document.createElement('span');
+          statusBadge.className = u.paid ? 'badge bg-success' : 'badge bg-danger';
+          statusBadge.textContent = u.paid ? 'Paid' : 'Not Paid';
+          tdStatus.appendChild(statusBadge);
+          tr.appendChild(tdStatus);
+
+          const tdPaymentKey = document.createElement('td');
+          tdPaymentKey.textContent = u.paymentKey;
+          tr.appendChild(tdPaymentKey);
+
+          const tdVisitKey = document.createElement('td');
+          tdVisitKey.textContent = u.visitKey;
+          tr.appendChild(tdVisitKey);
+
+          const tdVisits = document.createElement('td');
+          tdVisits.textContent = u.visits;
+          tr.appendChild(tdVisits);
+
+          const tdRegDate = document.createElement('td');
+          tdRegDate.textContent = u.registrationDate;
+          tr.appendChild(tdRegDate);
+
+          const tdAdminKey = document.createElement('td');
+          tdAdminKey.textContent = u.adminKey;
+          tr.appendChild(tdAdminKey);
+
+          const tdLogin = document.createElement('td');
+          tdLogin.textContent = u.login;
+          tr.appendChild(tdLogin);
+
+          const tdPassword = document.createElement('td');
+          tdPassword.textContent = `${u.passwordHash} (соль: ${u.passwordSalt})`;
+          tr.appendChild(tdPassword);
+
+          tbody.appendChild(tr);
         }
-        html+="</tbody></table>";
-        document.getElementById("usersTable").innerHTML=html;
+        table.appendChild(tbody);
+        document.getElementById("usersTable").innerHTML = '';
+        document.getElementById("usersTable").appendChild(table);
       }
 
       // ======== Статистика ========
@@ -1304,7 +1347,8 @@
         let cN=document.getElementById("cardChildName")?.innerText;
         if(confirm("Вы уверены, что хотите удалить аккаунт?")){
           delete visitors[cN];
-          db.collection("visitors").doc(cN).delete();
+          db.collection("visitors").doc(cN).delete()
+            .catch(err => logError(`Ошибка при удалении аккаунта: ${err.message}`));
           alert("Аккаунт удалён!");
           showSection("visitorLoginSection");
         }
@@ -1329,7 +1373,7 @@
             u.registrationDate,
             u.adminKey,
             u.login,
-            u.password
+            `${u.passwordHash} (соль: ${u.passwordSalt})`
           ]);
         }
         data.push([
@@ -1372,7 +1416,8 @@
       function logError(message){
         let errObj={date:new Date().toISOString(),message};
         errorLog.push(errObj);
-        db.collection("errorLog").add(errObj);
+        db.collection("errorLog").add(errObj)
+          .catch(err => console.error("Ошибка при добавлении лога:", err));
       }
 
       function showErrorLog(){

@@ -41,6 +41,19 @@
         transition: background-color 0.3s ease, color 0.3s ease;
       }
 
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background: #fff;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+        transition: background-color 0.3s ease;
+      }
+
       .main-container {
         flex: 1;
         padding: 20px;
@@ -73,7 +86,7 @@
         opacity: 0;
         animation-duration: 0.5s;
         animation-fill-mode: forwards;
-        transition: background 0.3s ease, color 0.3s ease;
+        transition: background-color 0.3s ease, color 0.3s ease;
       }
       .content-section.active {
         display: block;
@@ -98,6 +111,7 @@
         justify-content: center;
         gap: 20px;
         z-index: 9999;
+        transition: background-color 0.3s ease;
       }
       .navbar-bottom .btn {
         width: 50px;
@@ -112,6 +126,7 @@
         border: 2px solid #ff9800 !important;
         transition: all 0.2s ease !important;
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
       }
       .navbar-bottom .btn:hover {
         background: #ff9800 !important;
@@ -223,11 +238,14 @@
         background-color: #121212;
         color: #e0e0e0;
       }
+      .header.dark-mode {
+        background: #222;
+      }
       .content-section.dark-mode {
         background: linear-gradient(
           135deg,
           rgba(50, 50, 50, 0.9),
-          rgba(30, 30, 30, 0.85)
+          rgba(70, 70, 70, 0.85)
         );
       }
       .navbar-bottom.dark-mode {
@@ -238,33 +256,39 @@
         color: #ff9800 !important;
         border: 2px solid #ff9800 !important;
       }
-      .navbar-bottom .btn:hover.dark-mode {
+      .navbar-bottom .btn.dark-mode:hover {
         background: #ff9800 !important;
         color: #fff !important;
       }
       .card.dark-mode {
-        background-color: #222;
-      }
-      .table.dark-mode {
+        background: #333;
         color: #e0e0e0;
       }
       .table.dark-mode th {
-        background-color: #333;
+        background-color: #444;
       }
       .table.dark-mode td {
-        border-color: #444;
+        border-color: #555;
+      }
+      .modal-content.dark-mode {
+        background: #333;
+        color: #e0e0e0;
       }
     </style>
   </head>
   <body>
-    <div class="main-container">
-      <!-- Логотип -->
+    <div class="header">
       <img
         src="Ресурс 1@10x.png"
         alt="Логотип Песочные Острова"
         class="logo"
       />
+      <button id="themeToggle" title="Переключить тему">
+        <i id="themeIcon" class="fas fa-moon"></i>
+      </button>
+    </div>
 
+    <div class="main-container">
       <!-- Секция приветствия -->
       <div id="welcomeSection" class="content-section active">
         <h3 class="black-label">Добро пожаловать в «Песочные Острова»!</h3>
@@ -630,10 +654,6 @@
       >
         <i class="fas fa-user-tie"></i>
       </button>
-      <!-- Переключатель темной темы -->
-      <button class="btn" id="themeToggle" title="Переключить тему">
-        <i class="fas fa-moon"></i>
-      </button>
     </nav>
 
     <!-- Модальное окно для статистики -->
@@ -681,20 +701,6 @@
       let lastScannedChild = null;
       let adminLoggedIn = false;
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
-     -const PBKDF2_ITERATIONS = 10000; // Количество итераций для PBKDF2
-
-      // ======== Функция для генерации соли ========
-      function generateSalt() {
-        return CryptoJS.lib.WordArray.random(128 / 8).toString();
-      }
-
-      // ======== Функция для хеширования пароля с солью ========
-      function hashPassword(password, salt) {
-        return CryptoJS.PBKDF2(password, salt, {
-          keySize: 256 / 32,
-          iterations: PBKDF2_ITERATIONS
-        }).toString();
-      }
 
       // ======== Подписка на изменения Firestore ========
       db.collection("visitors").onSnapshot((snapshot) => {
@@ -765,8 +771,11 @@
         for (let childName in visitors) {
           let user = visitors[childName];
           if (user.login === login && user.registered) {
-            let hashedInput = hashPassword(password, user.salt);
-            if (user.password === hashedInput) {
+            // Проверка пароля с использованием PBKDF2
+            let salt = user.salt;
+            let storedHash = user.password;
+            let hashedInput = CryptoJS.PBKDF2(password, salt, { keySize: 256/32, iterations: 1000 }).toString();
+            if (hashedInput === storedHash) {
               if (rememberMe) {
                 localStorage.setItem("savedLogin", login);
                 localStorage.setItem("savedPassword", password);
@@ -820,10 +829,12 @@
           document.getElementById("adminPassword").value = sa;
           document.getElementById("rememberAdmin").checked = true;
         }
-
-        // Восстанавливаем темную тему
-        if (localStorage.getItem("darkMode") === "enabled") {
-          enableDarkMode();
+        // Восстановление темы
+        if (localStorage.getItem("theme") === "dark") {
+          document.body.classList.add("dark-mode");
+          applyDarkMode();
+          document.getElementById("themeIcon").classList.remove("fa-moon");
+          document.getElementById("themeIcon").classList.add("fa-sun");
         }
       };
 
@@ -868,8 +879,11 @@
         }
 
         if (!visitors[childName]) {
-          let salt = generateSalt();
-          let hashed = hashPassword(pwd, salt);
+          // Генерация случайной соли
+          let salt = CryptoJS.lib.WordArray.random(128/8).toString();
+          // Хеширование пароля с солью с помощью PBKDF2
+          let hashed = CryptoJS.PBKDF2(pwd, salt, { keySize: 256/32, iterations: 1000 }).toString();
+
           let adminKey = generateAdminKey(childName, parentName, birthDate);
           let regDate = new Date().toISOString().split("T")[0];
 
@@ -1131,7 +1145,7 @@
         document.getElementById("debugInfo").innerText="";
       }
 
-      function addVisitFromQR(visitKey) {
+      function addVisitFromQR(visitKey Popper) {
         for(let childName in visitors){
           let user = visitors[childName];
           if(user.visitKey===visitKey && user.registered && user.paid && Date.now() < user.visitKeyExpiration){
@@ -1461,36 +1475,6 @@
         );
       }
 
-      // ======== Темная тема ========
-      const themeToggle = document.getElementById("themeToggle");
-      themeToggle.addEventListener("click", () => {
-        if (document.body.classList.contains("dark-mode")) {
-          disableDarkMode();
-        } else {
-          enableDarkMode();
-        }
-      });
-
-      function enableDarkMode() {
-        document.body.classList.add("dark-mode");
-        document.querySelectorAll(".content-section").forEach(sec => sec.classList.add("dark-mode"));
-        document.querySelector(".navbar-bottom").classList.add("dark-mode");
-        document.querySelectorAll(".navbar-bottom .btn").forEach(btn => btn.classList.add("dark-mode"));
-        document.querySelectorAll(".card").forEach(card => card.classList.add("dark-mode"));
-        document.querySelectorAll(".table").forEach(table => table.classList.add("dark-mode"));
-        localStorage.setItem("darkMode", "enabled");
-      }
-
-      function disableDarkMode() {
-        document.body.classList.remove("dark-mode");
-        document.querySelectorAll(".content-section").forEach(sec => sec.classList.remove("dark-mode"));
-        document.querySelector(".navbar-bottom").classList.remove("dark-mode");
-        document.querySelectorAll(".navbar-bottom .btn").forEach(btn => btn.classList.remove("dark-mode"));
-        document.querySelectorAll(".card").forEach(card => card.classList.remove("dark-mode"));
-        document.querySelectorAll(".table").forEach(table => table.classList.remove("dark-mode"));
-        localStorage.setItem("darkMode", "disabled");
-      }
-
       // ======== Дополняем логику: делаем функции доступны глобально ========
       window.showSection=showSection;
       window.adminLogin=adminLogin;
@@ -1508,6 +1492,45 @@
       window.startQRScanner=startQRScanner;
       window.stopQRScanner=stopQRScanner;
       window.removeVisitSelected = removeVisitSelected;
+
+      // ======== Переключатель темной темы ========
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = document.getElementById("themeIcon");
+
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        if (document.body.classList.contains("dark-mode")) {
+          themeIcon.classList.remove("fa-moon");
+          themeIcon.classList.add("fa-sun");
+          localStorage.setItem("theme", "dark");
+          applyDarkMode();
+        } else {
+          themeIcon.classList.remove("fa-sun");
+          themeIcon.classList.add("fa-moon");
+          localStorage.setItem("theme", "light");
+          removeDarkMode();
+        }
+      });
+
+      function applyDarkMode() {
+        document.querySelectorAll(".content-section").forEach(sec => sec.classList.add("dark-mode"));
+        document.querySelector(".header").classList.add("dark-mode");
+        document.querySelector(".navbar-bottom").classList.add("dark-mode");
+        document.querySelectorAll(".navbar-bottom .btn").forEach(btn => btn.classList.add("dark-mode"));
+        document.querySelectorAll(".card").forEach(card => card.classList.add("dark-mode"));
+        document.querySelectorAll(".table").forEach(table => table.classList.add("dark-mode"));
+        document.querySelectorAll(".modal-content").forEach(modal => modal.classList.add("dark-mode"));
+      }
+
+      function removeDarkMode() {
+        document.querySelectorAll(".content-section").forEach(sec => sec.classList.remove("dark-mode"));
+        document.querySelector(".header").classList.remove("dark-mode");
+        document.querySelector(".navbar-bottom").classList.remove("dark-mode");
+        document.querySelectorAll(".navbar-bottom .btn").forEach(btn => btn.classList.remove("dark-mode"));
+        document.querySelectorAll(".card").forEach(card => card.classList.remove("dark-mode"));
+        document.querySelectorAll(".table").forEach(table => table.classList.remove("dark-mode"));
+        document.querySelectorAll(".modal-content").forEach(modal => modal.classList.remove("dark-mode"));
+      }
     </script>
   </body>
 </html>

@@ -38,6 +38,7 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        transition: background-color 0.3s ease, color 0.3s ease;
       }
 
       .main-container {
@@ -72,6 +73,7 @@
         opacity: 0;
         animation-duration: 0.5s;
         animation-fill-mode: forwards;
+        transition: background 0.3s ease, color 0.3s ease;
       }
       .content-section.active {
         display: block;
@@ -214,6 +216,43 @@
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
+      }
+
+      /* Темная тема */
+      body.dark-mode {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+      .content-section.dark-mode {
+        background: linear-gradient(
+          135deg,
+          rgba(50, 50, 50, 0.9),
+          rgba(30, 30, 30, 0.85)
+        );
+      }
+      .navbar-bottom.dark-mode {
+        background: linear-gradient(90deg, #333, #555);
+      }
+      .navbar-bottom .btn.dark-mode {
+        background: #444 !important;
+        color: #ff9800 !important;
+        border: 2px solid #ff9800 !important;
+      }
+      .navbar-bottom .btn:hover.dark-mode {
+        background: #ff9800 !important;
+        color: #fff !important;
+      }
+      .card.dark-mode {
+        background-color: #222;
+      }
+      .table.dark-mode {
+        color: #e0e0e0;
+      }
+      .table.dark-mode th {
+        background-color: #333;
+      }
+      .table.dark-mode td {
+        border-color: #444;
       }
     </style>
   </head>
@@ -591,6 +630,10 @@
       >
         <i class="fas fa-user-tie"></i>
       </button>
+      <!-- Переключатель темной темы -->
+      <button class="btn" id="themeToggle" title="Переключить тему">
+        <i class="fas fa-moon"></i>
+      </button>
     </nav>
 
     <!-- Модальное окно для статистики -->
@@ -638,6 +681,20 @@
       let lastScannedChild = null;
       let adminLoggedIn = false;
       const ADMIN_PASSWORDS = ["SandMaster23", "IslandGuard27", "PesokKing99"];
+     -const PBKDF2_ITERATIONS = 10000; // Количество итераций для PBKDF2
+
+      // ======== Функция для генерации соли ========
+      function generateSalt() {
+        return CryptoJS.lib.WordArray.random(128 / 8).toString();
+      }
+
+      // ======== Функция для хеширования пароля с солью ========
+      function hashPassword(password, salt) {
+        return CryptoJS.PBKDF2(password, salt, {
+          keySize: 256 / 32,
+          iterations: PBKDF2_ITERATIONS
+        }).toString();
+      }
 
       // ======== Подписка на изменения Firestore ========
       db.collection("visitors").onSnapshot((snapshot) => {
@@ -704,48 +761,46 @@
         let login = document.getElementById("visitorLoginInput")?.value;
         let password = document.getElementById("visitorPasswordInput")?.value;
         let rememberMe = document.getElementById("rememberMe")?.checked;
-        let hashed = CryptoJS.SHA256(password).toString();
 
         for (let childName in visitors) {
           let user = visitors[childName];
-          if (
-            user.login === login &&
-            user.password === hashed &&
-            user.registered
-          ) {
-            if (rememberMe) {
-              localStorage.setItem("savedLogin", login);
-              localStorage.setItem("savedPassword", password);
-            } else {
-              localStorage.removeItem("savedLogin");
-              localStorage.removeItem("savedPassword");
+          if (user.login === login && user.registered) {
+            let hashedInput = hashPassword(password, user.salt);
+            if (user.password === hashedInput) {
+              if (rememberMe) {
+                localStorage.setItem("savedLogin", login);
+                localStorage.setItem("savedPassword", password);
+              } else {
+                localStorage.removeItem("savedLogin");
+                localStorage.removeItem("savedPassword");
+              }
+
+              // Если уже оплачено, показываем клубную карту
+              if (user.paid) {
+                showSection("clubCardSection");
+                document.getElementById("cardChildName").innerText = childName;
+
+                // Генерируем новый QR посещения (меняется каждый раз)
+                generateVisitQR(childName);
+
+                // Скрываем блок unpaid
+                document.getElementById("unpaidBlock").style.display = "none";
+
+                // Обновляем прогресс
+                updateCard(childName);
+              } else {
+                // Если НЕ оплачено — показываем клубную карту, но без visits
+                showSection("clubCardSection");
+                document.getElementById("cardChildName").innerText = childName;
+                document.getElementById("unpaidBlock").style.display = "block";
+
+                // Генерируем новый QR оплаты
+                generateUnpaidPaymentQR(childName);
+
+                updateCard(childName);
+              }
+              return;
             }
-
-            // Если уже оплачено, показываем клубную карту
-            if (user.paid) {
-              showSection("clubCardSection");
-              document.getElementById("cardChildName").innerText = childName;
-
-              // Генерируем новый QR посещения (меняется каждый раз)
-              generateVisitQR(childName);
-
-              // Скрываем блок unpaid
-              document.getElementById("unpaidBlock").style.display = "none";
-
-              // Обновляем прогресс
-              updateCard(childName);
-            } else {
-              // Если НЕ оплачено — показываем клубную карту, но без visits
-              showSection("clubCardSection");
-              document.getElementById("cardChildName").innerText = childName;
-              document.getElementById("unpaidBlock").style.display = "block";
-
-              // Генерируем новый QR оплаты
-              generateUnpaidPaymentQR(childName);
-
-              updateCard(childName);
-            }
-            return;
           }
         }
         alert("Неверный логин или пароль!");
@@ -764,6 +819,11 @@
         if (sa) {
           document.getElementById("adminPassword").value = sa;
           document.getElementById("rememberAdmin").checked = true;
+        }
+
+        // Восстанавливаем темную тему
+        if (localStorage.getItem("darkMode") === "enabled") {
+          enableDarkMode();
         }
       };
 
@@ -808,13 +868,15 @@
         }
 
         if (!visitors[childName]) {
-          let hashed = CryptoJS.SHA256(pwd).toString();
+          let salt = generateSalt();
+          let hashed = hashPassword(pwd, salt);
           let adminKey = generateAdminKey(childName, parentName, birthDate);
           let regDate = new Date().toISOString().split("T")[0];
 
           visitors[childName] = {
             login,
             password: hashed,
+            salt: salt, // Сохраняем соль
             parentName,
             birthDate,
             phone,
@@ -1397,6 +1459,36 @@
         navigator.serviceWorker.register("sw.js").catch(err=>
           console.error("SW регистрация не удалась:",err)
         );
+      }
+
+      // ======== Темная тема ========
+      const themeToggle = document.getElementById("themeToggle");
+      themeToggle.addEventListener("click", () => {
+        if (document.body.classList.contains("dark-mode")) {
+          disableDarkMode();
+        } else {
+          enableDarkMode();
+        }
+      });
+
+      function enableDarkMode() {
+        document.body.classList.add("dark-mode");
+        document.querySelectorAll(".content-section").forEach(sec => sec.classList.add("dark-mode"));
+        document.querySelector(".navbar-bottom").classList.add("dark-mode");
+        document.querySelectorAll(".navbar-bottom .btn").forEach(btn => btn.classList.add("dark-mode"));
+        document.querySelectorAll(".card").forEach(card => card.classList.add("dark-mode"));
+        document.querySelectorAll(".table").forEach(table => table.classList.add("dark-mode"));
+        localStorage.setItem("darkMode", "enabled");
+      }
+
+      function disableDarkMode() {
+        document.body.classList.remove("dark-mode");
+        document.querySelectorAll(".content-section").forEach(sec => sec.classList.remove("dark-mode"));
+        document.querySelector(".navbar-bottom").classList.remove("dark-mode");
+        document.querySelectorAll(".navbar-bottom .btn").forEach(btn => btn.classList.remove("dark-mode"));
+        document.querySelectorAll(".card").forEach(card => card.classList.remove("dark-mode"));
+        document.querySelectorAll(".table").forEach(table => table.classList.remove("dark-mode"));
+        localStorage.setItem("darkMode", "disabled");
       }
 
       // ======== Дополняем логику: делаем функции доступны глобально ========
